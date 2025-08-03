@@ -1,0 +1,26 @@
+.ant-menu-submenu-selected .ant-menu-submenu-title {
+  @apply !bg-black !text-white;
+}
+
+.ant-menu-item:active:not(.ant-menu-item-selected),
+.ant-menu-submenu:active:not(.ant-menu-submenu-selected)
+  .ant-menu-submenu-title {
+  @apply !bg-gray-200;
+}
+
+.ant-menu-item-selected {
+  @apply !bg-black !text-white;
+}
+
+.ant-menu-item-selected svg {
+  @apply !fill-white;
+}
+
+.ant-menu-submenu .ant-menu-item {
+  @apply !ps-6;
+}
+
+.ant-menu-item,
+.ant-menu-submenu-title {
+  @apply !outline-none;
+}

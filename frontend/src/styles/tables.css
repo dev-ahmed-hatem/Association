@@ -1,0 +1,7 @@
+.clickable-table tbody tr {
+  cursor: pointer;
+}
+
+.black-header thead th {
+  @apply !bg-black !text-white hover:!bg-shark-900;
+}

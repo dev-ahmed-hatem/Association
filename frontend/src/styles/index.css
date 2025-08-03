@@ -1,0 +1,38 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+  font-family: "Cairo";
+  src: url("/fonts/cairo/Cairo.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+}
+
+* {
+  direction: rtl;
+  @apply font-cairo;
+}
+
+*:not([class^="ant"]) {
+  @apply duration-75;
+}
+
+*::-webkit-scrollbar {
+  height: 6px;
+  width: 6px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: theme(colors.calypso.900);
+  border-radius: theme(borderRadius.DEFAULT);
+  width: 6px;
+}
+
+*::-webkit-scrollbar-track {
+  background-color: theme(colors.white);
+}
+
+.rounded .ant-image-mask {
+  @apply rounded-full;
+}
