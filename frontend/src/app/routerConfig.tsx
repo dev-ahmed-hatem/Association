@@ -1,20 +1,8 @@
 import { RouteObject } from "react-router";
 import appRoutes, { AppRoute } from "./appRoutes";
-import EmployeeProfilePage from "@/pages/clients/EmployeeProfilePage";
-import EmployeeForm from "@/pages/clients/EmployeeForm";
-import ProjectForm from "@/pages/projects/ProjectForm";
-import ProjectProfilePage from "@/pages/projects/ProjectProfilePage";
-import TaskProfilePage from "@/pages/tasks/TaskProfilePage";
-import TaskForm from "@/pages/tasks/TaskForm";
-import FinancialForm from "@/pages/financials/FinancialForm";
-import FinancialProfilePage from "@/pages/financials/FinancialProfilePage";
-import SalaryForm from "@/pages/financials/SalaryForm";
-import AddSchedule from "@/pages/schedules/AddSchedule";
-import NotePreview from "@/pages/notes/NotePreview";
-import AddNote from "@/pages/notes/AddNote";
-import EmployeeEdit from "@/pages/clients/EmployeeEdit";
-import ProjectEdit from "@/pages/projects/ProjectEdit";
-import TaskEdit from "@/pages/tasks/TaskEdit";
+import ClientForm from "@/pages/clients/ClientForm";
+import ClientProfilePage from "@/pages/clients/ClientProfilePage";
+import ClientEdit from "@/pages/clients/ClientEdit";
 
 const alterRoute = function (
   appRoutes: AppRoute[],
@@ -72,35 +60,11 @@ const addSubRoutes = (
 };
 
 let routes: RouteObject[] = addSubRoutes(appRoutes, {
-  employees: [
-    { path: "employee-profile/:emp_id", element: <EmployeeProfilePage /> },
-    { path: "add", element: <EmployeeForm /> },
-    { path: "edit/:emp_id", element: <EmployeeEdit /> },
+  clients: [
+    { path: "client-profile/:client_id", element: <ClientProfilePage /> },
+    { path: "add", element: <ClientForm /> },
+    { path: "edit/:client_id", element: <ClientEdit /> },
   ],
-  projects: [
-    { path: "project/:project_id", element: <ProjectProfilePage /> },
-    { path: "add", element: <ProjectForm /> },
-    { path: "edit/:project_id", element: <ProjectEdit /> },
-  ],
-  tasks: [
-    { path: "task/:task_id", element: <TaskProfilePage /> },
-    { path: "add", element: <TaskForm /> },
-    { path: "edit/:task_id", element: <TaskEdit /> },
-  ],
-  "financials/incomes": [
-    { path: "add", element: <FinancialForm financialItem="income" /> },
-    { path: ":income_id", element: <FinancialProfilePage /> },
-  ],
-  "financials/expenses": [
-    { path: "add", element: <FinancialForm financialItem="expense" /> },
-    { path: ":expense_id", element: <FinancialProfilePage /> },
-  ],
-  "financials/salaries": [{ path: "edit", element: <SalaryForm /> }],
-  notes: [
-    { path: ":note_id", element: <NotePreview /> },
-    { path: "add", element: <AddNote /> },
-  ],
-  schedules: [{ path: "add", element: <AddSchedule /> }],
 });
 
 export default routes;

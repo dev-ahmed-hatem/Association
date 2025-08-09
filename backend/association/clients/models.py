@@ -78,8 +78,10 @@ class Client(models.Model):
     )
     phone_number = models.CharField(
         max_length=15,
+        unique=True,
         verbose_name=_("رقم الهاتف"),
-        error_messages={"blank": _("يرجى إدخال رقم الهاتف")}
+        error_messages={"blank": _("يرجى إدخال رقم الهاتف"),
+                        "unique": _("رقم الهاتف مستخدم من قبل")}
     )
     membership_type = models.CharField(
         max_length=10,
@@ -133,13 +135,15 @@ class Client(models.Model):
         User,
         on_delete=models.SET_NULL,
         null=True,
-        blank=True,
         verbose_name=_("تم الإنشاء بواسطة")
     )
 
     class Meta:
         verbose_name = _("عميل")
         verbose_name_plural = _("العملاء")
+
+    def get_seniority(self):
+        return f"{self.graduation_year}/{self.class_rank}"
 
     def __str__(self):
         return f"{self.get_rank_display()} {self.name} - {self.membership_number}"

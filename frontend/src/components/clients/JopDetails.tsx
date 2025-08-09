@@ -1,18 +1,28 @@
+import { Client } from "@/types/client";
 import { Descriptions } from "antd";
-import { Employee } from "../../types/employee";
 
-const JopDetails = ({ employee }: { employee: Employee }) => {
+const JopDetails = ({ client }: { client: Client }) => {
   return (
     <Descriptions bordered column={1}>
-      <Descriptions.Item label="الكود">{employee.employee_id}</Descriptions.Item>
-      <Descriptions.Item label="المسمى الوظيفي">
-        {employee.position}
+      <Descriptions.Item label="الرتبة">{client.rank}</Descriptions.Item>
+      <Descriptions.Item label="رقم الأقدمية">
+        {client.seniority}
       </Descriptions.Item>
-      <Descriptions.Item label="القسم">{employee.department}</Descriptions.Item>
-      <Descriptions.Item label="تاريخ التوظيف">
-        {employee.hire_date}
+      <Descriptions.Item label="جهة العمل">
+        {client.work_entity}
       </Descriptions.Item>
-      <Descriptions.Item label="وضع العمل">{employee.mode}</Descriptions.Item>
+      <Descriptions.Item label="تاريخ التعيين">
+        {client.hire_date}
+      </Descriptions.Item>
+      <Descriptions.Item label="رقم العضوية">
+        {client.membership_number}
+      </Descriptions.Item>
+      <Descriptions.Item label="نوع العضوية">
+        {client.membership_type}
+      </Descriptions.Item>
+      <Descriptions.Item label="تاريخ الاشتراك">
+        {client.subscription_date}
+      </Descriptions.Item>
     </Descriptions>
   );
 };

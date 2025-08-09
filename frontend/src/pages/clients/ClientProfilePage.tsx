@@ -1,14 +1,5 @@
 import { useEffect, useState } from "react";
-import {
-  Card,
-  Avatar,
-  Tabs,
-  Button,
-  Switch,
-  Image,
-  Space,
-  Popconfirm,
-} from "antd";
+import { Card, Avatar, Tabs, Button, Switch, Popconfirm } from "antd";
 import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import { getInitials } from "../../utils";
 import { Employee } from "../../types/employee";
@@ -17,19 +8,20 @@ import PersonalInfo from "../../components/clients/PersonalInfo";
 import Performance from "../../components/clients/Performance";
 import Attendance from "../../components/clients/Attendance";
 import SalaryHistory from "../../components/clients/SalaryHistory";
-import {
-  employeesEndpoints,
-  useDeleteEmployeeMutation,
-  useGetEmployeeQuery,
-  useSwitchEmployeeActiveMutation,
-} from "@/app/api/endpoints/employees";
 import { useParams } from "react-router";
 import Loading from "@/components/Loading";
-import Error from "../Error";
+import ErrorPage from "../Error";
 import { useNavigate } from "react-router";
 import { axiosBaseQueryError } from "@/app/api/axiosBaseQuery";
 import { useAppDispatch } from "@/app/redux/hooks";
 import { useNotification } from "@/providers/NotificationProvider";
+import {
+  clientsEndpoints,
+  useClientMutation,
+  useGetClientQuery,
+  useSwitchClientActiveMutation,
+} from "@/app/api/endpoints/clients";
+import { Client } from "@/types/client";
 
 // Sample Employee Data
 const employee3: Employee = {
@@ -77,16 +69,16 @@ const employee3: Employee = {
   ],
 };
 
-const items = (employee: Employee) => [
+const items = (client: Client) => [
   {
     label: `التفاصيل الوظيفية`,
     key: "1",
-    children: <JopDetails employee={employee} />,
+    children: <JopDetails client={client} />,
   },
   {
     label: `المعلومات الشخصية`,
     key: "2",
-    children: <PersonalInfo employee={employee} />,
+    children: <PersonalInfo client={client} />,
   },
   {
     label: `الأداء الوظيفي`,
@@ -105,47 +97,44 @@ const items = (employee: Employee) => [
   },
 ];
 
-const titledAvatar = (name: string) => (
-  <Avatar size={80} className="bg-orange-700 font-semibold">
-    {getInitials(name)}
-  </Avatar>
-);
-
-const EmployeeProfilePage: React.FC = () => {
+const ClientProfilePage: React.FC = () => {
   const navigate = useNavigate();
   const notification = useNotification();
-  const { emp_id } = useParams();
+  const { client_id } = useParams();
   const {
-    data: employee,
+    data: client,
     isFetching,
     isError,
-    error: employeeError,
-  } = useGetEmployeeQuery({ id: emp_id as string, format: "detailed" });
+    error: clientError,
+  } = useGetClientQuery({ id: client_id as string, format: "detailed" });
   const [
     switchActive,
     { data: switchRes, isLoading: switching, isError: switchError },
-  ] = useSwitchEmployeeActiveMutation();
+  ] = useSwitchClientActiveMutation();
   const [
     deleteEmployee,
     { isError: deleteError, isLoading: deleting, isSuccess: deleted },
-  ] = useDeleteEmployeeMutation();
+  ] = useClientMutation();
 
   const dispatch = useAppDispatch();
 
-  const [imageError, setImageError] = useState(false);
   const [isActive, setIsActive] = useState<boolean | null>(null);
 
   const toggleStatus = () => {
-    switchActive(emp_id as string);
+    switchActive(client_id as string);
   };
 
   const handleDelete = () => {
-    deleteEmployee(emp_id as string);
+    deleteEmployee({
+      url: `/clients/clients/${client_id}/`,
+      method: "DELETE",
+      data: {},
+    });
   };
 
   useEffect(() => {
-    if (employee) setIsActive(employee.is_active);
-  }, [employee]);
+    if (client) setIsActive(client.is_active);
+  }, [client]);
 
   useEffect(() => {
     if (switchError) {
@@ -157,12 +146,12 @@ const EmployeeProfilePage: React.FC = () => {
 
   useEffect(() => {
     if (switchRes) {
-      if (employee) setIsActive(switchRes.is_active);
+      if (client) setIsActive(switchRes.is_active);
       dispatch(
-        employeesEndpoints.util.updateQueryData(
-          "getEmployee",
-          { id: emp_id as string, format: "detailed" },
-          (draft: Employee) => {
+        clientsEndpoints.util.updateQueryData(
+          "getClient",
+          { id: client_id as string, format: "detailed" },
+          (draft: Client) => {
             draft.is_active = switchRes.is_active;
           }
         )
@@ -176,7 +165,7 @@ const EmployeeProfilePage: React.FC = () => {
   useEffect(() => {
     if (deleteError) {
       notification.error({
-        message: "حدث خطأ أثناء حذف الموظف ! برجاء إعادة المحاولة",
+        message: "حدث خطأ أثناء حذف العضو ! برجاء إعادة المحاولة",
       });
     }
   }, [deleteError]);
@@ -184,51 +173,40 @@ const EmployeeProfilePage: React.FC = () => {
   useEffect(() => {
     if (deleted) {
       notification.success({
-        message: "تم حذف الموظف بنجاح",
+        message: "تم حذف العضو بنجاح",
       });
 
-      navigate("/employees");
+      navigate("/clients");
     }
   }, [deleted]);
 
   if (isFetching) return <Loading />;
   if (isError) {
     const error_title =
-      (employeeError as axiosBaseQueryError).status === 404
-        ? "موظف غير موجود! تأكد من كود الموظف المدخل."
+      (clientError as axiosBaseQueryError).status === 404
+        ? "عضو غير موجود! تأكد من كود العضو المدخل."
         : undefined;
 
-    return <Error subtitle={error_title} reload={error_title === undefined} />;
+    return (
+      <ErrorPage subtitle={error_title} reload={error_title === undefined} />
+    );
   }
   return (
     <>
-      {/* Employee Header */}
+      {/* Client Header */}
       <Card className="shadow-lg rounded-xl">
         <div className="flex items-center justify-between flex-wrap gap-y-6">
           {/* Avatar with Fallback */}
           <div className="flex items-center flex-wrap gap-4">
-            {employee!.image && !imageError ? (
-              <Space size={12} className="rounded">
-                <Image
-                  width={100}
-                  src={employee!.image}
-                  className="rounded-full"
-                  onError={() => {
-                    setImageError(true);
-                  }}
-                  preview={{
-                    movable: false,
-                    toolbarRender: () => <></>,
-                  }}
-                />
-              </Space>
-            ) : (
-              titledAvatar(employee!.name)
-            )}
+            <Avatar size={80} className="bg-blue-700 font-semibold">
+              {client!.membership_number}
+            </Avatar>
 
             <div>
-              <h2 className="text-xl font-bold">{employee!.name}</h2>
-              <p className="text-gray-500">{employee!.position}</p>
+              <h2 className="text-xl font-bold">
+                {client!.rank} / {client!.name}
+              </h2>
+              <p className="text-gray-500">{client!.seniority}</p>
             </div>
           </div>
 
@@ -254,7 +232,7 @@ const EmployeeProfilePage: React.FC = () => {
         )}
         className="mt-4"
         direction="rtl"
-        items={items(employee!)}
+        items={items(client!)}
       />
 
       <div className="flex justify-between mt-2 flex-wrap gap-2">
@@ -264,11 +242,11 @@ const EmployeeProfilePage: React.FC = () => {
             <span className="font-medium text-gray-700" dir="rtl">
               تاريخ الإضافة:{" "}
             </span>
-            {employee!.created_at}
+            {client!.created_at}
           </div>
           <div>
             <span className="font-medium text-gray-700">بواسطة: </span>
-            {employee!.created_by || "غير مسجل"}
+            {client!.created_by || "غير مسجل"}
           </div>
         </div>
 
@@ -278,13 +256,13 @@ const EmployeeProfilePage: React.FC = () => {
             type="primary"
             icon={<EditOutlined />}
             onClick={() => {
-              navigate(`/employees/edit/${emp_id}`);
+              navigate(`/clients/edit/${client_id}`);
             }}
           >
-            تعديل البيانات
+            تحديث البيانات
           </Button>
           <Popconfirm
-            title="هل أنت متأكد من حذف هذا الموظف؟"
+            title="هل أنت متأكد من حذف هذا العضو؟"
             onConfirm={handleDelete}
             okText="نعم"
             cancelText="لا"
@@ -295,7 +273,7 @@ const EmployeeProfilePage: React.FC = () => {
               icon={<DeleteOutlined />}
               loading={deleting}
             >
-              حذف الموظف
+              حذف العضو
             </Button>
           </Popconfirm>
         </div>
@@ -304,4 +282,4 @@ const EmployeeProfilePage: React.FC = () => {
   );
 };
 
-export default EmployeeProfilePage;
+export default ClientProfilePage;

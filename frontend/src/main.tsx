@@ -23,6 +23,18 @@ createRoot(document.getElementById("root")!).render(
       form={{
         scrollToFirstError: { behavior: "smooth", block: "center" },
       }}
+      card={{
+        styles: {
+          header: {
+            padding: "0px 20px",
+            margin: 0,
+            minHeight: "56px",
+            overflow: "hidden",
+            color: "white",
+            backgroundColor: "black",
+          },
+        },
+      }}
       locale={arEG}
     >
       <ReduxProvider store={store}>

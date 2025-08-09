@@ -1,7 +1,7 @@
 import { TablePaginationConfig } from "antd";
 import { RightOutlined, LeftOutlined } from "@ant-design/icons";
 
-type TablePaginationParams = {
+type TablePaginationParams = TablePaginationConfig & {
   pageSize?: number;
   total?: number;
   current?: number;
