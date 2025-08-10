@@ -74,7 +74,7 @@ const ClientStats: React.FC = () => {
 
       <div className="flex w-full flex-wrap items-center justify-between gap-10">
         {/* Active vs Inactive */}
-        <Card className="shadow-lg rounded-2xl w-[46%]">
+        <Card className="shadow-lg rounded-2xl w-full md:w-[46%]">
           <Title level={4} className="text-center mb-4">
             حالة النشاط
           </Title>
@@ -99,7 +99,7 @@ const ClientStats: React.FC = () => {
         </Card>
 
         {/* Subscription Growth */}
-        <Card className="shadow-lg rounded-2xl w-[46%]">
+        <Card className="shadow-lg rounded-2xl w-full md:w-[46%]">
           <Title level={4} className="text-center mb-4">
             نمو الاشتراكات
           </Title>

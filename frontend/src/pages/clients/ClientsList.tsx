@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Table, Input, Avatar, Space } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
 import { Link, useNavigate } from "react-router";
@@ -79,7 +79,7 @@ const ClientsList = () => {
       key: "work_entity",
     },
     {
-      title: "التكليفات الجارية",
+      title: "مستحقات",
       dataIndex: "assignments",
       key: "assignments",
     },

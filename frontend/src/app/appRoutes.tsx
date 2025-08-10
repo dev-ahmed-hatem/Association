@@ -2,10 +2,12 @@ import Base from "@/pages/Base";
 import Error from "@/pages/Error";
 import SectionView from "@/pages/SectionView";
 import { FaUser } from "react-icons/fa";
+import { SettingOutlined } from "@ant-design/icons";
 import { RouteObject } from "react-router";
 import LoginPage from "@/pages/LoginPage";
 import AuthProvider from "@/providers/AuthProvider";
 import ClientsList from "@/pages/clients/ClientsList";
+import SettingsPage from "@/pages/Settings";
 
 export type AppRoute = RouteObject & {
   key?: string;
@@ -31,6 +33,12 @@ export const appRoutes: AppRoute[] = [
         ),
         icon: <FaUser />,
         label: "الأعضاء",
+      },
+      {
+        path: "settings",
+        element: <SettingsPage />,
+        icon: <SettingOutlined />,
+        label: "الإعدادات",
       },
       // {
       //   path: "financials",
