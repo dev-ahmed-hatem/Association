@@ -1,6 +1,8 @@
 import Welcome from "@/components/home/Welcome";
 import NavigationGrid from "../components/home/NavigationGrid";
 import ClientStats from "@/components/home/ClientsStats";
+import FinancialStatistics from "@/components/home/FinancialsStatitics";
+import { Divider } from "antd";
 
 const Home = () => {
   return (
@@ -8,6 +10,8 @@ const Home = () => {
       <Welcome />
       <div className="my-6"></div>
       <ClientStats />
+      <Divider className="my-16" />
+      <FinancialStatistics />
       <div className="my-16"></div>
       <NavigationGrid />
       <div className="my-16"></div>

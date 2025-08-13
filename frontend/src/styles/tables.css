@@ -2,6 +2,6 @@
   cursor: pointer;
 }
 
-.black-header thead th {
-  @apply !bg-black !text-white hover:!bg-shark-900;
+.minsk-header thead th {
+  @apply !bg-minsk-950 !text-white hover:!bg-minsk-800;
 }

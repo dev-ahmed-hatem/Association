@@ -51,7 +51,8 @@ const Breadcrumbs: React.FC = () => {
             return (
               <Link
                 to={route.href!}
-                className="inline-block bg-black hover:bg-shark-900 text-white text-center px-4"
+                className="inline-block bg-gradient-to-r from-minsk to-slate-900
+              hover:from-minsk/90 hover:to-slate-800 text-white text-center px-4"
               >
                 <HomeOutlined />
               </Link>

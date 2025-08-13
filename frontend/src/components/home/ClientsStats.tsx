@@ -14,6 +14,9 @@ import {
   Line,
   Legend,
 } from "recharts";
+import WorkEntityStatsCards from "./WorkentitiesStats";
+import { useGetWorkEntitiesQuery } from "@/app/api/endpoints/workentities";
+import Loading from "../Loading";
 
 const { Title } = Typography;
 
@@ -35,7 +38,7 @@ const activeData = [
   { name: "متقاعد", value: 5 },
 ];
 
-const COLORS = ["#00C49F", "#FF8042"];
+const COLORS = ["#00ca4b", "#FF8042"];
 
 const subscriptionData = [
   { month: "2024-01", total: 3 },
@@ -47,6 +50,10 @@ const subscriptionData = [
 ];
 
 const ClientStats: React.FC = () => {
+  const { data: entities, isFetching } = useGetWorkEntitiesQuery({
+    no_pagination: true,
+  });
+
   return (
     <div className="p-4 gap-6">
       {/* Dashboard Title */}
@@ -118,7 +125,17 @@ const ClientStats: React.FC = () => {
             </LineChart>
           </ResponsiveContainer>
         </Card>
-      </div>
+        </div>
+
+        {isFetching && <Loading />}
+        {entities && (
+          <WorkEntityStatsCards
+            entities={entities.map((entity) => ({
+              ...entity,
+              clientCount: Math.floor(Math.random() * (500 - 50 + 1)) + 50,
+            }))}
+          />
+        )}
     </div>
   );
 };

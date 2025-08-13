@@ -1,5 +1,5 @@
 .ant-menu-submenu-selected .ant-menu-submenu-title {
-  @apply !bg-black !text-white;
+  @apply !bg-gradient-to-r from-minsk to-minsk-950 !text-white;
 }
 
 .ant-menu-item:active:not(.ant-menu-item-selected),
@@ -9,7 +9,7 @@
 }
 
 .ant-menu-item-selected {
-  @apply !bg-black !text-white;
+  @apply !bg-gradient-to-r from-minsk to-minsk-950 !text-white;
 }
 
 .ant-menu-item-selected svg {

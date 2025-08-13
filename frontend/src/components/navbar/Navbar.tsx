@@ -1,11 +1,50 @@
-import { IoMenu } from "react-icons/io5";
-import Logo from "../Logo";
-import { RxAvatar } from "react-icons/rx";
-import { Popover } from "antd";
+import { Popover, Tag } from "antd";
 import { useState } from "react";
 import UserMenu from "./UserMenu";
-import { NavLink } from "react-router";
 import { useAppSelector } from "@/app/redux/hooks";
+import { LuPanelRight } from "react-icons/lu";
+import { CgLogIn } from "react-icons/cg";
+import { CodeOutlined, CrownOutlined, TeamOutlined } from "@ant-design/icons";
+
+// Role Tag Renderer
+const renderRoleTag = (user?: {
+  is_root?: boolean;
+  is_superuser?: boolean;
+}) => {
+  if (user?.is_root) {
+    return (
+      <Tag
+        icon={<CodeOutlined />}
+        color="purple"
+        className="px-3 py-1 text-sm font-medium"
+      >
+        مطور
+      </Tag>
+    );
+  }
+
+  if (user?.is_superuser) {
+    return (
+      <Tag
+        icon={<CrownOutlined />}
+        color="gold"
+        className="px-3 py-1 text-sm font-medium"
+      >
+        مدير
+      </Tag>
+    );
+  }
+
+  return (
+    <Tag
+      icon={<TeamOutlined />}
+      color="blue"
+      className="px-3 py-1 text-sm font-medium"
+    >
+      مشرف
+    </Tag>
+  );
+};
 
 const Navbar = ({
   menuOpen,
@@ -22,25 +61,26 @@ const Navbar = ({
   };
 
   return (
-    <div className="padding-container flex justify-between items-center bg-black py-2 h-24">
-      <IoMenu
-        className="text-white hover:text-shark text-4xl md:text-5xl cursor-pointer"
-        onClick={() => {
-          setMenuOpen(!menuOpen);
-        }}
-      />
-      {/* <div className="logo h-12 md:h-16">
-        <NavLink to={"/"}>
-          <Logo className="fill-calypso-900 hover:fill-calypso-950" />
-          <img src="/logo.jpeg" alt="logo" className="h-full" />
-        </NavLink>
-      </div> */}
+    <div
+      className="padding-container flex justify-between items-center
+      bg-gradient-to-r from-minsk to-minsk-950
+      py-2 h-20"
+    >
+      <div className="p-1 rounded-lg hover:bg-minsk-900 bg-opacity-75">
+        <LuPanelRight
+          className="text-white text-2xl md:text-3xl cursor-pointer"
+          onClick={() => {
+            setMenuOpen(!menuOpen);
+          }}
+        />
+      </div>
       <div className="user">
         <Popover
           content={
             <UserMenu
               role={
-                user?.is_root ? "مطور" : user?.is_superuser ? "مدير" : "مشرف"
+                renderRoleTag(user!)
+                // user?.is_root ? "مطور" : user?.is_superuser ? "مدير" : "مشرف"
               }
             />
           }
@@ -49,7 +89,9 @@ const Navbar = ({
           open={open}
           onOpenChange={handleOpenChange}
         >
-          <RxAvatar className="text-4xl md:text-5xl text-white hover:text-shark cursor-pointer" />
+          <div className="p-1 rounded-lg hover:bg-minsk-800 bg-opacity-50">
+            <CgLogIn className="text-2xl md:text-3xl text-white cursor-pointer" />
+          </div>
         </Popover>
       </div>
     </div>

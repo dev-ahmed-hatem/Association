@@ -59,8 +59,13 @@ const Menu = ({
           <div className="flex justify-between items-center">
             {" "}
             <span>القائمة</span>
-            <Link to="/settings" title="الإعدادات" onClick={() => onClose()}>
-              <SettingOutlined className="text-2xl text-gray-600 hover:text-black hover:bg-shark-100 rounded p-1" />
+            <Link
+              to="/settings"
+              title="الإعدادات"
+              onClick={() => onClose()}
+              className="rounded-lg p-1 hover:bg-slate-300 flex items-center justify-center"
+            >
+              <SettingOutlined className="text-2xl text-gray-600 hover:text-minsk hover:bg-shark-100 rounded" />
             </Link>
           </div>
         }

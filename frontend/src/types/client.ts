@@ -10,6 +10,18 @@ export const rankValues = [
   "لواء مساعد وزير",
 ] as const;
 
+export const rankColors: Record<Rank, string> = {
+  ملازم: "blue",
+  "ملازم أول": "geekblue",
+  نقيب: "cyan",
+  رائد: "green",
+  مقدم: "lime",
+  عقيد: "gold",
+  عميد: "orange",
+  لواء: "volcano",
+  "لواء مساعد وزير": "magenta",
+};
+
 export type Rank = (typeof rankValues)[number];
 
 export interface Client {

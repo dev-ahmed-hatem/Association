@@ -18,7 +18,11 @@ const WorkEntitiesManager = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [message, setMessage] = useState<string>("");
 
-  const { data: entities, isFetching, isError } = useGetWorkEntitiesQuery({no_pagination: true});
+  const {
+    data: entities,
+    isFetching,
+    isError,
+  } = useGetWorkEntitiesQuery({ no_pagination: true });
   const [
     handleEntity,
     {
@@ -113,6 +117,9 @@ const WorkEntitiesManager = () => {
             setIsModalOpen(true);
           }}
           loading={handlingEntity}
+          className="bg-gradient-to-l from-green-800 to-green-600 
+        hover:from-green-700 hover:to-green-500 shadow-[0_2px_0_rgba(0,58,58,0.31)]
+         transition-all duration-200"
         >
           إضافة جهة عمل
         </Button>

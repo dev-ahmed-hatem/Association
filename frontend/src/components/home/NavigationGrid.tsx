@@ -10,7 +10,10 @@ export default function NavigationGrid() {
           <NavLink
             key={index}
             to={item.path!}
-            className="flex flex-col items-center justify-center py-8 p-4 bg-black text-white rounded-lg shadow-md hover:bg-shark-900"
+            className="flex flex-col items-center justify-center py-8 p-4 
+            rounded-lg shadow-md 
+            bg-gradient-to-bl from-minsk-700 to-minsk-900 
+            text-white hover:from-minsk-600 hover:to-minsk-800"
           >
             <div className="text-xl md:text-3xl">{item.icon}</div>
             <p className="mt-2 text-base md:text-lg text-center">

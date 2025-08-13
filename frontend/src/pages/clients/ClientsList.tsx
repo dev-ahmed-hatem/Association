@@ -1,12 +1,12 @@
 import { useState } from "react";
-import { Table, Input, Avatar, Space, Radio } from "antd";
+import { Table, Input, Avatar, Space, Radio, Tag } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
 import { Link, useNavigate } from "react-router";
 import { getInitials } from "../../utils";
 import { tablePaginationConfig } from "../../utils/antd";
 import Loading from "@/components/Loading";
 import { ColumnsType } from "antd/es/table";
-import { Client, rankValues } from "@/types/client";
+import { Client, Rank, rankColors, rankValues } from "@/types/client";
 import { useGetClientsQuery } from "@/app/api/endpoints/clients";
 import ErrorPage from "../Error";
 import { PaginatedResponse } from "@/types/paginatedResponse";
@@ -58,7 +58,10 @@ const ClientsList = () => {
             } size-2 inline-block`}
           ></span>
           {
-            <Avatar className="bg-blue-700 text-white font-semibold">
+            <Avatar
+              className="bg-gradient-to-br from-[#2c2e83] to-[#494c9a] text-white font-semibold"
+              // className="text-white font-semibold bg-gradient-to-br from-[#007332] to-[#2d9f5f]"
+            >
               {getInitials(record.name)}
             </Avatar>
           }
@@ -82,6 +85,12 @@ const ClientsList = () => {
       dataIndex: "rank",
       key: "rank",
       filters: rankValues.map((filter) => ({ value: filter, text: filter })),
+
+      render: (rank: Rank) => (
+        <Tag className="text-base" color={rankColors[rank]}>
+          {rank}
+        </Tag>
+      ),
       defaultFilteredValue: controls?.filters?.rank?.split(","),
     },
     {
@@ -168,7 +177,9 @@ const ClientsList = () => {
         <Link
           to={"/clients/add"}
           className="h-10 px-6 flex items-center text-white gap-2 rounded-lg
-       bg-green-700 hover:bg-green-600 shadow-[0_2px_0_rgba(0,58,58,0.31)]"
+          bg-gradient-to-l from-green-800 to-green-600 hover:from-green-700
+        hover:to-green-500 shadow-[0_2px_0_rgba(0,58,58,0.31)]
+          transition-all duration-200"
         >
           <PlusOutlined />
           <span>إضافة عضو</span>
@@ -209,7 +220,7 @@ const ClientsList = () => {
           }}
           bordered
           scroll={{ x: "max-content" }}
-          className="clickable-table  black-header"
+          className="clickable-table  minsk-header"
         />
       )}
     </>

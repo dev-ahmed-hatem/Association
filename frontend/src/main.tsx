@@ -16,8 +16,7 @@ createRoot(document.getElementById("root")!).render(
     <ConfigProvider
       theme={{
         token: {
-          colorPrimary: "#25272c",
-          fontFamily: "cairo",
+          colorPrimary: "#2c2e83",
         },
       }}
       form={{
@@ -31,7 +30,7 @@ createRoot(document.getElementById("root")!).render(
             minHeight: "56px",
             overflow: "hidden",
             color: "white",
-            backgroundColor: "black",
+            backgroundColor: "#2c2e83",
           },
         },
       }}
