@@ -8,6 +8,7 @@ import {
   Col,
   Card,
   Alert,
+  InputNumber,
 } from "antd";
 import dayjs, { Dayjs } from "dayjs";
 import { calculateAge, extractBirthdateFromNationalId } from "@/utils";
@@ -44,11 +45,21 @@ const ClientForm = ({
   const notification = useNotification();
   const navigate = useNavigate();
 
+  const [age, setAge] = useState("");
+
+  // payment states
+  const [paymentMethod, setPaymentMethod] = useState<string>("نقدي");
+  const [subscriptionFee, setSubscriptionFee] = useState<number>(0);
+  const [paidAmount, setPaidAmount] = useState<number>(0);
+
+  const remaining =
+    subscriptionFee > paidAmount ? subscriptionFee - paidAmount : 0;
+
   const {
     data: workentites,
     isFetching: loadingEntities,
     isError: entitiesError,
-  } = useGetWorkEntitiesQuery({});
+  } = useGetWorkEntitiesQuery({ no_pagination: true });
   const [
     addClient,
     { data: client, isSuccess, isLoading, isError, error: clientError },
@@ -116,8 +127,8 @@ const ClientForm = ({
             if (birth_date) {
               form.setFieldsValue({
                 birth_date: birth_date,
-                age: calculateAge(birth_date.format("YYYY-MM-DD")),
               });
+              setAge(calculateAge(birth_date.format("YYYY-MM-DD")));
             } else {
               form.setFieldsValue({
                 birth_date: undefined,
@@ -187,8 +198,8 @@ const ClientForm = ({
               </Form.Item>
             </Col>
             <Col xs={24} md={12}>
-              <Form.Item name="age" label="العمر">
-                <Input type="number" disabled placeholder="يحسب تلقائيا" />
+              <Form.Item label="العمر">
+                <Input value={age} disabled placeholder="يحسب تلقائيا" />
               </Form.Item>
             </Col>
           </Row>
@@ -371,6 +382,118 @@ const ClientForm = ({
               </Form.Item>
             </Col>
           </Row>
+        </Card>
+
+        <Card title="الدفع" className="mb-6">
+          <Row gutter={16}>
+            {/* Subscription Fee */}
+            <Col xs={24} md={12}>
+              <Form.Item
+                name="subscription_fee"
+                label="رسوم الاشتراك"
+                rules={[
+                  { required: true, message: "يرجى إدخال رسوم الاشتراك" },
+                ]}
+              >
+                <InputNumber
+                  min={0}
+                  className="w-full"
+                  onChange={(value) => setSubscriptionFee(value || 0)}
+                />
+              </Form.Item>
+            </Col>
+
+            {/* Payment Method */}
+            <Col xs={24} md={12}>
+              <Form.Item
+                name="payment_method"
+                label="نظام الدفع"
+                rules={[{ required: true, message: "يرجى اختيار نظام الدفع" }]}
+              >
+                <Select
+                  placeholder="اختر نظام الدفع"
+                  onChange={(value) => setPaymentMethod(value)}
+                >
+                  <Option value="نقدي">نقدي</Option>
+                  <Option value="ايصال بنكي">ايصال بنكي</Option>
+                </Select>
+              </Form.Item>
+            </Col>
+          </Row>
+
+          {/* Bank Receipt Fields */}
+          {paymentMethod === "ايصال بنكي" && (
+            <>
+              <Row gutter={16}>
+                <Col xs={24} md={12}>
+                  <Form.Item
+                    name="bank"
+                    label="البنك"
+                    rules={[{ required: true, message: "يرجى إدخال" }]}
+                  >
+                    <Select placeholder="اختر البنك">
+                      <Option value="bank1">البنك الأول</Option>
+                      <Option value="bank2">البنك الثاني</Option>
+                      <Option value="bank3">البنك الثالث</Option>
+                    </Select>
+                  </Form.Item>
+                </Col>
+                <Col xs={24} md={12}>
+                  <Form.Item
+                    name="receipt_number"
+                    label="رقم الإيصال"
+                    rules={[
+                      { required: true, message: "يرجى إدخال رقم الإيصال" },
+                    ]}
+                  >
+                    <Input className="w-full" />
+                  </Form.Item>
+                </Col>
+              </Row>
+            </>
+          )}
+
+          <Row gutter={16}>
+            <Col xs={24} md={12}>
+              <Form.Item
+                name="paid_amount"
+                label="المدفوع"
+                rules={[
+                  { required: true, message: "يرجى إدخال المبلغ المدفوع" },
+                ]}
+              >
+                <InputNumber
+                  min={0}
+                  max={subscriptionFee}
+                  className="w-full"
+                  onChange={(value) => setPaidAmount(value || 0)}
+                  disabled={subscriptionFee == 0 || !subscriptionFee}
+                />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          {/* Remaining Amount & Installments */}
+          {remaining > 0 && (
+            <Row gutter={16} className="flex items-center">
+              <Col xs={24} md={12}>
+                <div className="flex items-center ps-4 bg-yellow-50 border border-yellow-300 rounded h-[34px]">
+                  المبلغ المتبقي: <strong className="ms-2">{remaining}</strong>
+                </div>
+              </Col>
+              <Col xs={24} md={12}>
+                <Form.Item
+                  name="installments_count"
+                  label="عدد الأقساط"
+                  rules={[
+                    { required: true, message: "يرجى إدخال عدد الأقساط" },
+                  ]}
+                >
+                  <InputNumber min={1} className="w-full" />
+                </Form.Item>
+              </Col>
+            </Row>
+          )}
         </Card>
 
         {(clientError as axiosBaseQueryError)?.data?.non_field_errors?.length >

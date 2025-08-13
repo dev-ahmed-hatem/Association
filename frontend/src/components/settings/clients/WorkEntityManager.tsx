@@ -18,7 +18,7 @@ const WorkEntitiesManager = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [message, setMessage] = useState<string>("");
 
-  const { data: entities, isFetching, isError } = useGetWorkEntitiesQuery({});
+  const { data: entities, isFetching, isError } = useGetWorkEntitiesQuery({no_pagination: true});
   const [
     handleEntity,
     {

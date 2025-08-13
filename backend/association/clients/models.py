@@ -1,6 +1,7 @@
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from users.models import User
+from datetime import date
 
 
 class WorkEntity(models.Model):
@@ -67,10 +68,6 @@ class Client(models.Model):
     birth_date = models.DateField(
         verbose_name=_("تاريخ الميلاد"),
         error_messages={"invalid": _("يرجى إدخال تاريخ صالح")}
-    )
-    age = models.PositiveIntegerField(
-        verbose_name=_("السن"),
-        error_messages={"invalid": _("يرجى إدخال السن")}
     )
     hire_date = models.DateField(
         verbose_name=_("تاريخ التعيين"),
@@ -141,6 +138,18 @@ class Client(models.Model):
     class Meta:
         verbose_name = _("عميل")
         verbose_name_plural = _("العملاء")
+
+    @property
+    def age(self):
+        """Return age in whole years, rounded up if more than exact year difference."""
+        today = date.today()
+        years = today.year - self.birth_date.year
+        months = today.month - self.birth_date.month
+        days = today.day - self.birth_date.day
+
+        if months > 6 or (months == 6 and days > 1):
+            return years + 1
+        return years
 
     def get_seniority(self):
         return f"{self.graduation_year}/{self.class_rank}"

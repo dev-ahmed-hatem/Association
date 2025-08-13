@@ -29,19 +29,25 @@ class ClientViewSet(ModelViewSet):
         queryset = Client.objects.all()
 
         search: str = self.request.query_params.get('search', None)
+        search_type = self.request.query_params.get('search_type', "name__icontains")
 
         status_filters = self.request.query_params.get('status', [])
         rank_filters = self.request.query_params.get('rank', [])
+        entities_filters = self.request.query_params.get('entities', [])
         sort_by = self.request.query_params.get('sort_by', None)
         order = self.request.query_params.get('order', None)
 
         if search is not None:
-            queryset = queryset.filter(name__icontains=search)
+            queryset = queryset.filter(**{search_type: search})
 
         if status_filters == "active":
             queryset = queryset.filter(is_active=True)
         elif status_filters == "retired":
             queryset = queryset.filter(is_active=False)
+
+        if len(entities_filters) > 0:
+            entities_filters = entities_filters.split(',')
+            queryset = queryset.filter(work_entity__name__in=entities_filters)
 
         if len(rank_filters) > 0:
             rank_filters = rank_filters.split(',')

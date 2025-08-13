@@ -1,3 +1,4 @@
+from django.conf import settings
 from rest_framework import serializers
 from .models import Client, WorkEntity
 from django.utils.translation import gettext_lazy as _
@@ -22,14 +23,21 @@ class ClientListSerializer(serializers.ModelSerializer):
 
 
 class ClientReadSerializer(serializers.ModelSerializer):
-    created_at = serializers.DateTimeField(format="%Y-%m-%d %I:%M%p")
+    created_at = serializers.SerializerMethodField()
     created_by = serializers.StringRelatedField(source="created_by.name")
     seniority = serializers.SerializerMethodField()
     work_entity = serializers.StringRelatedField(source="work_entity.name")
+    age = serializers.SerializerMethodField()
 
     class Meta:
         model = Client
         fields = "__all__"
+
+    def get_age(self, obj: Client):
+        return obj.age
+
+    def get_created_at(self, obj: Client):
+        return obj.created_at.astimezone(settings.CAIRO_TZ).strftime("%Y-%m-%d %I:%M%p")
 
     def get_seniority(self, obj: Client):
         return obj.get_seniority()

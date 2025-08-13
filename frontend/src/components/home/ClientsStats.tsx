@@ -76,7 +76,7 @@ const ClientStats: React.FC = () => {
         {/* Active vs Inactive */}
         <Card className="shadow-lg rounded-2xl w-full md:w-[46%]">
           <Title level={4} className="text-center mb-4">
-            حالة النشاط
+            التوزيع حسب الخدمة
           </Title>
           <ResponsiveContainer width="100%" height={250}>
             <PieChart>

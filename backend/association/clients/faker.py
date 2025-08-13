@@ -36,7 +36,6 @@ for i in range(25):
     birth_month = random.randint(1, 12)
     birth_day = random.randint(1, 28)  # keep safe for all months
     birth_date = date(birth_year, birth_month, birth_day)
-    age = date.today().year - birth_date.year
     hire_date = birth_date + timedelta(days=random.randint(20*365, 30*365))
     phone_number = "05" + "".join([str(random.randint(0, 9)) for _ in range(8)])
     membership_type = random.choice(MembershipType.values)
@@ -52,7 +51,6 @@ for i in range(25):
         rank=rank,
         national_id=national_id,
         birth_date=birth_date,
-        age=age,
         hire_date=hire_date,
         phone_number=phone_number,
         membership_type=membership_type,

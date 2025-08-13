@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Table, Input, Avatar, Space } from "antd";
+import { Table, Input, Avatar, Space, Radio } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
 import { Link, useNavigate } from "react-router";
 import { getInitials } from "../../utils";
@@ -10,6 +10,7 @@ import { Client, rankValues } from "@/types/client";
 import { useGetClientsQuery } from "@/app/api/endpoints/clients";
 import ErrorPage from "../Error";
 import { PaginatedResponse } from "@/types/paginatedResponse";
+import { useGetWorkEntitiesQuery } from "@/app/api/endpoints/workentities";
 
 type ControlsType = {
   sort_by?: string;
@@ -17,6 +18,7 @@ type ControlsType = {
   filters: {
     rank?: string;
     name: string;
+    work_entity?: string;
   };
 } | null;
 
@@ -27,9 +29,23 @@ const ClientsList = () => {
   const [controls, setControls] = useState<ControlsType>({
     filters: { name: "active" },
   });
+  const [searchType, setSearchType] = useState<
+    "name__icontains" | "membership_number" | "phone_number"
+  >("name__icontains");
   const navigate = useNavigate();
 
+  const {
+    data: entities,
+    isLoading: fetchingEntities,
+    isError: entitiesError,
+  } = useGetWorkEntitiesQuery({ no_pagination: true });
+
   const columns: ColumnsType<Client> = [
+    {
+      title: "رقم العضوية",
+      dataIndex: "membership_number",
+      key: "membership_number",
+    },
     {
       title: "اسم العضو",
       dataIndex: "name",
@@ -74,9 +90,14 @@ const ClientsList = () => {
       key: "seniority",
     },
     {
-      title: "القسم",
+      title: "جهة العمل",
       dataIndex: "work_entity",
       key: "work_entity",
+      filters: entities?.map((entity) => ({
+        value: entity.name,
+        text: entity.name,
+      })),
+      defaultFilteredValue: controls?.filters?.work_entity?.split(","),
     },
     {
       title: "مستحقات",
@@ -92,35 +113,56 @@ const ClientsList = () => {
 
   const {
     data: rawClients,
+    isLoading,
     isFetching,
     isError,
   } = useGetClientsQuery({
     no_pagination: false,
     search,
+    search_type: searchType,
     page,
     page_size: pageSize,
     sort_by: controls?.sort_by,
     order: controls?.order === "descend" ? "-" : "",
     status: controls?.filters.name,
     rank: controls?.filters.rank,
+    entities: controls?.filters.work_entity,
   });
   const clients = rawClients as PaginatedResponse<Client> | undefined;
 
-  if (isFetching) return <Loading />;
-  if (isError) return <ErrorPage />;
+  if (isLoading || fetchingEntities) return <Loading />;
+  if (isError || entitiesError) return <ErrorPage />;
   return (
     <>
       <h1 className="mb-6 text-2xl md:text-3xl font-bold">الأعضاء</h1>
 
-      <div className="flex justify-between flex-wrap mb-4">
-        <Input.Search
-          placeholder="ابحث عن عضو..."
-          onSearch={onSearch}
-          className="mb-4 w-full max-w-md h-10"
-          defaultValue={search}
-          allowClear={true}
-          onClear={() => setSearch("")}
-        />
+      <div className="flex justify-between flex-wrap mb-4 gap-6">
+        <div className="flex flex-col w-full max-w-md">
+          {/* Search Input */}
+          <Input.Search
+            placeholder="ابحث عن عضو..."
+            onSearch={onSearch}
+            className="mb-4 w-full max-w-md h-10"
+            defaultValue={search}
+            allowClear={true}
+            onClear={() => setSearch("")}
+          />
+
+          {/* Radio Group for Search Type */}
+          <div className="flex flex-wrap gap-3 items-center">
+            <span>بحث ب:</span>
+            <Radio.Group
+              value={searchType}
+              onChange={(e) => setSearchType(e.target.value)}
+              className="mt-2 flex"
+              defaultValue={"name__icontains"}
+            >
+              <Radio.Button value="name__icontains">الاسم</Radio.Button>
+              <Radio.Button value="membership_number">رقم العضوية</Radio.Button>
+              <Radio.Button value="phone_number">رقم الموبايل</Radio.Button>
+            </Radio.Group>
+          </div>
+        </div>
 
         {/* Add Button */}
         <Link
@@ -133,39 +175,43 @@ const ClientsList = () => {
         </Link>
       </div>
 
+      {isFetching && <Loading />}
+
       {/* Table */}
-      <Table
-        dataSource={clients?.data}
-        columns={columns}
-        onRow={(record) => ({
-          onClick: () => navigate(`client-profile/${record.id}`),
-        })}
-        rowKey="id"
-        pagination={tablePaginationConfig({
-          total: clients?.count,
-          current: clients?.page,
-          showQuickJumper: true,
-          onChange(page, pageSize) {
-            setPage(page);
-            setPageSize(pageSize);
-          },
-        })}
-        onChange={(_, filters, sorter: any) => {
-          setControls({
-            ...(sorter.column?.key && { sort_by: sorter.column.key }),
-            ...(sorter.order && { order: sorter.order }),
-            filters: Object.fromEntries(
-              Object.entries(filters).map(([filter, values]) => [
-                filter,
-                (values as string[])?.join(),
-              ])
-            ),
-          });
-        }}
-        bordered
-        scroll={{ x: "max-content" }}
-        className="clickable-table  black-header"
-      />
+      {!isFetching && clients && (
+        <Table
+          dataSource={clients?.data}
+          columns={columns}
+          onRow={(record) => ({
+            onClick: () => navigate(`client-profile/${record.id}`),
+          })}
+          rowKey="id"
+          pagination={tablePaginationConfig({
+            total: clients?.count,
+            current: clients?.page,
+            showQuickJumper: true,
+            onChange(page, pageSize) {
+              setPage(page);
+              setPageSize(pageSize);
+            },
+          })}
+          onChange={(_, filters, sorter: any) => {
+            setControls({
+              ...(sorter.column?.key && { sort_by: sorter.column.key }),
+              ...(sorter.order && { order: sorter.order }),
+              filters: Object.fromEntries(
+                Object.entries(filters).map(([filter, values]) => [
+                  filter,
+                  (values as string[])?.join(),
+                ])
+              ),
+            });
+          }}
+          bordered
+          scroll={{ x: "max-content" }}
+          className="clickable-table  black-header"
+        />
+      )}
     </>
   );
 };

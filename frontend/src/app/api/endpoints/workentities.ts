@@ -1,15 +1,13 @@
 import { WorkEntity } from "@/types/workentity";
 import api from "../apiSlice";
 import queryString from "query-string";
+import { QueryParams } from "@/types/query_param";
 
 export const workEntitiesEndpoints = api.injectEndpoints({
   endpoints: (builder) => ({
-    getWorkEntities: builder.query<WorkEntity[], Record<string, any>>({
+    getWorkEntities: builder.query<WorkEntity[], QueryParams | void>({
       query: (params) => ({
-        url: `/clients/workentities/?${queryString.stringify({
-          no_pagination: true,
-          ...params,
-        })}`,
+        url: `/clients/workentities/?${queryString.stringify(params || {})}`,
       }),
       providesTags: (result) =>
         result
