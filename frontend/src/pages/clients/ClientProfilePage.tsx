@@ -81,20 +81,20 @@ const items = (client: Client) => [
     children: <PersonalInfo client={client} />,
   },
   {
-    label: `الأداء الوظيفي`,
+    label: `ملاحظات`,
     key: "3",
-    children: <Performance performance={employee3.performance} />,
+    children: <></>,
   },
   {
-    label: `الحضور والانصراف`,
+    label: "سجل الدفع",
     key: "4",
-    children: <Attendance attendance={employee3.attendance} />,
+    children: <></>,
   },
-  {
-    label: `تاريخ الراتب`,
-    key: "5",
-    children: <SalaryHistory salaryHistory={employee3.salaryHistory} />,
-  },
+  // {
+  //   label: `تاريخ الراتب`,
+  //   key: "5",
+  //   children: <SalaryHistory salaryHistory={employee3.salaryHistory} />,
+  // },
 ];
 
 const ClientProfilePage: React.FC = () => {
