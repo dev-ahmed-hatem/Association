@@ -24,7 +24,7 @@ export const workEntitiesEndpoints = api.injectEndpoints({
     }),
     entity: builder.mutation<
       WorkEntity,
-      { data: Partial<WorkEntity>; method?: string; url?: string }
+      { data?: Partial<WorkEntity>; method?: string; url?: string }
     >({
       query: ({ data, method, url }) => ({
         url: url || `clients/workentities/`,

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Button, Table, Popconfirm } from "antd";
+import { Button, Table, Popconfirm, Card } from "antd";
 import { PlusOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import WorkEntityForm from "./WorkEntityFrom";
 import { WorkEntity } from "@/types/workentity";
@@ -10,11 +10,13 @@ import {
 import ErrorPage from "@/pages/Error";
 import Loading from "@/components/Loading";
 import { useNotification } from "@/providers/NotificationProvider";
+import { axiosBaseQueryError } from "@/app/api/axiosBaseQuery";
 
 const WorkEntitiesManager = () => {
   const notification = useNotification();
   const [editingEntity, setEditingEntity] = useState<WorkEntity | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [message, setMessage] = useState<string>("");
 
   const { data: entities, isFetching, isError } = useGetWorkEntitiesQuery({});
   const [
@@ -23,20 +25,28 @@ const WorkEntitiesManager = () => {
       isLoading: handlingEntity,
       isError: entityIsError,
       isSuccess: entityIsSuccess,
+      error: entityError,
     },
   ] = useEntityMutation();
 
-  // const handleAdd = (entity: WorkEntity) => {
-  //   setEntities([...entities, { ...entity, id: Date.now().toString() }]);
-  //   message.success("تمت إضافة جهة العمل بنجاح");
-  // };
+  const handleAdd = (entity: WorkEntity) => {
+    setMessage("تم إضافة جهة العمل");
+    handleEntity({ data: entity });
+  };
 
-  // const handleEdit = (updated: WorkEntity) => {
-  //   setEntities(entities.map((e) => (e.id === updated.id ? updated : e)));
-  //   message.success("تم تعديل جهة العمل");
-  // };
+  const handleEdit = (updated: WorkEntity) => {
+    setMessage("تم تعديل جهة العمل");
+    handleEntity({
+      data: updated,
+      method: "PATCH",
+      url: `/clients/workentities/${updated.id}/`,
+    });
+  };
 
-  const handleDelete = (id: string) => {};
+  const handleDelete = (id: string) => {
+    setMessage("تم حذف جهة العمل");
+    handleEntity({ method: "DELETE", url: `/clients/workentities/${id}/` });
+  };
 
   const columns = [
     {
@@ -76,14 +86,16 @@ const WorkEntitiesManager = () => {
 
   useEffect(() => {
     if (entityIsError) {
-      notification.error({ message: "خطأ في تنفيذ الإجراء!" });
+      const error = entityError as axiosBaseQueryError;
+      let message = error.data.detail ?? null;
+      notification.error({ message: message ?? "خطأ في تنفيذ الإجراء!" });
     }
   }, [entityIsError]);
 
   useEffect(() => {
     if (entityIsSuccess) {
       notification.success({
-        message: `تم تنفيذ الإجراء`,
+        message: message,
       });
     }
   }, [entityIsSuccess]);
@@ -91,7 +103,7 @@ const WorkEntitiesManager = () => {
   if (isFetching) return <Loading />;
   if (isError) return <ErrorPage />;
   return (
-    <div>
+    <Card title="جهات العمل" className="shadow-md">
       <div className="flex justify-end mb-4">
         <Button
           type="primary"
@@ -116,11 +128,11 @@ const WorkEntitiesManager = () => {
       <WorkEntityForm
         open={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        onSubmit={() => {}}
+        onSubmit={editingEntity ? handleEdit : handleAdd}
         initialValues={editingEntity || undefined}
         loading={handlingEntity}
       />
-    </div>
+    </Card>
   );
 };
 

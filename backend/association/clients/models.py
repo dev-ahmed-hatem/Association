@@ -91,7 +91,7 @@ class Client(models.Model):
     )
     work_entity = models.ForeignKey(
         WorkEntity,
-        on_delete=models.SET_NULL,
+        on_delete=models.RESTRICT,
         null=True,
         blank=True,
         verbose_name=_("جهة العمل")

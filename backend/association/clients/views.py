@@ -5,11 +5,21 @@ from rest_framework import status
 from .models import Client, WorkEntity
 from .serializers import WorkEntitySerializer, ClientListSerializer, ClientReadSerializer, ClientWriteSerializer
 from django.utils.translation import gettext_lazy as _
+from django.db.models import RestrictedError
 
 
 class WorkEntityViewSet(ModelViewSet):
     queryset = WorkEntity.objects.all()
     serializer_class = WorkEntitySerializer
+
+    def destroy(self, request, *args, **kwargs):
+        try:
+            return super().destroy(request, *args, **kwargs)
+        except RestrictedError:
+            return Response(
+                {"detail": _("لا يمكن حذف جهة العمل لارتباطها بأعضاء موجودين")},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
 
 class ClientViewSet(ModelViewSet):
