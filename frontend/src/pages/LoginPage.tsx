@@ -57,7 +57,7 @@ const LoginPage = () => {
   if (verifying || logged || verified) return <Loading />;
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
-      <div className="bg-white shadow-xl rounded-md max-md max-md:border-x-4 border-black overflow-hidden flex flex-col md:flex-row w-full max-w-md md:max-w-4xl">
+      <div className="bg-white shadow-xl rounded-md max-md max-md:border-x-4 border-minsk overflow-hidden flex flex-col md:flex-row w-full max-w-md md:max-w-4xl">
         {/* Left: Logo */}
         <div className="md:w-1/2 max-md:h-52 bg-white flex items-center justify-center p-2">
           <img
@@ -68,7 +68,7 @@ const LoginPage = () => {
         </div>
 
         {/* Right: Form */}
-        <div className="md:w-1/2 w-full p-6 sm:p-10 flex flex-col justify-center text-right md:border-e-4 border-black">
+        <div className="md:w-1/2 w-full p-6 sm:p-10 flex flex-col justify-center text-right md:border-e-4 border-minsk">
           <h2 className="text-2xl font-bold mb-8 max-md:text-center">
             تسجيل دخول
           </h2>

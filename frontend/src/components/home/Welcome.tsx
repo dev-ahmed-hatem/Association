@@ -1,21 +1,27 @@
 import React from "react";
 import { SmileOutlined } from "@ant-design/icons";
 import { useAppSelector } from "@/app/redux/hooks";
-import { Divider } from "antd";
 
 const Welcome: React.FC = () => {
   const user = useAppSelector((state) => state.auth.user);
 
   return (
-    <div className="flex flex-col items-center text-center px-4">
-      <img src="./logo.jpeg" alt="Logo" className="h-40 mb-6 object-contain" />
+    <div className="flex flex-col sm:flex-row items-center justify-center px-4 py-4 bg-white rounded-lg shadow-sm gap-3">
+      {/* Logo */}
+      <img
+        src="./logo.jpeg"
+        alt="Logo"
+        className="h-16 w-16 object-contain rounded-full border border-gray-200"
+      />
 
-      <h1 className="text-2xl sm:text-3xl font-bold text-black mb-2">
-        مرحبًا بك، <span className="text-blue-800">{user?.name}</span>
-        <SmileOutlined />
-      </h1>
-
-      <Divider />
+      {/* Text */}
+      <div className="flex flex-col text-center sm:text-right flex-wrap">
+        <h1 className="text-lg sm:text-xl font-bold text-black flex items-center justify-center sm:justify-start gap-2">
+          مرحبًا بك،
+          <span className="text-blue-800">{user?.name}</span>
+          <SmileOutlined className="text-yellow-500" />
+        </h1>
+      </div>
     </div>
   );
 };
