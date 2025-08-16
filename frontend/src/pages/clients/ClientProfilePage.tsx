@@ -213,7 +213,7 @@ const ClientProfilePage: React.FC = () => {
               <Switch
                 checked={isActive!}
                 onChange={toggleStatus}
-                checkedChildren="في الخدمة"
+                checkedChildren="بالخدمة"
                 unCheckedChildren="متقاعد"
                 loading={switching}
               />

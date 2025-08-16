@@ -22,31 +22,31 @@ const { Title } = Typography;
 
 // Fake data
 const rankData = [
-  { rank: "ملازم", total: 12 },
-  { rank: "ملازم أول", total: 8 },
-  { rank: "نقيب", total: 15 },
-  { rank: "رائد", total: 6 },
-  { rank: "مقدم", total: 12 },
-  { rank: "عقيد", total: 8 },
-  { rank: "عميد", total: 15 },
-  { rank: "لواء", total: 6 },
-  { rank: "لواء مساعد وزير", total: 8 },
+  { rank: "ملازم", العدد: 12 },
+  { rank: "ملازم أول", العدد: 8 },
+  { rank: "نقيب", العدد: 15 },
+  { rank: "رائد", العدد: 6 },
+  { rank: "مقدم", العدد: 12 },
+  { rank: "عقيد", العدد: 8 },
+  { rank: "عميد", العدد: 15 },
+  { rank: "لواء", العدد: 6 },
+  { rank: "لواء مساعد وزير", العدد: 8 },
 ];
 
 const activeData = [
-  { name: "في الخدمة", value: 28 },
+  { name: "بالخدمة", value: 28 },
   { name: "متقاعد", value: 5 },
 ];
 
 const COLORS = ["#00ca4b", "#FF8042"];
 
 const subscriptionData = [
-  { month: "2024-01", total: 3 },
-  { month: "2024-02", total: 5 },
-  { month: "2024-03", total: 8 },
-  { month: "2024-04", total: 4 },
-  { month: "2024-05", total: 10 },
-  { month: "2024-06", total: 7 },
+  { month: "2024-01", اشتراكات: 3 },
+  { month: "2024-02", اشتراكات: 5 },
+  { month: "2024-03", اشتراكات: 8 },
+  { month: "2024-04", اشتراكات: 4 },
+  { month: "2024-05", اشتراكات: 10 },
+  { month: "2024-06", اشتراكات: 7 },
 ];
 
 const ClientStats: React.FC = () => {
@@ -61,7 +61,7 @@ const ClientStats: React.FC = () => {
         <Title level={2} className="!text-3xl !font-bold !mb-0 text-gray-800">
           احصائيات الأعضاء
         </Title>
-        <p className="text-gray-500 mt-1">نظرة عامة على بيانات العملاء</p>
+        <p className="text-gray-500 mt-1">نظرة عامة على بيانات الأعضاء</p>
       </div>
 
       {/* Rank Distribution */}
@@ -74,7 +74,7 @@ const ClientStats: React.FC = () => {
             <XAxis dataKey="rank" />
             <YAxis />
             <Tooltip />
-            <Bar dataKey="total" fill="#1890ff" radius={[8, 8, 0, 0]} />
+            <Bar dataKey="العدد" fill="#1890ff" radius={[8, 8, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
       </Card>
@@ -117,7 +117,7 @@ const ClientStats: React.FC = () => {
               <Tooltip />
               <Line
                 type="monotone"
-                dataKey="total"
+                dataKey="اشتراكات"
                 stroke="#82ca9d"
                 strokeWidth={2}
                 dot={{ r: 4 }}
@@ -125,17 +125,17 @@ const ClientStats: React.FC = () => {
             </LineChart>
           </ResponsiveContainer>
         </Card>
-        </div>
+      </div>
 
-        {isFetching && <Loading />}
-        {entities && (
-          <WorkEntityStatsCards
-            entities={entities.map((entity) => ({
-              ...entity,
-              clientCount: Math.floor(Math.random() * (500 - 50 + 1)) + 50,
-            }))}
-          />
-        )}
+      {isFetching && <Loading />}
+      {entities && (
+        <WorkEntityStatsCards
+          entities={entities.map((entity) => ({
+            ...entity,
+            clientCount: Math.floor(Math.random() * (500 - 50 + 1)) + 50,
+          }))}
+        />
+      )}
     </div>
   );
 };

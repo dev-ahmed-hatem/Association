@@ -76,7 +76,7 @@ const ClientsList = () => {
       ),
       sorter: (a, b) => a.name.localeCompare(b.name),
       filters: [
-        { text: "في الخدمة", value: "active" },
+        { text: "بالخدمة", value: "active" },
         { text: "متقاعد", value: "retired" },
       ],
       defaultFilteredValue: controls?.filters?.name?.split(",") ?? ["active"],

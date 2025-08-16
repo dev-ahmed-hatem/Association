@@ -8,12 +8,12 @@ const Home = () => {
   return (
     <div className="font-bold text-xl padding-container pt-10">
       <Welcome />
+      <div className="my-16"></div>
+      <NavigationGrid />
       <Divider className="my-6" />
       <ClientStats />
       <Divider className="my-16" />
       <FinancialStatistics />
-      <div className="my-16"></div>
-      <NavigationGrid />
       <div className="my-16"></div>
     </div>
   );
