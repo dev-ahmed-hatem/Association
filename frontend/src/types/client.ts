@@ -40,6 +40,7 @@ export interface Client {
   marital_status: string;
   graduation_year: number;
   class_rank: string;
+  notes?: string;
   is_active: boolean;
   created_at: string;
   created_by?: string;

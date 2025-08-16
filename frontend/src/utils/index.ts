@@ -57,3 +57,10 @@ export const extractBirthdateFromNationalId = (id: string) => {
 
   return dayjs(`${fullYear}-${month}-${day}`);
 };
+
+export const textify = (text: string | null | undefined) => {
+  if (typeof text === "string" && text.trim() !== "") {
+    return text;
+  }
+  return null;
+};

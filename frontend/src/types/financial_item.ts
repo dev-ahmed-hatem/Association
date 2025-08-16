@@ -1,8 +1,17 @@
-export type FinancialItem = {
+import { BankAccount } from "./bank_account";
+import { TransactionType } from "./transaction_type";
+
+export type PaymentMethod = "نقدي" | "إيصال بنكي";
+
+export type FinancialRecord = {
   id: string;
-  type: "income" | "expense";
-  date: string; // YYYY-MM-DD format
-  category: string; // Selected from predefined options
-  description?: string;
   amount: number;
+  transaction_type: TransactionType;
+  date: string;
+  payment_method: PaymentMethod;
+  bank_account?: BankAccount | null;
+  receipt_number?: string | null;
+  notes?: string | null;
+  created_at: string;
+  created_by: number;
 };

@@ -1,4 +1,3 @@
-import { Card } from "antd";
 import WorkEntitiesManager from "./WorkEntityManager";
 
 const ClientSettingsTab = () => {

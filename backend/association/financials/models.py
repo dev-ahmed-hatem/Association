@@ -19,7 +19,6 @@ class BankAccount(models.Model):
     class Meta:
         verbose_name = _("حساب بنكي")
         verbose_name_plural = _("الحسابات البنكية")
-        ordering = ["name"]
 
     def __str__(self):
         return self.name

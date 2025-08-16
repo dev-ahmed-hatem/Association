@@ -45,6 +45,7 @@ const ClientsList = () => {
       title: "رقم العضوية",
       dataIndex: "membership_number",
       key: "membership_number",
+      sorter: true,
     },
     {
       title: "اسم العضو",

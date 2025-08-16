@@ -1,13 +1,10 @@
 import { useEffect, useState } from "react";
 import { Card, Avatar, Tabs, Button, Switch, Popconfirm } from "antd";
 import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
-import { getInitials } from "../../utils";
-import { Employee } from "../../types/employee";
-import JopDetails from "../../components/clients/JopDetails";
-import PersonalInfo from "../../components/clients/PersonalInfo";
-import Performance from "../../components/clients/Performance";
-import Attendance from "../../components/clients/Attendance";
-import SalaryHistory from "../../components/clients/SalaryHistory";
+import { Employee } from "@/types/employee";
+import JopDetails from "@/components/clients/JopDetails";
+import PersonalInfo from "@/components/clients/PersonalInfo";
+import ClientNotes from "@/components/clients/ClientNotes";
 import { useParams } from "react-router";
 import Loading from "@/components/Loading";
 import ErrorPage from "../Error";
@@ -83,7 +80,7 @@ const items = (client: Client) => [
   {
     label: `ملاحظات`,
     key: "3",
-    children: <></>,
+    children: <ClientNotes client={client} />,
   },
   {
     label: "سجل الدفع",

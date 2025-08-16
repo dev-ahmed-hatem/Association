@@ -120,6 +120,11 @@ class Client(models.Model):
         verbose_name=_("الترتيب على الدفعة"),
         error_messages={"blank": _("يرجى إدخال الترتيب")}
     )
+    notes = models.TextField(
+        null=True,
+        blank=True,
+        verbose_name=_("ملاحظات"),
+    )
 
     is_active = models.BooleanField(default=True, verbose_name=_("نشط"))
 
