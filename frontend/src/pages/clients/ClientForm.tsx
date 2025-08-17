@@ -22,6 +22,7 @@ import { handleServerErrors } from "@/utils/handleForm";
 import { useEffect, useState } from "react";
 import { useNotification } from "@/providers/NotificationProvider";
 import { useNavigate } from "react-router";
+import { PaymentMethod } from "@/types/financial_record";
 
 const { Option } = Select;
 
@@ -48,7 +49,7 @@ const ClientForm = ({
   const [age, setAge] = useState("");
 
   // payment states
-  const [paymentMethod, setPaymentMethod] = useState<string>("نقدي");
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("نقدي");
   const [subscriptionFee, setSubscriptionFee] = useState<number>(0);
   const [paidAmount, setPaidAmount] = useState<number>(0);
 
@@ -415,14 +416,14 @@ const ClientForm = ({
                   onChange={(value) => setPaymentMethod(value)}
                 >
                   <Option value="نقدي">نقدي</Option>
-                  <Option value="ايصال بنكي">ايصال بنكي</Option>
+                  <Option value="إيصال بنكي">إيصال بنكي</Option>
                 </Select>
               </Form.Item>
             </Col>
           </Row>
 
           {/* Bank Receipt Fields */}
-          {paymentMethod === "ايصال بنكي" && (
+          {paymentMethod === "إيصال بنكي" && (
             <>
               <Row gutter={16}>
                 <Col xs={24} md={12}>

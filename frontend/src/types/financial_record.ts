@@ -3,6 +3,11 @@ import { TransactionType } from "./transaction_type";
 
 export type PaymentMethod = "نقدي" | "إيصال بنكي";
 
+export const paymentMethodColors: Record<PaymentMethod, string> = {
+  نقدي: "#f97316", // orange
+  "إيصال بنكي": "#8b5cf6", // purple
+};
+
 export type FinancialRecord = {
   id: string;
   amount: number;

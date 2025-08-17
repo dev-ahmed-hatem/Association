@@ -7,7 +7,9 @@ export const bankAccountsEndpoints = api.injectEndpoints({
   endpoints: (builder) => ({
     getBankAccounts: builder.query<BankAccount[], QueryParams | void>({
       query: (params) => ({
-        url: `/financials/bank-accounts/?${queryString.stringify(params || {})}`,
+        url: `/financials/bank-accounts/?${queryString.stringify(
+          params || {}
+        )}`,
       }),
       providesTags: (result) =>
         result
@@ -47,5 +49,8 @@ export const bankAccountsEndpoints = api.injectEndpoints({
   }),
 });
 
-export const { useGetBankAccountsQuery, useBankAccountMutation } =
-  bankAccountsEndpoints;
+export const {
+  useGetBankAccountsQuery,
+  useLazyGetBankAccountsQuery,
+  useBankAccountMutation,
+} = bankAccountsEndpoints;

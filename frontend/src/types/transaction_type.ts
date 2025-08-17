@@ -5,7 +5,7 @@ export const transactionTypeColors: Record<TransactionKind, string> = {
   مصروف: "red",
 };
 
-export const TransactionKindEnglish: Record<string, TransactionKind> = {
+export const TransactionKindArabic: Record<string, TransactionKind> = {
   income: "إيراد",
   expense: "مصروف",
 };

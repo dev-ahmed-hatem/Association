@@ -1,104 +1,272 @@
-import { Form, Input, Select, DatePicker, Button, Card, message } from "antd";
+import {
+  Form,
+  Input,
+  Select,
+  DatePicker,
+  Button,
+  Card,
+  Spin,
+  InputNumber,
+  Col,
+  Row,
+} from "antd";
+import { LoadingOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
-import { FinancialRecord } from "@/types/financial_item";
-import { useEffect } from "react";
+import { FinancialRecord, PaymentMethod } from "@/types/financial_record";
+import { useEffect, useState } from "react";
+import { useGetTransactionTypesQuery } from "@/app/api/endpoints/transaction_types";
+import { TransactionKindArabic } from "@/types/transaction_type";
+import Loading from "@/components/Loading";
+import ErrorPage from "../Error";
+import { useLazyGetBankAccountsQuery } from "@/app/api/endpoints/bank_accounts";
+import { useFinancialRecordMutation } from "@/app/api/endpoints/financial_records";
+import { axiosBaseQueryError } from "@/app/api/axiosBaseQuery";
+import { handleServerErrors } from "@/utils/handleForm";
+import { useNotification } from "@/providers/NotificationProvider";
+import { useNavigate } from "react-router";
 
 const { Option } = Select;
 
 type FinancialFormProps = {
   onSubmit?: (values: FinancialRecord) => void;
-  categories?: string[];
   initialValues?: Partial<FinancialRecord>;
-  financialRecord: "income" | "expense";
+  financialType: "income" | "expense";
 };
 
 const FinancialForm = ({
   onSubmit,
-  categories = [],
   initialValues,
-  financialRecord,
+  financialType,
 }: FinancialFormProps) => {
   const [form] = Form.useForm();
+  const notification = useNotification();
+  const navigate = useNavigate();
 
-  // Set form values if editing
-  useEffect(() => {
-    if (initialValues) {
-      form.setFieldsValue({
-        ...initialValues,
-        date: initialValues.date ? dayjs(initialValues.date) : dayjs(),
-      });
-    }
-  }, [initialValues, form]);
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("نقدي");
+
+  const {
+    data: transactionTypes,
+    isFetching: fetchingTypes,
+    isError: typesError,
+  } = useGetTransactionTypesQuery({
+    no_pagination: true,
+    type: TransactionKindArabic[financialType],
+  });
+
+  const [
+    getAccounts,
+    { data: accounts, isFetching: fetchingAccounts, isError: accountsError },
+  ] = useLazyGetBankAccountsQuery();
+
+  const [
+    handleRecord,
+    {
+      data: record,
+      isLoading: recordLoading,
+      isError: recordIsError,
+      error: recordError,
+      isSuccess: recordDone,
+    },
+  ] = useFinancialRecordMutation();
 
   const onFinish = (values: any) => {
-    // const formattedValues: FinancialRecord = {
-    //   id: initialValues?.id || crypto.randomUUID(),
-    //   type: financialRecord,
-    //   amount: Number(values.amount),
-    //   category: values.category,
-    //   description: values.description || "",
-    //   date: values.date.format("YYYY-MM-DD"),
-    // };
-    // onSubmit?.(formattedValues);
-    // message.success(`تم حفظ ${financialRecord === "income" ? "الإيراد" : "المصروف"} بنجاح`);
+    const data = {
+      ...values,
+      date: values.date.format("YYYY-MM-DD"),
+    };
+
+    handleRecord({
+      data,
+      url: initialValues
+        ? `/financials/financial-records/${initialValues.id}/`
+        : "/financials/financial-records/",
+      method: initialValues ? "PATCH" : "POST",
+    });
   };
+
+  useEffect(() => {
+    if (recordIsError) {
+      const error = recordError as axiosBaseQueryError;
+      if (error.status == 400) {
+        handleServerErrors({
+          errorData: error.data as Record<string, string[]>,
+          form,
+        });
+      }
+
+      notification.error({ message: "خطأ في إضافة العملية المالية!" });
+    }
+  }, [recordIsError]);
+
+  useEffect(() => {
+    if (recordDone) {
+      notification.success({
+        message: `تم ${
+          initialValues ? "تعديل بيانات" : "إضافة"
+        } العملية المالية`,
+      });
+      navigate(
+        `/financials/${financialType}s/${
+          initialValues ? initialValues.id : record.id
+        }`
+      );
+    }
+  }, [recordDone]);
+
+  useEffect(() => {
+    if (paymentMethod == "إيصال بنكي") {
+      getAccounts({
+        no_pagination: true,
+      });
+    }
+  }, [paymentMethod]);
 
   const isEditing = Boolean(initialValues);
 
+  if (fetchingTypes) return <Loading />;
+  if (typesError) return <ErrorPage />;
   return (
     <>
       <h1 className="mb-6 text-2xl font-bold text-right">
         {isEditing ? "تعديل" : "إضافة"}{" "}
-        {financialRecord === "income" ? "إيراد" : "مصروف"}
+        {financialType === "income" ? "إيراد" : "مصروف"}
       </h1>
-
-      <Form form={form} layout="vertical" onFinish={onFinish}>
+      <Form
+        form={form}
+        layout="vertical"
+        onFinish={onFinish}
+        initialValues={{
+          ...initialValues,
+          date: initialValues?.date ? dayjs(initialValues.date) : dayjs(),
+        }}
+      >
         <Card title="بيانات العملية المالية">
-          <Form.Item
-            name="amount"
-            label="المبلغ"
-            rules={[{ required: true, message: "يرجى إدخال المبلغ" }]}
-          >
-            <Input type="number" placeholder="أدخل المبلغ" />
-          </Form.Item>
+          <Row gutter={16}>
+            <Col xs={24} md={12}>
+              <Form.Item
+                name="amount"
+                label="المبلغ"
+                rules={[{ required: true, message: "يرجى إدخال المبلغ" }]}
+              >
+                <InputNumber
+                  className="w-full"
+                  placeholder="أدخل المبلغ"
+                  min={1}
+                />
+              </Form.Item>
+            </Col>
 
-          <Form.Item
-            name="category"
-            label="الفئة"
-            rules={[{ required: true, message: "يرجى اختيار الفئة" }]}
-          >
-            <Select placeholder="اختر فئة">
-              {categories.map((category) => (
-                <Option key={category} value={category}>
-                  {category}
-                </Option>
-              ))}
-            </Select>
-          </Form.Item>
+            <Col xs={24} md={12}>
+              <Form.Item
+                name="transaction_type"
+                label="الفئة"
+                rules={[{ required: true, message: "يرجى اختيار الفئة" }]}
+              >
+                <Select placeholder="اختر فئة">
+                  {transactionTypes!.map((type) => (
+                    <Option key={type.id} value={type.id}>
+                      {type.name}
+                    </Option>
+                  ))}
+                </Select>
+              </Form.Item>
+            </Col>
+          </Row>
 
-          <Form.Item
-            name="date"
-            label="التاريخ"
-            rules={[{ required: true, message: "يرجى اختيار التاريخ" }]}
-          >
-            <DatePicker format="YYYY-MM-DD" className="w-full" />
-          </Form.Item>
+          <Row gutter={16}>
+            <Col xs={24} md={12}>
+              <Form.Item
+                name="date"
+                label="التاريخ"
+                rules={[{ required: true, message: "يرجى اختيار التاريخ" }]}
+              >
+                <DatePicker format="YYYY-MM-DD" className="w-full" />
+              </Form.Item>
+            </Col>
 
-          <Form.Item name="description" label="الوصف">
-            <Input.TextArea
-              rows={3}
-              placeholder={`أدخل وصف ${
-                financialRecord === "income" ? "الإيراد" : "المصروف"
-              } (اختياري)`}
-            />
-          </Form.Item>
+            <Col xs={24} md={12}>
+              <Form.Item
+                name="payment_method"
+                label="نظام الدفع"
+                rules={[{ required: true, message: "يرجى اختيار نظام الدفع" }]}
+              >
+                <Select
+                  placeholder="اختر نظام الدفع"
+                  onChange={(value) => setPaymentMethod(value)}
+                >
+                  <Option value="نقدي">نقدي</Option>
+                  <Option value="إيصال بنكي">إيصال بنكي</Option>
+                </Select>
+              </Form.Item>
+            </Col>
+          </Row>
+
+          {paymentMethod === "إيصال بنكي" && (
+            <Row gutter={16}>
+              <Col xs={24} md={12}>
+                <Form.Item
+                  name="bank_account"
+                  label={
+                    <div className="flex gap-2 items-center">
+                      <span>البنك</span>
+                      {fetchingAccounts && (
+                        <Spin
+                          size="small"
+                          indicator={<LoadingOutlined spin />}
+                        />
+                      )}
+                    </div>
+                  }
+                  rules={[{ required: true, message: "يرجى إدخال البنك" }]}
+                >
+                  <Select placeholder="اختر البنك">
+                    {accounts?.map((account) => (
+                      <Option key={account.id} value={account.id}>
+                        {account.name}
+                      </Option>
+                    ))}
+                  </Select>
+                </Form.Item>
+              </Col>
+
+              <Col xs={24} md={12}>
+                <Form.Item
+                  name="receipt_number"
+                  label="رقم الإيصال"
+                  rules={[
+                    { required: true, message: "يرجى إدخال رقم الإيصال" },
+                  ]}
+                >
+                  <Input className="w-full" />
+                </Form.Item>
+              </Col>
+            </Row>
+          )}
+
+          <Row gutter={16}>
+            <Col xs={24}>
+              <Form.Item name="notes" label="الملاحظات">
+                <Input.TextArea
+                  rows={3}
+                  placeholder={`أدخل ملاحظات ${
+                    financialType === "income" ? "الإيراد" : "المصروف"
+                  } (اختياري)`}
+                />
+              </Form.Item>
+            </Col>
+          </Row>
         </Card>
 
         <Form.Item className="text-center mt-5">
-          <Button type="primary" htmlType="submit" size="large">
+          <Button
+            type="primary"
+            htmlType="submit"
+            size="large"
+            loading={recordLoading}
+          >
             {isEditing
-              ? `تحديث ${financialRecord === "income" ? "الإيراد" : "المصروف"}`
-              : `إضافة ${financialRecord === "income" ? "إيراد" : "مصروف"}`}
+              ? `تحديث ${financialType === "income" ? "الإيراد" : "المصروف"}`
+              : `إضافة ${financialType === "income" ? "إيراد" : "مصروف"}`}
           </Button>
         </Form.Item>
       </Form>

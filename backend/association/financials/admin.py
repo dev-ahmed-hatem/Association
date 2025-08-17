@@ -1,3 +1,6 @@
 from django.contrib import admin
+from .models import FinancialRecord, TransactionType, BankAccount
 
-# Register your models here.
+admin.site.register(BankAccount)
+admin.site.register(TransactionType)
+admin.site.register(FinancialRecord)

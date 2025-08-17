@@ -202,6 +202,7 @@ const ClientsList = () => {
             total: clients?.count,
             current: clients?.page,
             showQuickJumper: true,
+            pageSize,
             onChange(page, pageSize) {
               setPage(page);
               setPageSize(pageSize);

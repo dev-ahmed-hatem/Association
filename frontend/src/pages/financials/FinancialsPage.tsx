@@ -1,6 +1,5 @@
 import FinancialOverview from "../../components/financials/FinancialOverview";
-import { Link, useNavigate, useMatch, Outlet } from "react-router";
-import appRoutes, { AppRoute } from "../../app/appRoutes";
+import { useMatch, Outlet } from "react-router";
 import FinancialsNav from "@/components/financials/FinancialsNav";
 import { Divider } from "antd";
 

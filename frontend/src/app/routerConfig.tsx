@@ -68,12 +68,12 @@ let routes: RouteObject[] = addSubRoutes(appRoutes, {
     { path: "edit/:client_id", element: <ClientEdit /> },
   ],
   "financials/incomes": [
-    { path: "add", element: <FinancialForm financialRecord="income" /> },
-    { path: ":income_id", element: <FinancialProfilePage /> },
+    { path: "add", element: <FinancialForm financialType="income" /> },
+    { path: ":record_id", element: <FinancialProfilePage /> },
   ],
   "financials/expenses": [
-    { path: "add", element: <FinancialForm financialRecord="expense" /> },
-    { path: ":expense_id", element: <FinancialProfilePage /> },
+    { path: "add", element: <FinancialForm financialType="expense" /> },
+    { path: ":record_id", element: <FinancialProfilePage /> },
   ],
 });
 

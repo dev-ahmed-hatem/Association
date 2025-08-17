@@ -1,33 +1,44 @@
 import React from "react";
 import { Card, Avatar, Tabs, Button, Tag } from "antd";
 import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
-import { FinancialItem } from "../../types/financial_item";
+import { FinancialRecord } from "../../types/financial_record";
 import FinancialDetails from "../../components/financials/FinancialDetails";
-import { getInitials } from "../../utils";
+import { transactionTypeColors } from "@/types/transaction_type";
+import { useParams } from "react-router";
+import { useGetFinancialRecordQuery } from "@/app/api/endpoints/financial_records";
+import Loading from "@/components/Loading";
+import { axiosBaseQueryError } from "@/app/api/axiosBaseQuery";
+import ErrorPage from "../Error";
 
-const financialItem: FinancialItem = {
-  id: "f001",
-  type: "income",
-  amount: 2500,
-  date: "2025-04-08",
-  category: "مبيعات",
-  description: "دفعة أولى من العميل X مقابل الخدمة.",
-};
+const items = (record: FinancialRecord) => [
+  {
+    label: "تفاصيل العملية",
+    key: "1",
+    children: <FinancialDetails item={record} />,
+  },
+];
 
 const FinancialProfilePage: React.FC = () => {
-  const typeColors: Record<FinancialItem["type"], string> = {
-    income: "green",
-    expense: "red",
-  };
+  const { record_id } = useParams();
 
-  const items = [
-    {
-      label: "تفاصيل العملية",
-      key: "1",
-      children: <FinancialDetails item={financialItem} />,
-    },
-  ];
+  const {
+    data: record,
+    isFetching,
+    isError: recordIsError,
+    error: recordError,
+  } = useGetFinancialRecordQuery({ format: "detailed", id: record_id! });
 
+  if (isFetching) return <Loading />;
+  if (recordIsError) {
+    const error_title =
+      (recordError as axiosBaseQueryError).status === 404
+        ? "عملية غير موجودة! تأكد من كود العملية المدخل."
+        : undefined;
+
+    return (
+      <ErrorPage subtitle={error_title} reload={error_title === undefined} />
+    );
+  }
   return (
     <>
       {/* Header */}
@@ -36,27 +47,32 @@ const FinancialProfilePage: React.FC = () => {
           {/* Avatar */}
           <div className="flex items-center flex-wrap gap-4">
             <Avatar size={80} className="bg-blue-700 font-semibold">
-              {getInitials(financialItem.category)}
+              {record?.id}
             </Avatar>
             <div>
               <h2 className="text-xl font-bold">
-                {financialItem.type === "income" ? "إيراد" : "مصروف"} –{" "}
-                {financialItem.category}
+                {record?.transaction_type.type === "إيراد" ? "إيراد" : "مصروف"}{" "}
+                – {record?.transaction_type.name}
               </h2>
-              <p className="text-gray-500">بتاريخ {financialItem.date}</p>
+              <p className="text-gray-500">
+                بتاريخ <span dir="rtl">{record?.date}</span>
+              </p>
             </div>
           </div>
 
           {/* Type Tag */}
           <div className="text-center">
-            <Tag color={typeColors[financialItem.type]}>
-              {financialItem.type === "income" ? "إيراد" : "مصروف"}
+            <Tag
+              color={transactionTypeColors[record?.transaction_type.type!]}
+              className="text-base w-20 text-center"
+            >
+              {record?.transaction_type.type === "إيراد" ? "إيراد" : "مصروف"}
             </Tag>
           </div>
 
           {/* Amount */}
           <div className="text-xl font-bold text-right text-calypso-700">
-            {financialItem.amount.toLocaleString()} ج.م
+            {record?.amount.toLocaleString()} ج.م
           </div>
         </div>
       </Card>
@@ -66,7 +82,7 @@ const FinancialProfilePage: React.FC = () => {
         className="mt-4"
         defaultActiveKey="1"
         direction="rtl"
-        items={items}
+        items={items(record!)}
       />
 
       {/* Actions */}

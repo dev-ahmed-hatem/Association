@@ -1,121 +1,57 @@
-import { useState } from "react";
-import { Table, Input, DatePicker, Statistic } from "antd";
-import {
-  SearchOutlined,
-  PlusOutlined,
-  CalendarOutlined,
-} from "@ant-design/icons";
+import { useEffect, useState } from "react";
+import { Table, DatePicker, Statistic, Tag } from "antd";
+import { PlusOutlined, CalendarOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 import { Link, Outlet, useMatch, useNavigate } from "react-router";
-import { FinancialRecord } from "@/types/financial_item";
+import { FinancialRecord, paymentMethodColors } from "@/types/financial_record";
 import { tablePaginationConfig } from "../../utils/antd";
 import { ColumnsType } from "antd/es/table";
-import {
-  TransactionKindEnglish,
-  TransactionType,
-} from "@/types/transaction_type";
-import { BankAccount } from "@/types/bank_account";
-
-export const bankAccounts: BankAccount[] = [
-  { id: "1", name: "بنك مصر" },
-  { id: "2", name: "البنك الأهلي" },
-  { id: "3", name: "CIB" },
-];
-
-// Example Transaction Types
-export const transactionTypes: TransactionType[] = [
-  { id: "1", name: "إيجار مقر", type: "مصروف" },
-  { id: "2", name: "رسوم اشتراك", type: "إيراد" },
-  { id: "3", name: "قرض بنكي", type: "إيراد" },
-  { id: "4", name: "مصاريف إدارية", type: "مصروف" },
-];
-
-export const data: FinancialRecord[] = [
-  {
-    id: "1",
-    amount: 1500,
-    transaction_type: transactionTypes[1],
-    date: "2025-08-17",
-    payment_method: "نقدي",
-    bank_account: null,
-    receipt_number: null,
-    notes: "دفعة نقدية من أحد الأعضاء",
-    created_at: "2025-08-17",
-    created_by: 1,
-  },
-  {
-    id: "2",
-    amount: 2500,
-    transaction_type: transactionTypes[0],
-    date: "2025-08-17",
-    payment_method: "إيصال بنكي",
-    bank_account: bankAccounts[0],
-    receipt_number: "RCPT-2025-001",
-    notes: "إيجار المقر الشهري",
-    created_at: "2025-08-17",
-    created_by: 2,
-  },
-  {
-    id: "3",
-    amount: 5000,
-    transaction_type: transactionTypes[1],
-    date: "2025-08-17",
-    payment_method: "إيصال بنكي",
-    bank_account: bankAccounts[1],
-    receipt_number: "RCPT-2025-002",
-    notes: "رسوم اشتراك سنوي",
-    created_at: "2025-08-17",
-    created_by: 3,
-  },
-  {
-    id: "4",
-    amount: 1200,
-    transaction_type: transactionTypes[3],
-    date: "2025-08-17",
-    payment_method: "نقدي",
-    bank_account: null,
-    receipt_number: null,
-    notes: "مصاريف مكتبية",
-    created_at: "2025-08-17",
-    created_by: 1,
-  },
-  {
-    id: "5",
-    amount: 10000,
-    transaction_type: transactionTypes[1],
-    date: "2025-08-17",
-    payment_method: "إيصال بنكي",
-    bank_account: bankAccounts[2],
-    receipt_number: "RCPT-2025-003",
-    notes: "قرض من CIB",
-    created_at: "2025-08-17",
-    created_by: 2,
-  },
-];
+import { TransactionKindArabic } from "@/types/transaction_type";
+import { useLazyGetFinancialRecordsQuery } from "@/app/api/endpoints/financial_records";
+import Loading from "@/components/Loading";
+import ErrorPage from "../Error";
+import { PaginatedResponse } from "@/types/paginatedResponse";
 
 type Props = {
   financialType: "income" | "expense";
 };
 
+type ControlsType = {
+  sort_by?: string;
+  order?: string;
+  filters: {
+    payment_method?: string;
+    transaction_type: string;
+  };
+} | null;
+
 const FinancialRecords: React.FC<Props> = ({ financialType }) => {
   const isFinancials = useMatch(`/financials/${financialType}s`);
-  const [searchText, setSearchText] = useState("");
   const [selectedDate, setSelectedDate] = useState<string>(
     dayjs().format("YYYY-MM-DD")
   );
-  const navigate = useNavigate();
-
   const pageTitle = financialType === "income" ? "الإيرادات" : "المصروفات";
   const addButtonLabel =
     financialType === "income" ? "إضافة إيراد" : "إضافة مصروف";
+  const navigate = useNavigate();
 
-  const filteredData = data.filter(
-    (item) =>
-      item.date === selectedDate &&
-      item.transaction_type.type === TransactionKindEnglish[financialType]
-  );
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [controls, setControls] = useState<ControlsType>();
+
+  const [
+    getRecords,
+    { data: financialRecords, isLoading, isFetching, isError },
+  ] = useLazyGetFinancialRecordsQuery();
+  const records = financialRecords as PaginatedResponse<FinancialRecord>;
 
   const columns: ColumnsType<FinancialRecord> = [
+    {
+      title: "رقم العملية",
+      dataIndex: "id",
+      key: "id",
+      sorter: true,
+    },
     {
       title: "التاريخ",
       dataIndex: "date",
@@ -132,6 +68,19 @@ const FinancialRecords: React.FC<Props> = ({ financialType }) => {
       title: "طريقة الدفع",
       dataIndex: "payment_method",
       key: "payment_method",
+      render: (text, record) => (
+        <Tag
+          className="text-base"
+          color={paymentMethodColors[record.payment_method]}
+        >
+          {record.payment_method}
+        </Tag>
+      ),
+      filters: [
+        { text: "إيصال بنكي", value: "إيصال بنكي" },
+        { text: "نقدي", value: "نقدي" },
+      ],
+      defaultFilteredValue: controls?.filters?.payment_method?.split(","),
     },
     {
       title: "القيمة",
@@ -151,7 +100,25 @@ const FinancialRecords: React.FC<Props> = ({ financialType }) => {
     },
   ];
 
+  useEffect(() => {
+    if (isFinancials) {
+      getRecords({
+        no_pagination: false,
+        type: TransactionKindArabic[financialType],
+        page,
+        page_size: pageSize,
+        date: selectedDate,
+        sort_by: controls?.sort_by,
+        order: controls?.order === "descend" ? "-" : "",
+        payment_method: controls?.filters.payment_method,
+      });
+    }
+  }, [page, pageSize, selectedDate, financialType, controls]);
+
   if (!isFinancials) return <Outlet />;
+
+  if (isLoading) return <Loading />;
+  if (isError) return <ErrorPage />;
   return (
     <>
       <h1 className="mb-6 text-2xl md:text-3xl font-bold">{pageTitle}</h1>
@@ -160,7 +127,9 @@ const FinancialRecords: React.FC<Props> = ({ financialType }) => {
         <Link
           to={"add"}
           className="h-10 px-6 flex items-center text-white gap-2 rounded-lg
-         bg-green-700 hover:bg-green-600 shadow-[0_2px_0_rgba(0,58,58,0.31)]"
+         bg-gradient-to-l from-green-800 to-green-600 
+        hover:from-green-700 hover:to-green-500 shadow-[0_2px_0_rgba(0,58,58,0.31)]
+         transition-all duration-200"
         >
           <PlusOutlined />
           {addButtonLabel}
@@ -177,18 +146,45 @@ const FinancialRecords: React.FC<Props> = ({ financialType }) => {
           allowClear={false}
         />
       </div>
-      <Table
-        dataSource={filteredData}
-        columns={columns}
-        rowKey="id"
-        pagination={tablePaginationConfig()}
-        bordered
-        scroll={{ x: "max-content" }}
-        className="clickable-table minsk-header"
-        onRow={(record) => ({
-          onClick: () => navigate(`/financials/${financialType}s/${record.id}`),
-        })}
-      />
+
+      {isFetching && <Loading />}
+
+      {!isFetching && (
+        <Table
+          dataSource={records?.data}
+          columns={columns}
+          rowKey="id"
+          pagination={tablePaginationConfig({
+            total: records?.count,
+            current: records?.page,
+            showQuickJumper: true,
+            pageSize,
+            onChange(page, pageSize) {
+              setPage(page);
+              setPageSize(pageSize);
+            },
+          })}
+          onChange={(_, filters, sorter: any) => {
+            setControls({
+              ...(sorter.column?.key && { sort_by: sorter.column.key }),
+              ...(sorter.order && { order: sorter.order }),
+              filters: Object.fromEntries(
+                Object.entries(filters).map(([filter, values]) => [
+                  filter,
+                  (values as string[])?.join(),
+                ])
+              ),
+            });
+          }}
+          bordered
+          scroll={{ x: "max-content" }}
+          className="clickable-table minsk-header"
+          onRow={(record) => ({
+            onClick: () =>
+              navigate(`/financials/${financialType}s/${record.id}`),
+          })}
+        />
+      )}
     </>
   );
 };
