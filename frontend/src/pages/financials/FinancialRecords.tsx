@@ -11,6 +11,7 @@ import { useLazyGetFinancialRecordsQuery } from "@/app/api/endpoints/financial_r
 import Loading from "@/components/Loading";
 import ErrorPage from "../Error";
 import { PaginatedResponse } from "@/types/paginatedResponse";
+import { useGetTransactionTypesQuery } from "@/app/api/endpoints/transaction_types";
 
 type Props = {
   financialType: "income" | "expense";
@@ -21,7 +22,7 @@ type ControlsType = {
   order?: string;
   filters: {
     payment_method?: string;
-    transaction_type: string;
+    transaction_type?: string;
   };
 } | null;
 
@@ -38,6 +39,15 @@ const FinancialRecords: React.FC<Props> = ({ financialType }) => {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [controls, setControls] = useState<ControlsType>();
+
+  const {
+    data: types,
+    isFetching: typesLoading,
+    isError: typesIsError,
+  } = useGetTransactionTypesQuery({
+    no_pagination: true,
+    type: TransactionKindArabic[financialType],
+  });
 
   const [
     getRecords,
@@ -60,9 +70,11 @@ const FinancialRecords: React.FC<Props> = ({ financialType }) => {
     },
     {
       title: "الفئة",
-      dataIndex: "type",
-      key: "type",
+      dataIndex: "transaction_type",
+      key: "transaction_type",
       render: (text, record) => record.transaction_type.name,
+      filters: types?.map((type) => ({ text: type.name, value: type.name })),
+      defaultFilteredValue: controls?.filters?.transaction_type?.split(","),
     },
     {
       title: "طريقة الدفع",
@@ -110,15 +122,16 @@ const FinancialRecords: React.FC<Props> = ({ financialType }) => {
         date: selectedDate,
         sort_by: controls?.sort_by,
         order: controls?.order === "descend" ? "-" : "",
-        payment_method: controls?.filters.payment_method,
+        payment_methods: controls?.filters.payment_method,
+        transaction_types: controls?.filters.transaction_type,
       });
     }
   }, [page, pageSize, selectedDate, financialType, controls]);
 
   if (!isFinancials) return <Outlet />;
 
-  if (isLoading) return <Loading />;
-  if (isError) return <ErrorPage />;
+  if (isLoading || typesLoading) return <Loading />;
+  if (isError || typesIsError) return <ErrorPage />;
   return (
     <>
       <h1 className="mb-6 text-2xl md:text-3xl font-bold">{pageTitle}</h1>
