@@ -20,6 +20,7 @@ import {
 } from "@/app/api/endpoints/clients";
 import { Client } from "@/types/client";
 import SubscriptionHistory from "@/components/clients/SubscriptionHistory";
+import InstallmentsHistory from "@/components/clients/InstallmentsHistory";
 
 // Sample Employee Data
 const employee3: Employee = {
@@ -88,11 +89,11 @@ const items = (client: Client) => [
     key: "4",
     children: <SubscriptionHistory />,
   },
-  // {
-  //   label: `تاريخ الراتب`,
-  //   key: "5",
-  //   children: <SalaryHistory salaryHistory={employee3.salaryHistory} />,
-  // },
+  {
+    label: `الأقساط`,
+    key: "5",
+    children: <InstallmentsHistory />,
+  },
 ];
 
 const ClientProfilePage: React.FC = () => {

@@ -1,35 +1,31 @@
 import { Link } from "react-router";
-import {
-  DollarOutlined,
-  ShoppingOutlined,
-  CreditCardOutlined,
-  CalendarOutlined,
-} from "@ant-design/icons";
+import { CreditCardOutlined, CalendarOutlined } from "@ant-design/icons";
+import { GiPayMoney, GiReceiveMoney } from "react-icons/gi";
 
 const navItems = [
   {
     path: "/financials/incomes",
     label: "الإيرادات",
-    icon: <DollarOutlined />,
+    icon: <GiReceiveMoney />,
     color: "from-green-500 to-green-700",
   },
   {
     path: "/financials/expenses",
     label: "المصروفات",
-    icon: <ShoppingOutlined />,
+    icon: <GiPayMoney />,
     color: "from-red-500 to-red-700",
-  },
-  {
-    path: "/financials/installments",
-    label: "الأقساط",
-    icon: <CreditCardOutlined />,
-    color: "from-blue-500 to-blue-700",
   },
   {
     path: "/financials/subscriptions",
     label: "الاشتراكات الشهرية",
     icon: <CalendarOutlined />,
     color: "from-purple-500 to-purple-700",
+  },
+  {
+    path: "/financials/installments",
+    label: "الأقساط",
+    icon: <CreditCardOutlined />,
+    color: "from-blue-500 to-blue-700",
   },
 ];
 

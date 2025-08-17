@@ -1,7 +1,7 @@
-import { Table, DatePicker, Space } from "antd";
+import { Table, DatePicker, Space, Button, InputNumber, Tag } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import dayjs, { Dayjs } from "dayjs";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Employee } from "../../types/employee";
 
 // Sample Employee Data
@@ -44,20 +44,29 @@ const employee3: Employee = {
   ],
 
   salaryHistory: [
-    { date: "2025-01", baseSalary: 15000, bonuses: 2000 },
-    { date: "2025-02", baseSalary: 15000, bonuses: 1500 },
-    { date: "2025-03", baseSalary: 15000, bonuses: 1800 },
+    { date: "2025-01", baseSalary: 300, bonuses: 2000 },
+    { date: "2025-02", baseSalary: 300, bonuses: 1500 },
+    { date: "2025-03", baseSalary: 300, bonuses: 1800 },
   ],
+};
+
+type Subscription = {
+  date: string;
+  baseSalary: number;
+  status: "مدفوع" | "غير مدفوع";
 };
 
 const SubscriptionHistory = () => {
   const [selectedYear, setSelectedYear] = useState<Dayjs>(dayjs()); // Default to current year
 
   // Generate monthly salary data for the selected year
-  const getYearSalaryData = () => {
-    let yearData = [];
+  const getYearSalaryData = (): Subscription[] => {
+    let yearData: Subscription[] = [];
 
-    for (let i = 0; i < 12; i++) {
+    const monthCount =
+      dayjs().year() === selectedYear.year() ? selectedYear.month() + 1 : 12;
+
+    for (let i = 0; i < monthCount; i++) {
       const month = selectedYear.startOf("year").add(i, "month");
       const record = employee3.salaryHistory.find((salary) =>
         dayjs(salary.date).isSame(month, "month")
@@ -65,62 +74,71 @@ const SubscriptionHistory = () => {
 
       yearData.push({
         date: month.format("YYYY-MM"),
-        baseSalary: record?.baseSalary || "-",
-        bonuses: record?.bonuses || "-",
-        totalSalary: record ? record.baseSalary + record.bonuses : "-",
+        baseSalary: record?.baseSalary || 300, // default value
+        status: "غير مدفوع",
       });
     }
     return yearData;
   };
 
+  // keep state of subscriptions
+  const [subscriptions, setSubscriptions] = useState<Subscription[]>(
+    getYearSalaryData()
+  );
+
+  // mark as paid
+  const markAsPaid = (record: Subscription) => {
+    setSubscriptions((prev) =>
+      prev.map((item) =>
+        item.date === record.date ? { ...item, status: "مدفوع" } : item
+      )
+    );
+  };
+
   // Table columns
-  const columns: ColumnsType<{
-    baseSalary: number | string;
-    bonuses: number | string;
-    totalSalary: number | string;
-    date: string;
-  }> = [
+  const columns: ColumnsType<Subscription> = [
     {
       title: "الشهر",
       dataIndex: "date",
       key: "date",
     },
-    // {
-    //   title: "الشهر",
-    //   dataIndex: "date",
-    //   key: "date",
-    // },
     {
-      title: "الراتب الأساسي",
+      title: "قيمة الاشتراك",
       dataIndex: "baseSalary",
       key: "baseSalary",
-      render: (value) => (value !== "-" ? `${value}` : "-"),
-      sorter: (a, b) =>
-        a?.baseSalary && b?.baseSalary
-          ? (a.baseSalary as number) - (b.baseSalary as number)
-          : 0,
+      render: (value, record) =>
+        record.status === "مدفوع" ? (
+          <span>{value}</span>
+        ) : (
+          <InputNumber value={value} />
+        ),
     },
     {
-      title: "المكافآت",
-      dataIndex: "bonuses",
-      key: "bonuses",
-      render: (value) => (value !== "-" ? `${value}` : "-"),
-      sorter: (a, b) =>
-        a?.bonuses && b?.bonuses
-          ? (a.bonuses as number) - (b.bonuses as number)
-          : 0,
+      title: "الحالة",
+      dataIndex: "status",
+      key: "status",
+      render: (value) => (
+        <Tag color={value === "مدفوع" ? "green" : "red"}>{value}</Tag>
+      ),
     },
     {
-      title: "إجمالي الراتب",
-      dataIndex: "totalSalary",
-      key: "totalSalary",
-      render: (value) => (value !== "-" ? `${value}` : "-"),
-      sorter: (a, b) =>
-        a?.totalSalary && b?.totalSalary
-          ? (a.totalSalary as number) - (b.totalSalary as number)
-          : 0,
+      title: "إجراءات",
+      key: "actions",
+      render: (_, record) => (
+        <Button
+          type="primary"
+          disabled={record.status === "مدفوع"}
+          onClick={() => markAsPaid(record)}
+        >
+          تسجيل كمدفوع
+        </Button>
+      ),
     },
   ];
+
+  useEffect(() => {
+    setSubscriptions(getYearSalaryData());
+  }, [selectedYear]);
 
   return (
     <div>
@@ -135,22 +153,26 @@ const SubscriptionHistory = () => {
         <DatePicker
           picker="year"
           onChange={(date) => setSelectedYear(date || dayjs())}
+          value={selectedYear}
           format="[السنة ]YYYY"
           placeholder="اختر السنة"
           className="w-full md:w-60"
+          disabledDate={(date) => date.year() > dayjs().year()}
         />
       </Space>
 
-      {/* Salary Table */}
+      {/* Subscription Table */}
       <Table
-        dataSource={getYearSalaryData()}
+        dataSource={subscriptions}
         columns={columns}
         rowKey="date"
         pagination={false}
         bordered
-        title={() => `سجل الراتب - سنة ${dayjs(selectedYear).format("YYYY")}`}
+        title={() =>
+          `سجل الاشتراكات - سنة ${dayjs(selectedYear).format("YYYY")}`
+        }
         scroll={{ x: "max-content" }}
-        className="calypso-header"
+        className="minsk-header"
       />
     </div>
   );
