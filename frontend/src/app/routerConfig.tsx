@@ -3,6 +3,8 @@ import appRoutes, { AppRoute } from "./appRoutes";
 import ClientForm from "@/pages/clients/ClientForm";
 import ClientProfilePage from "@/pages/clients/ClientProfilePage";
 import ClientEdit from "@/pages/clients/ClientEdit";
+import FinancialForm from "@/pages/financials/FinancialForm";
+import FinancialProfilePage from "@/pages/financials/FinancialProfilePage";
 
 const alterRoute = function (
   appRoutes: AppRoute[],
@@ -64,6 +66,14 @@ let routes: RouteObject[] = addSubRoutes(appRoutes, {
     { path: "client-profile/:client_id", element: <ClientProfilePage /> },
     { path: "add", element: <ClientForm /> },
     { path: "edit/:client_id", element: <ClientEdit /> },
+  ],
+  "financials/incomes": [
+    { path: "add", element: <FinancialForm financialRecord="income" /> },
+    { path: ":income_id", element: <FinancialProfilePage /> },
+  ],
+  "financials/expenses": [
+    { path: "add", element: <FinancialForm financialRecord="expense" /> },
+    { path: ":expense_id", element: <FinancialProfilePage /> },
   ],
 });
 
