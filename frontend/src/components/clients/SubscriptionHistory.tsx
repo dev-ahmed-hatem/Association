@@ -4,11 +4,53 @@ import dayjs, { Dayjs } from "dayjs";
 import { useState } from "react";
 import { Employee } from "../../types/employee";
 
-const SalaryHistory = ({
-  salaryHistory,
-}: {
-  salaryHistory: Employee["salaryHistory"];
-}) => {
+// Sample Employee Data
+const employee3: Employee = {
+  id: 1,
+  url: "http://127.0.0.1:8000/api/employees/employees/1/",
+  department: "Social Media",
+  gender: "ذكر",
+  marital_status: "أعزب",
+  mode: "عن بُعد",
+  created_by: "Dev Ahmed Hatem",
+  name: "Employee 1",
+  email: "e@a.com",
+  is_active: true,
+  phone: "123",
+  employee_id: "E12",
+  address: "16 moharam bek",
+  birth_date: "2000-07-22",
+  age: 25,
+  national_id: "123123",
+  position: "Full Stack Developer",
+  hire_date: "2023-12-02",
+  cv: "http://127.0.0.1:8000/media/employees/cv/Screenshot_2025-03-18_221316.png",
+  image: "http://127.0.0.1:8000/media/employees/images/6mouhk.png",
+  created_at: "2025-05-08T14:31:02.935535Z",
+
+  performance: {
+    totalProjects: 15,
+    activeProjects: 3,
+    totalAssignments: 20,
+    activeAssignments: 5,
+  },
+
+  attendance: [
+    { date: "2025-03-10", check_in: "08:30 AM", check_out: "05:00 PM" },
+    { date: "2025-03-11", check_in: "09:00 AM", check_out: "04:45 PM" },
+    { date: "2025-03-12" }, // No record for this day
+    { date: "2025-03-13", check_in: "07:45 AM", check_out: "05:30 PM" },
+    { date: "2025-03-14" }, // No record
+  ],
+
+  salaryHistory: [
+    { date: "2025-01", baseSalary: 15000, bonuses: 2000 },
+    { date: "2025-02", baseSalary: 15000, bonuses: 1500 },
+    { date: "2025-03", baseSalary: 15000, bonuses: 1800 },
+  ],
+};
+
+const SubscriptionHistory = () => {
   const [selectedYear, setSelectedYear] = useState<Dayjs>(dayjs()); // Default to current year
 
   // Generate monthly salary data for the selected year
@@ -17,7 +59,7 @@ const SalaryHistory = ({
 
     for (let i = 0; i < 12; i++) {
       const month = selectedYear.startOf("year").add(i, "month");
-      const record = salaryHistory.find((salary) =>
+      const record = employee3.salaryHistory.find((salary) =>
         dayjs(salary.date).isSame(month, "month")
       );
 
@@ -114,4 +156,4 @@ const SalaryHistory = ({
   );
 };
 
-export default SalaryHistory;
+export default SubscriptionHistory;

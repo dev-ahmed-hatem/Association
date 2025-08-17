@@ -19,6 +19,7 @@ import {
   useSwitchClientActiveMutation,
 } from "@/app/api/endpoints/clients";
 import { Client } from "@/types/client";
+import SubscriptionHistory from "@/components/clients/SubscriptionHistory";
 
 // Sample Employee Data
 const employee3: Employee = {
@@ -83,9 +84,9 @@ const items = (client: Client) => [
     children: <ClientNotes client={client} />,
   },
   {
-    label: "سجل الدفع",
+    label: "الاشتراكات الشهرية",
     key: "4",
-    children: <></>,
+    children: <SubscriptionHistory />,
   },
   // {
   //   label: `تاريخ الراتب`,
