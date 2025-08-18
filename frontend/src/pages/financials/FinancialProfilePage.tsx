@@ -3,7 +3,10 @@ import { Card, Avatar, Tabs, Button, Tag, Popconfirm } from "antd";
 import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import { FinancialRecord } from "../../types/financial_record";
 import FinancialDetails from "../../components/financials/FinancialDetails";
-import { transactionTypeColors } from "@/types/transaction_type";
+import {
+  TransactionKindEnglish,
+  transactionTypeColors,
+} from "@/types/transaction_type";
 import { useNavigate, useParams } from "react-router";
 import {
   useFinancialRecordMutation,
@@ -48,7 +51,7 @@ const FinancialProfilePage: React.FC = () => {
   useEffect(() => {
     if (deleteError) {
       notification.error({
-        message: "حدث خطأ أثناء حذف العضو ! برجاء إعادة المحاولة",
+        message: "حدث خطأ أثناء حذف العملية ! برجاء إعادة المحاولة",
       });
     }
   }, [deleteError]);
@@ -56,10 +59,11 @@ const FinancialProfilePage: React.FC = () => {
   useEffect(() => {
     if (deleted) {
       notification.success({
-        message: "تم حذف العضو بنجاح",
+        message: "تم حذف العملية بنجاح",
       });
-
-      navigate("/financials");
+      navigate(
+        `/financials/${TransactionKindEnglish[record!.transaction_type.type]}s`
+      );
     }
   }, [deleted]);
 
@@ -126,7 +130,11 @@ const FinancialProfilePage: React.FC = () => {
           type="primary"
           icon={<EditOutlined />}
           onClick={() => {
-            navigate(`/clients/edit/`);
+            navigate(
+              `/financials/${
+                TransactionKindEnglish[record!.transaction_type.type]
+              }s/edit/${record?.id}`
+            );
           }}
         >
           تعديل العملية

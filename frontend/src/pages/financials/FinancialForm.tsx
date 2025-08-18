@@ -15,7 +15,10 @@ import dayjs from "dayjs";
 import { FinancialRecord, PaymentMethod } from "@/types/financial_record";
 import { useEffect, useState } from "react";
 import { useGetTransactionTypesQuery } from "@/app/api/endpoints/transaction_types";
-import { TransactionKindArabic } from "@/types/transaction_type";
+import {
+  TransactionKindArabic,
+  TransactionKindEnglish,
+} from "@/types/transaction_type";
 import Loading from "@/components/Loading";
 import ErrorPage from "../Error";
 import { useLazyGetBankAccountsQuery } from "@/app/api/endpoints/bank_accounts";
@@ -42,7 +45,9 @@ const FinancialForm = ({
   const notification = useNotification();
   const navigate = useNavigate();
 
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("نقدي");
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(
+    initialValues?.payment_method ?? "نقدي"
+  );
 
   const {
     data: transactionTypes,
@@ -71,6 +76,8 @@ const FinancialForm = ({
 
   const onFinish = (values: any) => {
     const data = {
+      bank_account: null,
+      receipt_number: null,
       ...values,
       date: values.date.format("YYYY-MM-DD"),
     };
@@ -120,6 +127,10 @@ const FinancialForm = ({
       });
     }
   }, [paymentMethod]);
+
+  useEffect(() => {
+    console.log(financialType);
+  }, [financialType]);
 
   const isEditing = Boolean(initialValues);
 
