@@ -1,14 +1,18 @@
-import React from "react";
-import { Card, Avatar, Tabs, Button, Tag } from "antd";
+import React, { useEffect } from "react";
+import { Card, Avatar, Tabs, Button, Tag, Popconfirm } from "antd";
 import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import { FinancialRecord } from "../../types/financial_record";
 import FinancialDetails from "../../components/financials/FinancialDetails";
 import { transactionTypeColors } from "@/types/transaction_type";
-import { useParams } from "react-router";
-import { useGetFinancialRecordQuery } from "@/app/api/endpoints/financial_records";
+import { useNavigate, useParams } from "react-router";
+import {
+  useFinancialRecordMutation,
+  useGetFinancialRecordQuery,
+} from "@/app/api/endpoints/financial_records";
 import Loading from "@/components/Loading";
 import { axiosBaseQueryError } from "@/app/api/axiosBaseQuery";
 import ErrorPage from "../Error";
+import { useNotification } from "@/providers/NotificationProvider";
 
 const items = (record: FinancialRecord) => [
   {
@@ -20,6 +24,8 @@ const items = (record: FinancialRecord) => [
 
 const FinancialProfilePage: React.FC = () => {
   const { record_id } = useParams();
+  const navigate = useNavigate();
+  const notification = useNotification();
 
   const {
     data: record,
@@ -27,6 +33,35 @@ const FinancialProfilePage: React.FC = () => {
     isError: recordIsError,
     error: recordError,
   } = useGetFinancialRecordQuery({ format: "detailed", id: record_id! });
+
+  const [
+    deleteRecord,
+    { isLoading: deleting, isError: deleteError, isSuccess: deleted },
+  ] = useFinancialRecordMutation();
+
+  const handleDelete = () => {
+    deleteRecord({
+      url: `/financials/financial-records/${record_id}/`,
+      method: "DELETE",
+    });
+  };
+  useEffect(() => {
+    if (deleteError) {
+      notification.error({
+        message: "حدث خطأ أثناء حذف العضو ! برجاء إعادة المحاولة",
+      });
+    }
+  }, [deleteError]);
+
+  useEffect(() => {
+    if (deleted) {
+      notification.success({
+        message: "تم حذف العضو بنجاح",
+      });
+
+      navigate("/financials");
+    }
+  }, [deleted]);
 
   if (isFetching) return <Loading />;
   if (recordIsError) {
@@ -85,18 +120,32 @@ const FinancialProfilePage: React.FC = () => {
         items={items(record!)}
       />
 
-      {/* Actions */}
-      <div className="flex md:justify-end mt-4 flex-wrap gap-4">
-        <Button type="primary" icon={<EditOutlined />}>
+      {/* Action Button */}
+      <div className="btn-wrapper flex md:justify-end mt-4 flex-wrap gap-4">
+        <Button
+          type="primary"
+          icon={<EditOutlined />}
+          onClick={() => {
+            navigate(`/clients/edit/`);
+          }}
+        >
           تعديل العملية
         </Button>
-        <Button
-          className="enabled:bg-red-500 enabled:border-red-500 enabled:shadow-[0_2px_0_rgba(0,58,58,0.31)]
-              enabled:hover:border-red-400 enabled:hover:bg-red-400 enabled:text-white"
-          icon={<DeleteOutlined />}
+        <Popconfirm
+          title="هل أنت متأكد من حذف هذه العملية؟"
+          onConfirm={handleDelete}
+          okText="نعم"
+          cancelText="لا"
         >
-          حذف العملية
-        </Button>
+          <Button
+            className="enabled:bg-red-500 enabled:border-red-500 enabled:shadow-[0_2px_0_rgba(0,58,58,0.31)]
+                  enabled:hover:border-red-400 enabled:hover:bg-red-400 enabled:text-white"
+            icon={<DeleteOutlined />}
+            loading={deleting}
+          >
+            حذف العملية
+          </Button>
+        </Popconfirm>
       </div>
     </>
   );
