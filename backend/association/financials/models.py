@@ -198,13 +198,6 @@ class Subscription(models.Model):
         },
     )
 
-    status = models.CharField(
-        max_length=20,
-        choices=Status.choices,
-        default=Status.UNPAID,
-        verbose_name=_("الحالة"),
-    )
-
     notes = models.TextField(
         null=True,
         blank=True,
@@ -226,20 +219,7 @@ class Subscription(models.Model):
         ordering = ["-date"]
 
     def __str__(self):
-        return f"{self.amount} - {self.get_status_display()} ({self.date})"
-
-    def clean(self):
-        from django.core.exceptions import ValidationError
-
-        if self.status == self.Status.PAID and not self.paid_at:
-            raise ValidationError(
-                {"paid_at": _("يجب إدخال تاريخ الدفع في حالة كان الاشتراك مدفوعًا")}
-            )
-
-        if self.status == self.Status.UNPAID and self.paid_at:
-            raise ValidationError(
-                {"paid_at": _("لا يمكن إدخال تاريخ الدفع إذا كان الاشتراك غير مدفوع")}
-            )
+        return f"{self.amount} - ({self.date})"
 
 
 class RankFee(models.Model):

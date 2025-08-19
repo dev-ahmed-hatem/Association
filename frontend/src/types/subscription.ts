@@ -7,7 +7,6 @@ export type Subscription = {
   transaction: FinancialRecord;
   amount: number;
   date: string;
-  status: SubscriptionStatus;
   notes?: string | null;
   paid_at?: string | null;
 };

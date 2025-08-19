@@ -2,6 +2,8 @@ from django.db.models.functions import ExtractMonth
 from rest_framework.decorators import action, api_view, permission_classes
 from django.db.models import RestrictedError
 from rest_framework.viewsets import ModelViewSet
+
+from clients.models import Client
 from .serializers import BankAccountSerializer, TransactionTypeSerializer, FinancialRecordReadSerializer, \
     FinancialRecordWriteSerializer, RankFeeSerializer, SubscriptionWriteSerializer, SubscriptionReadSerializer
 from rest_framework.response import Response
@@ -118,9 +120,21 @@ class SubscriptionViewSet(ModelViewSet):
 @permission_classes((permissions.IsAuthenticated,))
 def get_year_subscriptions(request):
     year = request.query_params.get("year", None)
-    client = request.query_params.get("client", None)
+    client_id = request.query_params.get("client", None)
+
     if not year:
         return Response({"detail": _("يجب إدخال السنة")}, status=status.HTTP_400_BAD_REQUEST)
 
-    subscriptions = Subscription.objects.filter(date__year=year, client=client).annotate(
-        month=ExtractMonth("date")).values()
+    try:
+        client = Client.objects.get(pk=client_id)
+    except Client.DoesNotExist:
+        return Response({"detail": _("عميل غير موجود")}, status=status.HTTP_404_NOT_FOUND)
+
+    subscriptions = Subscription.objects.filter(date__year=year, client=client).order_by("date")
+
+    subs = {
+        sub.date.month: SubscriptionReadSerializer(sub, context={"request": request}).data
+        for sub in subscriptions
+    }
+
+    return Response(subs, status=status.HTTP_200_OK)

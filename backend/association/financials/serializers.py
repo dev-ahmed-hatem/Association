@@ -49,6 +49,9 @@ class FinancialRecordWriteSerializer(serializers.ModelSerializer):
 
 
 class SubscriptionReadSerializer(serializers.ModelSerializer):
+    date = serializers.DateField(format="%Y-%m")
+    paid_at = serializers.DateField(format="%d-%m-%Y")
+
     class Meta:
         model = Subscription
         fields = '__all__'

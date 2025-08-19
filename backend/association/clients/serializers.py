@@ -1,7 +1,8 @@
 from django.conf import settings
+from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 from .models import Client, WorkEntity
-from django.utils.translation import gettext_lazy as _
+from financials.models import RankFee
 
 
 class WorkEntitySerializer(serializers.ModelSerializer):
@@ -28,6 +29,7 @@ class ClientReadSerializer(serializers.ModelSerializer):
     seniority = serializers.SerializerMethodField()
     work_entity = serializers.StringRelatedField(source="work_entity.name")
     age = serializers.SerializerMethodField()
+    rank_fee = serializers.SerializerMethodField()
 
     class Meta:
         model = Client
@@ -41,6 +43,9 @@ class ClientReadSerializer(serializers.ModelSerializer):
 
     def get_seniority(self, obj: Client):
         return obj.get_seniority()
+
+    def get_rank_fee(self, obj: Client):
+        return RankFee.objects.get(rank=obj.rank).fee
 
 
 class ClientWriteSerializer(serializers.ModelSerializer):

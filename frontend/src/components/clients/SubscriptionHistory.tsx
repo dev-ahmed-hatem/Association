@@ -1,62 +1,58 @@
-import { Table, DatePicker, Space, Button, InputNumber, Tag } from "antd";
+import {
+  Table,
+  DatePicker,
+  Space,
+  Button,
+  InputNumber,
+  Tag,
+  Input,
+  Modal,
+  Popconfirm,
+} from "antd";
 import type { ColumnsType } from "antd/es/table";
 import dayjs, { Dayjs } from "dayjs";
 import { useEffect, useState } from "react";
-import { Employee } from "../../types/employee";
-import { Subscription } from "@/types/subscription";
+import { Subscription, SubscriptionStatus } from "@/types/subscription";
+import {
+  useGetMonthSubscriptionsQuery,
+  useSubscriptionMutation,
+} from "@/app/api/endpoints/subscriptions";
+import { textify } from "@/utils";
+import Loading from "../Loading";
+import { useNotification } from "@/providers/NotificationProvider";
 
-// Sample Employee Data
-const employee3: Employee = {
-  id: 1,
-  url: "http://127.0.0.1:8000/api/employees/employees/1/",
-  department: "Social Media",
-  gender: "ذكر",
-  marital_status: "أعزب",
-  mode: "عن بُعد",
-  created_by: "Dev Ahmed Hatem",
-  name: "Employee 1",
-  email: "e@a.com",
-  is_active: true,
-  phone: "123",
-  employee_id: "E12",
-  address: "16 moharam bek",
-  birth_date: "2000-07-22",
-  age: 25,
-  national_id: "123123",
-  position: "Full Stack Developer",
-  hire_date: "2023-12-02",
-  cv: "http://127.0.0.1:8000/media/employees/cv/Screenshot_2025-03-18_221316.png",
-  image: "http://127.0.0.1:8000/media/employees/images/6mouhk.png",
-  created_at: "2025-05-08T14:31:02.935535Z",
-
-  performance: {
-    totalProjects: 15,
-    activeProjects: 3,
-    totalAssignments: 20,
-    activeAssignments: 5,
-  },
-
-  attendance: [
-    { date: "2025-03-10", check_in: "08:30 AM", check_out: "05:00 PM" },
-    { date: "2025-03-11", check_in: "09:00 AM", check_out: "04:45 PM" },
-    { date: "2025-03-12" }, // No record for this day
-    { date: "2025-03-13", check_in: "07:45 AM", check_out: "05:30 PM" },
-    { date: "2025-03-14" }, // No record
-  ],
-
-  salaryHistory: [
-    { date: "2025-01", baseSalary: 300, bonuses: 2000 },
-    { date: "2025-02", baseSalary: 300, bonuses: 1500 },
-    { date: "2025-03", baseSalary: 300, bonuses: 1800 },
-  ],
+type SubscriptionDisplay = Omit<Subscription, "transaction" | "date"> & {
+  status: SubscriptionStatus;
+  date: string | Dayjs;
 };
 
-const SubscriptionHistory = () => {
-  const [selectedYear, setSelectedYear] = useState<Dayjs>(dayjs()); // Default to current year
+const SubscriptionHistory = ({
+  client_id,
+  rank_fee,
+}: {
+  client_id: string;
+  rank_fee: number;
+}) => {
+  const [selectedYear, setSelectedYear] = useState<Dayjs>(dayjs());
+  const notification = useNotification();
+
+  const {
+    data: paid,
+    isFetching,
+    isError,
+    isSuccess,
+  } = useGetMonthSubscriptionsQuery({
+    client: client_id,
+    year: selectedYear.year(),
+  });
+  const [
+    recordSubscription,
+    { isLoading, isError: recordError, isSuccess: recorded },
+  ] = useSubscriptionMutation();
 
   // Generate monthly salary data for the selected year
-  const getYearSalaryData = (): Subscription[] => {
-    let yearData: Subscription[] = [];
+  const getYearSalaryData = (): SubscriptionDisplay[] => {
+    let yearData: SubscriptionDisplay[] = [];
 
     const monthCount =
       dayjs().year() === selectedYear.year() ? selectedYear.month() + 1 : 12;
@@ -64,44 +60,81 @@ const SubscriptionHistory = () => {
     for (let i = 0; i < monthCount; i++) {
       const month = selectedYear.startOf("year").add(i, "month");
 
-      // yearData.push({
-      //   date: month.format("YYYY-MM"),
-      //   status: "غير مدفوع",
+      const paidMonth = paid?.[i + 1];
 
-      // });
+      yearData.push(
+        paidMonth
+          ? {
+              id: paidMonth.id,
+              date: paidMonth.date,
+              status: "مدفوع",
+              notes: paidMonth.notes,
+              paid_at: paidMonth.paid_at,
+              amount: paidMonth.amount,
+            }
+          : {
+              id: i.toString(),
+              date: month,
+              status: "غير مدفوع",
+              notes: "",
+              paid_at: "",
+              amount: rank_fee,
+            }
+      );
     }
     return yearData;
   };
 
-  const [subscriptions, setSubscriptions] = useState<Subscription[]>(
+  const [subscriptions, setSubscriptions] = useState<SubscriptionDisplay[]>(
     getYearSalaryData()
   );
 
   // mark as paid
-  const markAsPaid = (record: Subscription) => {
+  const markAsPaid = (record: SubscriptionDisplay) => {
+    const data = {
+      amount: record.amount,
+      date: (record.date as Dayjs).startOf("month").format("YYYY-MM-DD"),
+      notes: record.notes,
+      paid_at: dayjs().format("YYYY-MM-DD"),
+      client: client_id,
+    };
+
+    recordSubscription({ data });
+  };
+
+  const editRecord = (
+    record: SubscriptionDisplay,
+    field: "notes" | "amount",
+    value: any
+  ) => {
     setSubscriptions((prev) =>
       prev.map((item) =>
-        item.date === record.date ? { ...item, status: "مدفوع" } : item
+        item.date === record.date ? { ...item, [field]: value } : item
       )
     );
   };
 
   // Table columns
-  const columns: ColumnsType<Subscription> = [
+  const columns: ColumnsType<SubscriptionDisplay> = [
     {
       title: "الشهر",
       dataIndex: "date",
       key: "date",
+      render: (value: string | Dayjs) =>
+        typeof value === "string" ? value : value.format("YYYY-MM"),
     },
     {
       title: "قيمة الاشتراك",
-      dataIndex: "baseSalary",
-      key: "baseSalary",
+      dataIndex: "amount",
+      key: "amount",
       render: (value, record) =>
         record.status === "مدفوع" ? (
           <span>{value}</span>
         ) : (
-          <InputNumber value={value} />
+          <InputNumber
+            value={value}
+            onChange={(value) => editRecord(record, "amount", value)}
+          />
         ),
     },
     {
@@ -113,23 +146,74 @@ const SubscriptionHistory = () => {
       ),
     },
     {
+      title: "ملاحظات",
+      dataIndex: "notes",
+      key: "notes",
+      render: (value, record) =>
+        record.status === "مدفوع" ? (
+          <span>{textify(value) ?? "-"}</span>
+        ) : (
+          <Input
+            value={value}
+            onChange={(event) =>
+              editRecord(record, "notes", event.target.value)
+            }
+          />
+        ),
+    },
+    {
       title: "إجراءات",
       key: "actions",
-      render: (_, record) => (
-        <Button
-          type="primary"
-          disabled={record.status === "مدفوع"}
-          onClick={() => markAsPaid(record)}
-        >
-          تسجيل كمدفوع
-        </Button>
-      ),
+      render: (_, record) =>
+        record.status === "مدفوع" ? (
+          <span className="text-minsk font-bold">
+            تم التسجيل {record.paid_at}
+          </span>
+        ) : (
+          <Popconfirm
+            title="تأكيد الدفع"
+            description="تأكيد الدفع بتاريخ اليوم؟"
+            okText="تأكيد"
+            cancelText="إلغاء"
+            placement="top"
+            onConfirm={() => markAsPaid(record)}
+            disabled={isLoading}
+          >
+            <Button type="primary" loading={isLoading}>
+              تسجيل كمدفوع
+            </Button>
+          </Popconfirm>
+        ),
     },
   ];
 
   useEffect(() => {
     setSubscriptions(getYearSalaryData());
-  }, [selectedYear]);
+  }, [selectedYear, paid]);
+
+  useEffect(() => {
+    if (recorded) {
+      notification.success({
+        message: "تم تسجيل الاشتراك",
+      });
+    }
+  }, [recorded]);
+
+  useEffect(() => {
+    if (recordError) {
+      notification.error({
+        message: "حدث خطأ أثناء تسجيل الاشتراك ! برجاء إعادة المحاولة",
+      });
+    }
+  }, [recordError]);
+
+  useEffect(() => {
+    if (isError) {
+      notification.error({
+        message: "حدث خطأ أثناء تحميل البيانات ! برجاء إعادة المحاولة",
+      });
+    }
+  }, [isError]);
 
   return (
     <div>
@@ -149,22 +233,36 @@ const SubscriptionHistory = () => {
           placeholder="اختر السنة"
           className="w-full md:w-60"
           disabledDate={(date) => date.year() > dayjs().year()}
+          disabled={isFetching}
+          allowClear={false}
         />
       </Space>
 
+      {isFetching && <Loading />}
+
+      {isError && (
+        <div className="flex flex-col items-center justify-center py-10">
+          <div className="text-red-500 text-2xl mb-2">⚠️</div>
+          <p className="text-lg font-semibold text-red-600">حدث خطأ</p>
+          <p className="text-gray-500 text-sm">يرجى إعادة المحاولة لاحقًا</p>
+        </div>
+      )}
+
       {/* Subscription Table */}
-      <Table
-        dataSource={subscriptions}
-        columns={columns}
-        rowKey="date"
-        pagination={false}
-        bordered
-        title={() =>
-          `سجل الاشتراكات - سنة ${dayjs(selectedYear).format("YYYY")}`
-        }
-        scroll={{ x: "max-content" }}
-        className="minsk-header"
-      />
+      {isSuccess && subscriptions && (
+        <Table
+          dataSource={subscriptions}
+          columns={columns}
+          rowKey="date"
+          pagination={false}
+          bordered
+          title={() =>
+            `سجل الاشتراكات - سنة ${dayjs(selectedYear).format("YYYY")}`
+          }
+          scroll={{ x: "max-content" }}
+          className="minsk-header"
+        />
+      )}
     </div>
   );
 };
