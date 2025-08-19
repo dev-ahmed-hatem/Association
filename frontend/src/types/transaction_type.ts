@@ -10,7 +10,10 @@ export const TransactionKindArabic: Record<string, TransactionKind> = {
   expense: "مصروف",
 };
 
-export const TransactionKindEnglish: Record<TransactionKind, "income" | "expense"> = {
+export const TransactionKindEnglish: Record<
+  TransactionKind,
+  "income" | "expense"
+> = {
   إيراد: "income",
   مصروف: "expense",
 };
@@ -19,4 +22,5 @@ export type TransactionType = {
   id: string;
   name: string;
   type: TransactionKind;
+  system_related: boolean;
 };

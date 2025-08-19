@@ -32,7 +32,7 @@ const { Option } = Select;
 
 type FinancialFormProps = {
   onSubmit?: (values: FinancialRecord) => void;
-  initialValues?: Partial<FinancialRecord>;
+  initialValues?: Partial<FinancialRecord> & { editable?: boolean };
   financialType: "income" | "expense";
 };
 
@@ -128,14 +128,19 @@ const FinancialForm = ({
     }
   }, [paymentMethod]);
 
-  useEffect(() => {
-    console.log(financialType);
-  }, [financialType]);
-
   const isEditing = Boolean(initialValues);
 
   if (fetchingTypes) return <Loading />;
   if (typesError) return <ErrorPage />;
+  if (!initialValues?.editable)
+    return (
+      <ErrorPage
+        title="لا يمكن تعديل العملية"
+        subtitle="هذه العملية تم إنشاؤها بواسطة النظام ، وبالتالي لا يمكن تعديلها."
+        reload={false}
+      />
+    );
+
   return (
     <>
       <h1 className="mb-6 text-2xl font-bold text-right">

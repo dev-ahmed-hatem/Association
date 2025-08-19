@@ -124,36 +124,58 @@ const FinancialProfilePage: React.FC = () => {
         items={items(record!)}
       />
 
-      {/* Action Button */}
-      <div className="btn-wrapper flex md:justify-end mt-4 flex-wrap gap-4">
-        <Button
-          type="primary"
-          icon={<EditOutlined />}
-          onClick={() => {
-            navigate(
-              `/financials/${
-                TransactionKindEnglish[record!.transaction_type.type]
-              }s/edit/${record?.id}`
-            );
-          }}
-        >
-          تعديل العملية
-        </Button>
-        <Popconfirm
-          title="هل أنت متأكد من حذف هذه العملية؟"
-          onConfirm={handleDelete}
-          okText="نعم"
-          cancelText="لا"
-        >
-          <Button
-            className="enabled:bg-red-500 enabled:border-red-500 enabled:shadow-[0_2px_0_rgba(0,58,58,0.31)]
+      <div className="flex justify-between mt-2 flex-wrap gap-2">
+        {/* Meta Data */}
+        <div className="flex gap-1 flex-col text-sm">
+          <div>
+            <span className="font-medium text-gray-700" dir="rtl">
+              تاريخ الإضافة:{" "}
+            </span>
+            {record!.created_at}
+          </div>
+          <div>
+            <span className="font-medium text-gray-700">بواسطة: </span>
+            {record!.created_by || "غير مسجل"}
+          </div>
+        </div>
+
+        {/* Action Button */}
+        {record?.transaction_type.system_related ? (
+          <span>
+            <Tag color="blue" className="text-base px-2">تمت الإضافة تلقائيًا</Tag>
+          </span>
+        ) : (
+          <div className="btn-wrapper flex md:justify-end mt-4 flex-wrap gap-4">
+            <Button
+              type="primary"
+              icon={<EditOutlined />}
+              onClick={() => {
+                navigate(
+                  `/financials/${
+                    TransactionKindEnglish[record!.transaction_type.type]
+                  }s/edit/${record?.id}`
+                );
+              }}
+            >
+              تعديل العملية
+            </Button>
+            <Popconfirm
+              title="هل أنت متأكد من حذف هذه العملية؟"
+              onConfirm={handleDelete}
+              okText="نعم"
+              cancelText="لا"
+            >
+              <Button
+                className="enabled:bg-red-500 enabled:border-red-500 enabled:shadow-[0_2px_0_rgba(0,58,58,0.31)]
                   enabled:hover:border-red-400 enabled:hover:bg-red-400 enabled:text-white"
-            icon={<DeleteOutlined />}
-            loading={deleting}
-          >
-            حذف العملية
-          </Button>
-        </Popconfirm>
+                icon={<DeleteOutlined />}
+                loading={deleting}
+              >
+                حذف العملية
+              </Button>
+            </Popconfirm>
+          </div>
+        )}
       </div>
     </>
   );

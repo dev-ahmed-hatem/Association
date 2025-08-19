@@ -3,7 +3,7 @@ from rest_framework.decorators import action, api_view, permission_classes
 from django.db.models import RestrictedError
 from rest_framework.viewsets import ModelViewSet
 from .serializers import BankAccountSerializer, TransactionTypeSerializer, FinancialRecordReadSerializer, \
-    FinancialRecordWriteSerializer, RankFeeSerializer
+    FinancialRecordWriteSerializer, RankFeeSerializer, SubscriptionWriteSerializer, SubscriptionReadSerializer
 from rest_framework.response import Response
 from rest_framework import status, permissions
 from django.utils.translation import gettext_lazy as _
@@ -100,9 +100,18 @@ class FinancialRecordViewSet(ModelViewSet):
         try:
             record = FinancialRecord.objects.get(id=pk)
             serializer = FinancialRecordWriteSerializer(record, context={"request": self.request}).data
-            return Response(serializer)
+            return Response({**serializer, "editable": not record.transaction_type.system_related})
         except Exception:
             return Response({'detail': _('عملية غير موجودة')}, status=status.HTTP_404_NOT_FOUND)
+
+
+class SubscriptionViewSet(ModelViewSet):
+    queryset = Subscription.objects.all()
+
+    def get_serializer_class(self):
+        if self.action in ["create", "update", "partial_update"]:
+            return SubscriptionWriteSerializer
+        return SubscriptionReadSerializer
 
 
 @api_view(["GET"])

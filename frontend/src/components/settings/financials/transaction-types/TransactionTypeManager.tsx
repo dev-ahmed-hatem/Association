@@ -84,25 +84,28 @@ const TransactionTypeManager = () => {
     {
       title: "الإجراءات",
       key: "actions",
-      render: (_: any, record: TransactionType) => (
-        <div className="flex gap-2">
-          <Button
-            icon={<EditOutlined />}
-            onClick={() => {
-              setEditingaccount(record);
-              setIsModalOpen(true);
-            }}
-          />
-          <Popconfirm
-            title="هل أنت متأكد من الحذف؟"
-            onConfirm={() => handleDelete(record.id)}
-            okText="نعم"
-            cancelText="إلغاء"
-          >
-            <Button danger icon={<DeleteOutlined />} />
-          </Popconfirm>
-        </div>
-      ),
+      render: (_: any, record: TransactionType) =>
+        record.system_related ? (
+          <Tag color="red">خاص بالنظام</Tag>
+        ) : (
+          <div className="flex gap-2">
+            <Button
+              icon={<EditOutlined />}
+              onClick={() => {
+                setEditingaccount(record);
+                setIsModalOpen(true);
+              }}
+            />
+            <Popconfirm
+              title="هل أنت متأكد من الحذف؟"
+              onConfirm={() => handleDelete(record.id)}
+              okText="نعم"
+              cancelText="إلغاء"
+            >
+              <Button danger icon={<DeleteOutlined />} />
+            </Popconfirm>
+          </div>
+        ),
     },
   ];
 

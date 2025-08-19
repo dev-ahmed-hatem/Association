@@ -20,7 +20,7 @@ const FinancialEdit = ({
     error: recordError,
   } = useGetFinancialRecordQuery({ id: record_id, format: "form_data" });
 
-  if (isFetching || !record) return <Loading />;
+  if (isFetching) return <Loading />;
   if (isError) {
     const error_title =
       (recordError as axiosBaseQueryError).status === 404

@@ -47,6 +47,10 @@ class TransactionType(models.Model):
             "blank": _("يرجى تحديد النوع"),
         },
     )
+    system_related = models.BooleanField(
+        default=False,
+        verbose_name=_("خاص بالنظام"),
+    )
 
     class Meta:
         verbose_name = _("نوع معاملة")
@@ -156,7 +160,7 @@ class Subscription(models.Model):
         PAID = "مدفوع", _("مدفوع")
         UNPAID = "غير مدفوع", _("غير مدفوع")
 
-    transaction = models.ForeignKey(
+    financial_record = models.ForeignKey(
         FinancialRecord,
         on_delete=models.RESTRICT,
         related_name="subscriptions",
