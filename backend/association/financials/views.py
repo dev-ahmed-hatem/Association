@@ -1,15 +1,15 @@
-import pytz
-from rest_framework.decorators import action
+from django.db.models.functions import ExtractMonth
+from rest_framework.decorators import action, api_view, permission_classes
 from django.db.models import RestrictedError
 from rest_framework.viewsets import ModelViewSet
 from .serializers import BankAccountSerializer, TransactionTypeSerializer, FinancialRecordReadSerializer, \
-    FinancialRecordWriteSerializer
+    FinancialRecordWriteSerializer, RankFeeSerializer
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework import status, permissions
 from django.utils.translation import gettext_lazy as _
 from datetime import datetime
 from django.conf import settings
-from .models import BankAccount, TransactionType, FinancialRecord
+from .models import BankAccount, TransactionType, FinancialRecord, Subscription, RankFee
 
 
 class BankAccountViewSet(ModelViewSet):
@@ -39,6 +39,11 @@ class TransactionTypeViewSet(ModelViewSet):
                 {"detail": _("لا يمكن حذف نوع المعاملة لارتباطها بسجلات مالية موجودة")},
                 status=status.HTTP_400_BAD_REQUEST
             )
+
+
+class RankFeeViewSet(ModelViewSet):
+    queryset = RankFee.objects.all()
+    serializer_class = RankFeeSerializer
 
 
 class FinancialRecordViewSet(ModelViewSet):
@@ -98,3 +103,15 @@ class FinancialRecordViewSet(ModelViewSet):
             return Response(serializer)
         except Exception:
             return Response({'detail': _('عملية غير موجودة')}, status=status.HTTP_404_NOT_FOUND)
+
+
+@api_view(["GET"])
+@permission_classes((permissions.IsAuthenticated,))
+def get_year_subscriptions(request):
+    year = request.query_params.get("year", None)
+    client = request.query_params.get("client", None)
+    if not year:
+        return Response({"detail": _("يجب إدخال السنة")}, status=status.HTTP_400_BAD_REQUEST)
+
+    subscriptions = Subscription.objects.filter(date__year=year, client=client).annotate(
+        month=ExtractMonth("date")).values()

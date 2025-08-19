@@ -2,6 +2,7 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
+from clients.models import RankChoices
 
 
 class BankAccount(models.Model):
@@ -148,3 +149,120 @@ class FinancialRecord(models.Model):
                 raise ValidationError({"bank_account": _("يرجى اختيار الحساب البنكي عند الدفع بواسطة إيصال")})
             if not self.receipt_number:
                 raise ValidationError({"receipt_number": _("يرجى إدخال رقم الإيصال عند الدفع بواسطة إيصال")})
+
+
+class Subscription(models.Model):
+    class Status(models.TextChoices):
+        PAID = "مدفوع", _("مدفوع")
+        UNPAID = "غير مدفوع", _("غير مدفوع")
+
+    transaction = models.ForeignKey(
+        FinancialRecord,
+        on_delete=models.RESTRICT,
+        related_name="subscriptions",
+        verbose_name=_("المعاملة المالية"),
+        error_messages={
+            "null": _("يجب ربط الاشتراك بمعاملة مالية"),
+            "blank": _("يجب تحديد المعاملة المالية"),
+        },
+    )
+
+    client = models.ForeignKey(
+        "clients.Client",
+        on_delete=models.RESTRICT,
+        related_name="subscriptions",
+        verbose_name=_("العضو"),
+        error_messages={
+            "null": _("يجب ربط الاشتراك بمعاملة مالية"),
+            "blank": _("يجب تحديد المعاملة المالية"),
+        },
+    )
+
+    amount = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        verbose_name=_("المبلغ"),
+        error_messages={
+            "invalid": _("يرجى إدخال قيمة مالية صحيحة"),
+        },
+    )
+
+    date = models.DateField(
+        verbose_name=_("تاريخ الاستحقاق"),
+        error_messages={
+            "invalid": _("أدخل تاريخ صالح"),
+        },
+    )
+
+    status = models.CharField(
+        max_length=20,
+        choices=Status.choices,
+        default=Status.UNPAID,
+        verbose_name=_("الحالة"),
+    )
+
+    notes = models.TextField(
+        null=True,
+        blank=True,
+        verbose_name=_("ملاحظات"),
+    )
+
+    paid_at = models.DateField(
+        null=True,
+        blank=True,
+        verbose_name=_("تاريخ الدفع"),
+        error_messages={
+            "invalid": _("أدخل تاريخ صالح"),
+        },
+    )
+
+    class Meta:
+        verbose_name = _("اشتراك")
+        verbose_name_plural = _("الاشتراكات")
+        ordering = ["-date"]
+
+    def __str__(self):
+        return f"{self.amount} - {self.get_status_display()} ({self.date})"
+
+    def clean(self):
+        from django.core.exceptions import ValidationError
+
+        if self.status == self.Status.PAID and not self.paid_at:
+            raise ValidationError(
+                {"paid_at": _("يجب إدخال تاريخ الدفع في حالة كان الاشتراك مدفوعًا")}
+            )
+
+        if self.status == self.Status.UNPAID and self.paid_at:
+            raise ValidationError(
+                {"paid_at": _("لا يمكن إدخال تاريخ الدفع إذا كان الاشتراك غير مدفوع")}
+            )
+
+
+class RankFee(models.Model):
+    rank = models.CharField(
+        max_length=50,
+        choices=RankChoices.choices,
+        unique=True,
+        verbose_name=_("الرتبة"),
+        error_messages={
+            "unique": _("هذه الرتبة مسجلة بالفعل."),
+            "blank": _("الرجاء إدخال اسم الرتبة."),
+        },
+    )
+    fee = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=100.00,
+        verbose_name=_("الرسوم الشهرية"),
+        error_messages={
+            "invalid": _("الرجاء إدخال قيمة صحيحة."),
+        },
+    )
+
+    class Meta:
+        verbose_name = _("رسوم الرتبة")
+        verbose_name_plural = _("رسوم الرتب")
+        ordering = ["id"]
+
+    def __str__(self):
+        return f"{self.rank} - {self.fee}"

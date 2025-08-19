@@ -3,6 +3,7 @@ import type { ColumnsType } from "antd/es/table";
 import dayjs, { Dayjs } from "dayjs";
 import { useEffect, useState } from "react";
 import { Employee } from "../../types/employee";
+import { Subscription } from "@/types/subscription";
 
 // Sample Employee Data
 const employee3: Employee = {
@@ -50,12 +51,6 @@ const employee3: Employee = {
   ],
 };
 
-type Subscription = {
-  date: string;
-  baseSalary: number;
-  status: "مدفوع" | "غير مدفوع";
-};
-
 const SubscriptionHistory = () => {
   const [selectedYear, setSelectedYear] = useState<Dayjs>(dayjs()); // Default to current year
 
@@ -68,20 +63,16 @@ const SubscriptionHistory = () => {
 
     for (let i = 0; i < monthCount; i++) {
       const month = selectedYear.startOf("year").add(i, "month");
-      const record = employee3.salaryHistory.find((salary) =>
-        dayjs(salary.date).isSame(month, "month")
-      );
 
-      yearData.push({
-        date: month.format("YYYY-MM"),
-        baseSalary: record?.baseSalary || 300, // default value
-        status: "غير مدفوع",
-      });
+      // yearData.push({
+      //   date: month.format("YYYY-MM"),
+      //   status: "غير مدفوع",
+
+      // });
     }
     return yearData;
   };
 
-  // keep state of subscriptions
   const [subscriptions, setSubscriptions] = useState<Subscription[]>(
     getYearSalaryData()
   );

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import BankAccount, TransactionType, FinancialRecord
+from .models import BankAccount, TransactionType, FinancialRecord, RankFee
 
 
 class BankAccountSerializer(serializers.ModelSerializer):
@@ -11,6 +11,12 @@ class BankAccountSerializer(serializers.ModelSerializer):
 class TransactionTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = TransactionType
+        fields = '__all__'
+
+
+class RankFeeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RankFee
         fields = '__all__'
 
 
