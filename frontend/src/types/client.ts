@@ -47,6 +47,8 @@ export interface Client {
 
   seniority: string;
   rank_fee: number;
+
+  financial_record?: number;
   subscription_fee: number;
   paid_amount: number;
 }

@@ -1,12 +1,13 @@
-import { useGetInstallmentsQuery } from "@/app/api/endpoints/installments";
+import {
+  useGetInstallmentsQuery,
+  useInstallmentMutation,
+} from "@/app/api/endpoints/installments";
 import { Installment } from "@/types/installment";
 import { textify } from "@/utils";
 import {
   Table,
-  Space,
   Button,
   InputNumber,
-  DatePicker,
   Tag,
   Popconfirm,
   Input,
@@ -14,38 +15,65 @@ import {
   Card,
 } from "antd";
 import type { ColumnsType } from "antd/es/table";
-import dayjs, { Dayjs } from "dayjs";
 import { useEffect, useState } from "react";
 import Loading from "../Loading";
 import { useNotification } from "@/providers/NotificationProvider";
+import { Link } from "react-router";
+import { dayjs } from "@/utils/locale";
 
 const InstallmentsHistory = ({
   client_id,
   subscription_fee,
   paid_amount,
+  financial_record,
 }: {
   client_id: string;
   subscription_fee: number;
   paid_amount: number;
+  financial_record?: number;
 }) => {
   const notification = useNotification();
 
+  const [installments, setInstallments] = useState<Installment[]>([]);
+
   const {
-    data: installments,
+    data: installmentsOriginal,
     isFetching,
     isError,
     isSuccess,
   } = useGetInstallmentsQuery({
     client: client_id,
   });
+  const [
+    handleInstallment,
+    { isLoading, isError: installmentError, isSuccess: installmentSuccess },
+  ] = useInstallmentMutation();
 
   // Mark installment as paid
-  const markAsPaid = (record: Installment) => {
-    // setInstallments((prev) =>
-    //   prev.map((item) =>
-    //     item.number === record.number ? { ...item, status: "مدفوع" } : item
-    //   )
-    // );
+  const markAsPaid = (record: Installment & { notes?: string }) => {
+    const data = {
+      paid_at: dayjs().format("YYYY-MM-DD"),
+      amount: record.amount,
+      notes: record.notes,
+    };
+
+    handleInstallment({
+      data,
+      url: `/financials/installments/${record.id}/payment/`,
+      method: "PATCH",
+    });
+  };
+
+  const editRecord = (
+    record: Installment,
+    field: "notes" | "amount",
+    value: any
+  ) => {
+    setInstallments((prev) =>
+      prev.map((item) =>
+        item.id === record.id ? { ...item, [field]: value } : item
+      )
+    );
   };
 
   // Table columns
@@ -68,7 +96,10 @@ const InstallmentsHistory = ({
         record.status === "مدفوع" ? (
           <span>{value}</span>
         ) : (
-          <InputNumber value={value} />
+          <InputNumber
+            value={value}
+            onChange={(value) => editRecord(record, "amount", value)}
+          />
         ),
     },
     {
@@ -89,9 +120,8 @@ const InstallmentsHistory = ({
         ) : (
           <Input
             value={value}
-            onChange={
-              (event) => null
-              // editRecord(record, "notes", event.target.value)
+            onChange={(event) =>
+              editRecord(record, "notes", event.target.value)
             }
           />
         ),
@@ -110,7 +140,7 @@ const InstallmentsHistory = ({
             cancelText="إلغاء"
             placement="top"
             onConfirm={() => markAsPaid(record)}
-            // disabled={isLoading}
+            disabled={isLoading}
           >
             <Button type="primary" loading={false}>
               تسجيل كمدفوع
@@ -120,21 +150,25 @@ const InstallmentsHistory = ({
     },
   ];
 
-  // useEffect(() => {
-  //   if (recorded) {
-  //     notification.success({
-  //       message: "تم تسجيل الاشتراك",
-  //     });
-  //   }
-  // }, [recorded]);
+  useEffect(() => {
+    if (isSuccess) setInstallments(installmentsOriginal);
+  }, [isSuccess]);
 
-  // useEffect(() => {
-  //   if (recordError) {
-  //     notification.error({
-  //       message: "حدث خطأ أثناء تسجيل الاشتراك ! برجاء إعادة المحاولة",
-  //     });
-  //   }
-  // }, [recordError]);
+  useEffect(() => {
+    if (installmentSuccess) {
+      notification.success({
+        message: "تم تسجيل القسط",
+      });
+    }
+  }, [installmentSuccess]);
+
+  useEffect(() => {
+    if (installmentError) {
+      notification.error({
+        message: "حدث خطأ أثناء تسجيل القسط ! برجاء إعادة المحاولة",
+      });
+    }
+  }, [installmentError]);
 
   useEffect(() => {
     if (isError) {
@@ -175,9 +209,17 @@ const InstallmentsHistory = ({
             <span className="text-gray-500 font-medium mb-1">
               المدفوع مقدما:
             </span>
-            <span className="text-xl font-bold text-green-600">
-              {paid_amount.toLocaleString()} ج.م
-            </span>
+            {financial_record ? (
+              <Link to={`/financials/incomes/${financial_record}`}>
+                <span className="text-xl font-bold text-green-600 hover:text-green-500 cursor-pointer hover:underline">
+                  {paid_amount.toLocaleString()} ج.م
+                </span>
+              </Link>
+            ) : (
+              <span className="text-xl font-bold text-green-600">
+                {paid_amount.toLocaleString()} ج.م
+              </span>
+            )}
           </div>
         </div>
       </Card>

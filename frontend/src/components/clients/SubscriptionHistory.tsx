@@ -6,7 +6,6 @@ import {
   InputNumber,
   Tag,
   Input,
-  Modal,
   Popconfirm,
 } from "antd";
 import type { ColumnsType } from "antd/es/table";
@@ -20,8 +19,9 @@ import {
 import { textify } from "@/utils";
 import Loading from "../Loading";
 import { useNotification } from "@/providers/NotificationProvider";
+import { Link } from "react-router";
 
-type SubscriptionDisplay = Omit<Subscription, "transaction" | "date"> & {
+type SubscriptionDisplay = Omit<Subscription, "date"> & {
   status: SubscriptionStatus;
   date: string | Dayjs;
 };
@@ -71,6 +71,7 @@ const SubscriptionHistory = ({
               notes: paidMonth.notes,
               paid_at: paidMonth.paid_at,
               amount: paidMonth.amount,
+              financial_record: paidMonth.financial_record,
             }
           : {
               id: i.toString(),
@@ -166,9 +167,12 @@ const SubscriptionHistory = ({
       key: "actions",
       render: (_, record) =>
         record.status === "مدفوع" ? (
-          <span className="text-minsk font-bold">
+          <Link
+            to={`/financials/incomes/${record.financial_record}/`}
+            className="text-minsk hover:text-minsk-800 hover:underline cursor-pointer font-bold"
+          >
             تم التسجيل {record.paid_at}
-          </span>
+          </Link>
         ) : (
           <Popconfirm
             title="تأكيد الدفع"

@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { Card, Avatar, Tabs, Button, Switch, Popconfirm } from "antd";
 import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
-import { Employee } from "@/types/employee";
 import JopDetails from "@/components/clients/JopDetails";
 import PersonalInfo from "@/components/clients/PersonalInfo";
 import ClientNotes from "@/components/clients/ClientNotes";
@@ -53,6 +52,7 @@ const items = (client: Client) => [
         client_id={client.id}
         subscription_fee={client.subscription_fee}
         paid_amount={client.paid_amount}
+        financial_record={client.financial_record}
       />
     ),
   },

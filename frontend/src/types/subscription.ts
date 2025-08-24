@@ -4,7 +4,7 @@ export type SubscriptionStatus = "مدفوع" | "غير مدفوع";
 
 export type Subscription = {
   id: string;
-  transaction: FinancialRecord;
+  financial_record?: FinancialRecord;
   amount: number;
   date: string;
   notes?: string | null;

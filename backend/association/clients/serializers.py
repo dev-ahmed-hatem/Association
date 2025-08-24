@@ -6,7 +6,6 @@ from rest_framework.exceptions import ValidationError
 
 from .models import Client, WorkEntity
 from financials.models import RankFee, TransactionType, FinancialRecord, Installment, BankAccount
-from datetime import datetime
 from dateutil.relativedelta import relativedelta
 
 
@@ -181,7 +180,7 @@ class ClientWriteSerializer(serializers.ModelSerializer):
             except BankAccount.DoesNotExist:
                 raise ValidationError({"bank_account": [_("الحساب البنكي غير موجود")]})
 
-        FinancialRecord.objects.create(
+        financial_record = FinancialRecord.objects.create(
             amount=paid_amount,
             transaction_type=transaction_type,
             date=payment_date,
@@ -191,5 +190,8 @@ class ClientWriteSerializer(serializers.ModelSerializer):
             notes=payment_notes,
             created_by=user,
         )
+
+        client.financial_record = financial_record
+        client.save()
 
         return client

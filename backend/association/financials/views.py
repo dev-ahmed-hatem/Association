@@ -154,3 +154,29 @@ class InstallmentViewSet(ModelViewSet):
             queryset = queryset.filter(client_id=client_id)
 
         return queryset
+
+    @action(detail=True, methods=['patch'])
+    def payment(self, request, pk=None):
+        try:
+            installment = Installment.objects.get(id=pk)
+            data = request.data
+
+            transaction_type, __ = TransactionType.objects.get_or_create(name="رسوم أقساط",
+                                                                        type=TransactionType.Type.INCOME,
+                                                                        system_related=True)
+            financial_record = FinancialRecord.objects.create(
+                amount=data["amount"],
+                transaction_type=transaction_type,
+                date=data["paid_at"],
+                payment_method="قسط عضوية",
+                notes=data.get("notes"),
+                created_by=request.user,
+            )
+            installment.financial_record = financial_record
+            installment.status = Installment.Status.PAID
+            installment.amount = data["amount"]
+            installment.save()
+
+            return Response({"detail": _("تم تسجيل دفع القسط بنجاح")}, status=status.HTTP_200_OK)
+        except Exception:
+            return Response({'detail': _('كود قسط غير موجود')}, status=status.HTTP_404_NOT_FOUND)

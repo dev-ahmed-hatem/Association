@@ -1,5 +1,6 @@
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+
 from users.models import User
 from datetime import date
 
@@ -124,6 +125,15 @@ class Client(models.Model):
         null=True,
         blank=True,
         verbose_name=_("ملاحظات"),
+    )
+
+    # joining financial fields
+    financial_record = models.ForeignKey(
+        "financials.FinancialRecord",
+        on_delete=models.RESTRICT,
+        null=True,
+        blank=True,
+        verbose_name=_("المدفوع مقدما")
     )
 
     subscription_fee = models.DecimalField(
