@@ -14,7 +14,8 @@ export const api = createApi({
     "TransactionType",
     "FinancialRecord",
     "RankFee",
-    "Subscription"
+    "Subscription",
+    "Installment",
   ],
   keepUnusedDataFor: 180,
   refetchOnReconnect: true,

@@ -1,17 +1,17 @@
-from django.db.models.functions import ExtractMonth
 from rest_framework.decorators import action, api_view, permission_classes
 from django.db.models import RestrictedError
 from rest_framework.viewsets import ModelViewSet
 
 from clients.models import Client
 from .serializers import BankAccountSerializer, TransactionTypeSerializer, FinancialRecordReadSerializer, \
-    FinancialRecordWriteSerializer, RankFeeSerializer, SubscriptionWriteSerializer, SubscriptionReadSerializer
+    FinancialRecordWriteSerializer, RankFeeSerializer, SubscriptionWriteSerializer, SubscriptionReadSerializer, \
+    InstallmentSerializer
 from rest_framework.response import Response
 from rest_framework import status, permissions
 from django.utils.translation import gettext_lazy as _
 from datetime import datetime
 from django.conf import settings
-from .models import BankAccount, TransactionType, FinancialRecord, Subscription, RankFee
+from .models import BankAccount, TransactionType, FinancialRecord, Subscription, RankFee, Installment
 
 
 class BankAccountViewSet(ModelViewSet):
@@ -138,3 +138,19 @@ def get_year_subscriptions(request):
     }
 
     return Response(subs, status=status.HTTP_200_OK)
+
+
+class InstallmentViewSet(ModelViewSet):
+    queryset = Installment.objects.all()
+    serializer_class = InstallmentSerializer
+    pagination_class = None
+
+    def get_queryset(self):
+        queryset = Installment.objects.all()
+
+        client_id = self.request.query_params.get("client", None)
+
+        if client_id is not None:
+            queryset = queryset.filter(client_id=client_id)
+
+        return queryset

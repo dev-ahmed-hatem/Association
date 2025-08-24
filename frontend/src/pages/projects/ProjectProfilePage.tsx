@@ -1,5 +1,5 @@
-import React, { ReactNode } from "react";
-import { Card, Table, Tag, Button } from "antd";
+import React, { ReactNode, useState } from "react";
+import { Card, Table, Tag, Button, Select } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
 
@@ -9,6 +9,8 @@ type Transaction = {
   description: ReactNode;
   date: string;
 };
+
+const { Option } = Select;
 
 const incomeData: Transaction[] = [
   { key: "1", value: 1500, description: "دفعة أولى", date: "2025-01-15" },
@@ -21,6 +23,8 @@ const expenseData: Transaction[] = [
 ];
 
 const ProjectProfilePage: React.FC = () => {
+  const [status, setStatus] = useState("قيد التنفيذ");
+
   const columns = [
     { title: "البيان", dataIndex: "description", key: "description" },
     {
@@ -44,17 +48,32 @@ const ProjectProfilePage: React.FC = () => {
   return (
     <div className="p-6 space-y-6">
       {/* Project Info */}
-      <Card className="shadow-md rounded-2xl bg-gradient-to-r from-blue-50 to-indigo-50">
-        <h2 className="text-2xl font-bold mb-4">
-          اسم المشروع: بناء مدرسة جديدة
-        </h2>
-        <p className="text-gray-600">تاريخ البدء: 2025-01-10</p>
-        <p className="mt-2">
-          الحالة:{" "}
-          <Tag color="blue" className="px-3 py-1 text-base rounded-xl">
-            قيد التنفيذ
-          </Tag>
-        </p>
+      <Card className="shadow-md rounded-2xl bg-gradient-to-l from-[#3F3D56] to-indigo-700 text-white">
+        <div className="flex flex-col md:flex-row justify-between items-center md:items-start gap-6 p-4">
+          {/* Project Name */}
+          <div>
+            <h2 className="text-2xl font-bold">اسم المشروع </h2>
+            <p className="text-gray-200 mt-1">تاريخ البدء: 2025-01-10</p>
+          </div>
+
+          {/* Project Status */}
+          <div className="flex flex-col items-center md:items-end gap-2 justify-center">
+            <Tag
+              color={status === "قيد التنفيذ" ? "blue" : "green"}
+              className="px-3 py-1 text-base rounded-xl"
+            >
+              {status}
+            </Tag>
+            {/* <Select
+              value={status}
+              onChange={(val) => setStatus(val)}
+              className="w-40"
+            >
+              <Option value="قيد التنفيذ">قيد التنفيذ</Option>
+              <Option value="منتهي">منتهي</Option>
+            </Select> */}
+          </div>
+        </div>
       </Card>
 
       {/* Transactions */}

@@ -9,6 +9,7 @@ import {
   Card,
   Alert,
   InputNumber,
+  Spin,
 } from "antd";
 import dayjs, { Dayjs } from "dayjs";
 import { calculateAge, extractBirthdateFromNationalId } from "@/utils";
@@ -23,6 +24,8 @@ import { useEffect, useState } from "react";
 import { useNotification } from "@/providers/NotificationProvider";
 import { useNavigate } from "react-router";
 import { PaymentMethod } from "@/types/financial_record";
+import { LoadingOutlined } from "@ant-design/icons";
+import { useLazyGetBankAccountsQuery } from "@/app/api/endpoints/bank_accounts";
 
 const { Option } = Select;
 
@@ -46,7 +49,9 @@ const ClientForm = ({
   const notification = useNotification();
   const navigate = useNavigate();
 
-  const [age, setAge] = useState("");
+  const [age, setAge] = useState(
+    initialValues ? calculateAge(initialValues.birth_date) : ""
+  );
 
   // payment states
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("نقدي");
@@ -66,13 +71,21 @@ const ClientForm = ({
     { data: client, isSuccess, isLoading, isError, error: clientError },
   ] = useClientMutation();
 
+  const [
+    getAccounts,
+    { data: accounts, isFetching: fetchingAccounts, isError: accountsError },
+  ] = useLazyGetBankAccountsQuery();
+
   const handleSubmit = (values: ClientFormValues) => {
     const data = {
       ...values,
       birth_date: values.birth_date.format("YYYY-MM-DD"),
       hire_date: values.hire_date.format("YYYY-MM-DD"),
       subscription_date: values.subscription_date.format("YYYY-MM-DD"),
+      payment_date: dayjs().format("YYYY-MM-DD"),
     };
+
+    console.log(data);
 
     addClient({
       data: data as Client,
@@ -80,6 +93,14 @@ const ClientForm = ({
       url: client_id ? `/clients/clients/${client_id}/` : "/clients/clients/",
     });
   };
+
+  useEffect(() => {
+    if (paymentMethod == "إيصال بنكي") {
+      getAccounts({
+        no_pagination: true,
+      });
+    }
+  }, [paymentMethod]);
 
   useEffect(() => {
     if (isError) {
@@ -385,60 +406,104 @@ const ClientForm = ({
           </Row>
         </Card>
 
-        <Card title="الدفع" className="mb-6">
-          <Row gutter={16}>
-            {/* Subscription Fee */}
-            <Col xs={24} md={12}>
-              <Form.Item
-                name="subscription_fee"
-                label="رسوم الاشتراك"
-                rules={[
-                  { required: true, message: "يرجى إدخال رسوم الاشتراك" },
-                ]}
-              >
-                <InputNumber
-                  min={0}
-                  className="w-full"
-                  onChange={(value) => setSubscriptionFee(value || 0)}
-                />
-              </Form.Item>
-            </Col>
-
-            {/* Payment Method */}
-            <Col xs={24} md={12}>
-              <Form.Item
-                name="payment_method"
-                label="نظام الدفع"
-                rules={[{ required: true, message: "يرجى اختيار نظام الدفع" }]}
-              >
-                <Select
-                  placeholder="اختر نظام الدفع"
-                  onChange={(value) => setPaymentMethod(value)}
+        {initialValues ? (
+          <Card title="الدفع" className="mb-6">
+            <Row gutter={16}>
+              {/* Subscription Fee */}
+              <Col xs={24} md={12}>
+                <Form.Item
+                  name="subscription_fee"
+                  label="رسوم الاشتراك"
+                  rules={[
+                    { required: true, message: "يرجى إدخال رسوم الاشتراك" },
+                  ]}
                 >
-                  <Option value="نقدي">نقدي</Option>
-                  <Option value="إيصال بنكي">إيصال بنكي</Option>
-                </Select>
-              </Form.Item>
-            </Col>
-          </Row>
+                  <InputNumber className="w-full" disabled={true} />
+                </Form.Item>
+              </Col>
 
-          {/* Bank Receipt Fields */}
-          {paymentMethod === "إيصال بنكي" && (
-            <>
+              <Col xs={24} md={12}>
+                <Form.Item
+                  name="paid_amount"
+                  label="المدفوع"
+                  rules={[
+                    { required: true, message: "يرجى إدخال المبلغ المدفوع" },
+                  ]}
+                >
+                  <InputNumber className="w-full" disabled={true} />
+                </Form.Item>
+              </Col>
+            </Row>
+          </Card>
+        ) : (
+          <Card title="الدفع" className="mb-6">
+            <Row gutter={16}>
+              {/* Subscription Fee */}
+              <Col xs={24} md={12}>
+                <Form.Item
+                  name="subscription_fee"
+                  label="رسوم الاشتراك"
+                  rules={[
+                    { required: true, message: "يرجى إدخال رسوم الاشتراك" },
+                  ]}
+                >
+                  <InputNumber
+                    min={0}
+                    className="w-full"
+                    onChange={(value) => setSubscriptionFee(value || 0)}
+                  />
+                </Form.Item>
+              </Col>
+
+              {/* Payment Method */}
+              <Col xs={24} md={12}>
+                <Form.Item
+                  name="payment_method"
+                  label="نظام الدفع"
+                  rules={[
+                    { required: true, message: "يرجى اختيار نظام الدفع" },
+                  ]}
+                >
+                  <Select
+                    placeholder="اختر نظام الدفع"
+                    onChange={(value) => setPaymentMethod(value)}
+                  >
+                    <Option value="نقدي">نقدي</Option>
+                    <Option value="إيصال بنكي">إيصال بنكي</Option>
+                  </Select>
+                </Form.Item>
+              </Col>
+            </Row>
+
+            {/* Bank Receipt Fields */}
+            {paymentMethod === "إيصال بنكي" && (
               <Row gutter={16}>
                 <Col xs={24} md={12}>
                   <Form.Item
-                    name="bank"
-                    label="البنك"
-                    rules={[{ required: true, message: "يرجى إدخال" }]}
+                    name="bank_account"
+                    label={
+                      <div className="flex gap-2 items-center">
+                        <span>البنك</span>
+                        {fetchingAccounts && (
+                          <Spin
+                            size="small"
+                            indicator={<LoadingOutlined spin />}
+                          />
+                        )}
+                      </div>
+                    }
+                    rules={[{ required: true, message: "يرجى إدخال البنك" }]}
                   >
                     <Select placeholder="اختر البنك">
-                      <Option value="bank1">البنك الأول</Option>
-                      <Option value="bank2">البنك الثاني</Option>
-                      <Option value="bank3">البنك الثالث</Option>
+                      {accounts?.map((account) => (
+                        <Option key={account.id} value={account.id}>
+                          {account.name}
+                        </Option>
+                      ))}
                     </Select>
                   </Form.Item>
                 </Col>
+
                 <Col xs={24} md={12}>
                   <Form.Item
                     name="receipt_number"
@@ -451,51 +516,63 @@ const ClientForm = ({
                   </Form.Item>
                 </Col>
               </Row>
-            </>
-          )}
+            )}
 
-          <Row gutter={16}>
-            <Col xs={24} md={12}>
-              <Form.Item
-                name="paid_amount"
-                label="المدفوع"
-                rules={[
-                  { required: true, message: "يرجى إدخال المبلغ المدفوع" },
-                ]}
-              >
-                <InputNumber
-                  min={0}
-                  max={subscriptionFee}
-                  className="w-full"
-                  onChange={(value) => setPaidAmount(value || 0)}
-                  disabled={subscriptionFee == 0 || !subscriptionFee}
-                />
-              </Form.Item>
-            </Col>
-          </Row>
-
-          {/* Remaining Amount & Installments */}
-          {remaining > 0 && (
-            <Row gutter={16} className="flex items-center">
-              <Col xs={24} md={12}>
-                <div className="flex items-center ps-4 bg-yellow-50 border border-yellow-300 rounded h-[34px]">
-                  المبلغ المتبقي: <strong className="ms-2">{remaining}</strong>
-                </div>
-              </Col>
+            <Row gutter={16}>
               <Col xs={24} md={12}>
                 <Form.Item
-                  name="installments_count"
-                  label="عدد الأقساط"
+                  name="paid_amount"
+                  label="المدفوع"
                   rules={[
-                    { required: true, message: "يرجى إدخال عدد الأقساط" },
+                    { required: true, message: "يرجى إدخال المبلغ المدفوع" },
                   ]}
                 >
-                  <InputNumber min={1} className="w-full" />
+                  <InputNumber
+                    min={0}
+                    max={subscriptionFee}
+                    className="w-full"
+                    onChange={(value) => setPaidAmount(value || 0)}
+                    disabled={subscriptionFee == 0 || !subscriptionFee}
+                  />
                 </Form.Item>
               </Col>
             </Row>
-          )}
-        </Card>
+
+            {/* Remaining Amount & Installments */}
+            {remaining > 0 && (
+              <Row gutter={16} className="flex items-center">
+                <Col xs={24} md={12}>
+                  <div className="flex items-center ps-4 bg-yellow-50 border border-yellow-300 rounded h-[34px]">
+                    المبلغ المتبقي:{" "}
+                    <strong className="ms-2">{remaining}</strong>
+                  </div>
+                </Col>
+                <Col xs={24} md={12}>
+                  <Form.Item
+                    name="installments_count"
+                    label="عدد الأقساط"
+                    rules={[
+                      { required: true, message: "يرجى إدخال عدد الأقساط" },
+                    ]}
+                  >
+                    <InputNumber min={1} className="w-full" />
+                  </Form.Item>
+                </Col>
+              </Row>
+            )}
+
+            <Row gutter={16}>
+              <Col xs={24}>
+                <Form.Item name="paymenet_notes" label="الملاحظات">
+                  <Input.TextArea
+                    rows={3}
+                    placeholder={`أدخل ملاحظات الدفع (اختياري)`}
+                  />
+                </Form.Item>
+              </Col>
+            </Row>
+          </Card>
+        )}
         {/* Notes */}
 
         <Card title="ملاحظات" className="mb-6">

@@ -5,6 +5,37 @@ from django.utils.translation import gettext_lazy as _
 from clients.models import RankChoices
 
 
+class RankFee(models.Model):
+    rank = models.CharField(
+        max_length=50,
+        choices=RankChoices.choices,
+        unique=True,
+        verbose_name=_("الرتبة"),
+        error_messages={
+            "unique": _("هذه الرتبة مسجلة بالفعل."),
+            "blank": _("الرجاء إدخال اسم الرتبة."),
+        },
+    )
+    fee = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=100.00,
+        verbose_name=_("الرسوم الشهرية"),
+        error_messages={
+            "invalid": _("الرجاء إدخال قيمة صحيحة."),
+        },
+    )
+
+    class Meta:
+        verbose_name = _("رسوم الرتبة")
+        verbose_name_plural = _("رسوم الرتب")
+        ordering = ["id"]
+
+    def __str__(self):
+        self.fee_ = f"{self.rank} - {self.fee}"
+        return self.fee_
+
+
 class BankAccount(models.Model):
     name = models.CharField(
         max_length=255,
@@ -222,31 +253,91 @@ class Subscription(models.Model):
         return f"{self.amount} - ({self.date})"
 
 
-class RankFee(models.Model):
-    rank = models.CharField(
-        max_length=50,
-        choices=RankChoices.choices,
-        unique=True,
-        verbose_name=_("الرتبة"),
+class Installment(models.Model):
+    class Status(models.TextChoices):
+        PAID = "مدفوع", _("مدفوع")
+        UNPAID = "غير مدفوع", _("غير مدفوع")
+
+    financial_record = models.ForeignKey(
+        "financials.FinancialRecord",
+        on_delete=models.RESTRICT,
+        related_name="installments",
+        verbose_name=_("المعاملة المالية"),
+        blank=True,
+        null=True,
+    )
+
+    client = models.ForeignKey(
+        "clients.Client",
+        on_delete=models.CASCADE,
+        related_name="installments",
+        verbose_name=_("العضو"),
         error_messages={
-            "unique": _("هذه الرتبة مسجلة بالفعل."),
-            "blank": _("الرجاء إدخال اسم الرتبة."),
+            "null": _("يجب ربط القسط بعضو"),
+            "blank": _("يجب تحديد العضو"),
         },
     )
-    fee = models.DecimalField(
-        max_digits=10,
-        decimal_places=2,
-        default=100.00,
-        verbose_name=_("الرسوم الشهرية"),
+
+    installment_number = models.PositiveIntegerField(
+        verbose_name=_("رقم القسط"),
+        help_text=_("الرقم التسلسلي للقسط لهذا العميل"),
+    )
+
+    due_date = models.DateField(
+        verbose_name=_("تاريخ الاستحقاق"),
         error_messages={
-            "invalid": _("الرجاء إدخال قيمة صحيحة."),
+            "invalid": _("يرجى إدخال تاريخ صالح"),
+        },
+    )
+
+    amount = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        verbose_name=_("القيمة"),
+        error_messages={
+            "invalid": _("يرجى إدخال قيمة مالية صحيحة"),
+        },
+    )
+
+    status = models.CharField(
+        max_length=20,
+        choices=Status.choices,
+        default=Status.UNPAID,
+        verbose_name=_("الحالة"),
+    )
+
+    notes = models.TextField(
+        null=True,
+        blank=True,
+        verbose_name=_("ملاحظات"),
+    )
+
+    paid_at = models.DateField(
+        null=True,
+        blank=True,
+        verbose_name=_("تاريخ الدفع"),
+        error_messages={
+            "invalid": _("أدخل تاريخ صالح"),
         },
     )
 
     class Meta:
-        verbose_name = _("رسوم الرتبة")
-        verbose_name_plural = _("رسوم الرتب")
-        ordering = ["id"]
+        verbose_name = _("قسط")
+        verbose_name_plural = _("الأقساط")
+        ordering = ["client", "installment_number"]
+        unique_together = ("client", "installment_number")
 
     def __str__(self):
-        return f"{self.rank} - {self.fee}"
+        return f"قسط {self.installment_number} - {self.amount} ({self.get_status_display()})"
+
+    def clean(self):
+        from django.core.exceptions import ValidationError
+
+        if self.status == self.Status.PAID and not self.paid_at:
+            raise ValidationError(
+                {"paid_at": _("يجب إدخال تاريخ الدفع إذا كان القسط مدفوعًا")}
+            )
+        if self.status == self.Status.UNPAID and self.paid_at:
+            raise ValidationError(
+                {"paid_at": _("لا يمكن إدخال تاريخ الدفع إذا كان القسط غير مدفوع")}
+            )

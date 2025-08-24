@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.conf import settings
-from .models import BankAccount, TransactionType, FinancialRecord, Subscription, RankFee
+from .models import BankAccount, TransactionType, FinancialRecord, Subscription, RankFee, Installment
 from rest_framework.validators import UniqueTogetherValidator
 from django.utils.translation import gettext_lazy as _
 
@@ -88,3 +88,11 @@ class SubscriptionWriteSerializer(serializers.ModelSerializer):
         )
 
         return super().create({**validated_data, "financial_record": financial_record})
+
+
+class InstallmentSerializer(serializers.ModelSerializer):
+    due_date = serializers.DateField(format="%Y-%m")
+
+    class Meta:
+        model = Installment
+        fields = '__all__'

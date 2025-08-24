@@ -17,7 +17,6 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Legend,
 } from "recharts";
 
 const { Title } = Typography;

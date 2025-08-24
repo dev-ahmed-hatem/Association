@@ -41,12 +41,20 @@ const items = (client: Client) => [
   {
     label: "الاشتراكات الشهرية",
     key: "4",
-    children: <SubscriptionHistory client_id={client.id} rank_fee={client.rank_fee} />,
+    children: (
+      <SubscriptionHistory client_id={client.id} rank_fee={client.rank_fee} />
+    ),
   },
   {
     label: `الأقساط`,
     key: "5",
-    children: <InstallmentsHistory />,
+    children: (
+      <InstallmentsHistory
+        client_id={client.id}
+        subscription_fee={client.subscription_fee}
+        paid_amount={client.paid_amount}
+      />
+    ),
   },
 ];
 

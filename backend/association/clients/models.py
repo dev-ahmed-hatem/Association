@@ -126,6 +126,25 @@ class Client(models.Model):
         verbose_name=_("ملاحظات"),
     )
 
+    subscription_fee = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        verbose_name=_("رسوم الاشتراك"),
+        help_text=_("القيمة الإجمالية لرسوم اشتراك العضو"),
+        error_messages={
+            "invalid": _("يرجى إدخال قيمة مالية صحيحة"),
+        }
+    )
+
+    paid_amount = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        verbose_name=_("المبلغ المدفوع"),
+        error_messages={
+            "invalid": _("يرجى إدخال قيمة مالية صحيحة"),
+        }
+    )
+
     is_active = models.BooleanField(default=True, verbose_name=_("نشط"))
 
     created_at = models.DateTimeField(

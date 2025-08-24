@@ -17,7 +17,6 @@ import { useEffect, useState } from "react";
 import { useGetTransactionTypesQuery } from "@/app/api/endpoints/transaction_types";
 import {
   TransactionKindArabic,
-  TransactionKindEnglish,
 } from "@/types/transaction_type";
 import Loading from "@/components/Loading";
 import ErrorPage from "../Error";
@@ -132,7 +131,7 @@ const FinancialForm = ({
 
   if (fetchingTypes) return <Loading />;
   if (typesError) return <ErrorPage />;
-  if (!initialValues?.editable)
+  if (initialValues && !initialValues.editable)
     return (
       <ErrorPage
         title="لا يمكن تعديل العملية"

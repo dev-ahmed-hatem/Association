@@ -38,7 +38,7 @@ const FinancialDetails: React.FC<FinancialDetailsProps> = ({ item }) => {
             <Descriptions.Item label="البنك">
               {item.bank_account?.name}
             </Descriptions.Item>
-            <Descriptions.Item label="رقم الحساب">
+            <Descriptions.Item label="رقم الإيصال">
               {item.receipt_number}
             </Descriptions.Item>
           </>
