@@ -92,6 +92,7 @@ class SubscriptionWriteSerializer(serializers.ModelSerializer):
 
 class InstallmentSerializer(serializers.ModelSerializer):
     due_date = serializers.DateField(format="%Y-%m")
+    notes = serializers.StringRelatedField(source="financial_record.notes", read_only=True)
 
     class Meta:
         model = Installment

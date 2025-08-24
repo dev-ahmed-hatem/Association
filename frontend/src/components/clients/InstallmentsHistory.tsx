@@ -131,7 +131,12 @@ const InstallmentsHistory = ({
       key: "actions",
       render: (_, record) =>
         record.status === "مدفوع" ? (
-          <span className="text-minsk font-bold">تم التسجيل</span>
+          <Link
+            to={`/financials/incomes/${record.financial_record}/`}
+            className="text-minsk hover:text-minsk-800 hover:underline cursor-pointer font-bold"
+          >
+            تم التسجيل {record.paid_at}
+          </Link>
         ) : (
           <Popconfirm
             title="تأكيد الدفع"
@@ -142,7 +147,7 @@ const InstallmentsHistory = ({
             onConfirm={() => markAsPaid(record)}
             disabled={isLoading}
           >
-            <Button type="primary" loading={false}>
+            <Button type="primary" loading={isLoading}>
               تسجيل كمدفوع
             </Button>
           </Popconfirm>
@@ -151,8 +156,8 @@ const InstallmentsHistory = ({
   ];
 
   useEffect(() => {
-    if (isSuccess) setInstallments(installmentsOriginal);
-  }, [isSuccess]);
+    if (installmentsOriginal) setInstallments(installmentsOriginal);
+  }, [installmentsOriginal]);
 
   useEffect(() => {
     if (installmentSuccess) {
@@ -190,7 +195,7 @@ const InstallmentsHistory = ({
   return (
     <div>
       <Card
-        className="rounded-2xl shadow-md bg-gradient-to-r from-indigo-50 via-blue-50 to-cyan-50"
+        className="rounded-2xl shadow-md bg-gradient-to-r from-indigo-50 via-blue-50 to-cyan-50 mb-5"
         styles={{ body: { padding: "1.5rem" } }}
       >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-lg">

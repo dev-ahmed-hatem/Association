@@ -8,17 +8,7 @@ export const installmentsEndpoints = api.injectEndpoints({
       query: (params) => ({
         url: `/financials/installments/?${queryString.stringify(params)}`,
       }),
-      providesTags: (result, error, args) => {
-        return result
-          ? [
-              ...result.map((installment) => ({
-                type: "Installment" as const,
-                id: installment.id,
-              })),
-              { type: "Installment", id: "LIST" },
-            ]
-          : [{ type: "Installment", id: "LIST" }];
-      },
+      providesTags: [{ type: "Installment", id: "LIST" }],
     }),
     installment: builder.mutation<
       Installment,

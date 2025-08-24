@@ -10,4 +10,5 @@ export type Installment = {
   paid_at?: string | null;
   financial_record?: number | null;
   status: InstallmentStatus;
+  notes?: string
 };

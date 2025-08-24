@@ -162,8 +162,8 @@ class InstallmentViewSet(ModelViewSet):
             data = request.data
 
             transaction_type, __ = TransactionType.objects.get_or_create(name="رسوم أقساط",
-                                                                        type=TransactionType.Type.INCOME,
-                                                                        system_related=True)
+                                                                         type=TransactionType.Type.INCOME,
+                                                                         system_related=True)
             financial_record = FinancialRecord.objects.create(
                 amount=data["amount"],
                 transaction_type=transaction_type,
@@ -175,6 +175,7 @@ class InstallmentViewSet(ModelViewSet):
             installment.financial_record = financial_record
             installment.status = Installment.Status.PAID
             installment.amount = data["amount"]
+            installment.paid_at = data["paid_at"]
             installment.save()
 
             return Response({"detail": _("تم تسجيل دفع القسط بنجاح")}, status=status.HTTP_200_OK)
