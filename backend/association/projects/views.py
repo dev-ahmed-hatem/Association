@@ -43,13 +43,6 @@ class ProjectViewSet(viewsets.ModelViewSet):
             return Response({'detail': _('مشروع غير موجود')}, status=status.HTTP_404_NOT_FOUND)
         new_status = request.data.get('status')
 
-        # declare progress start date as now
-        if new_status == "ongoing" and project.status == "pending-approval":
-            project.progress_started = datetime.now()
-
-        if not project.remaining_tasks().exists():
-            new_status = "completed"
-
         project.status = new_status
         project.save()
         return Response({'status': project.get_status_display()}, status=status.HTTP_200_OK)

@@ -98,7 +98,10 @@ const ProjectProfilePage: React.FC = () => {
   ];
 
   const toggleStatus = () => {
-    switchStatus(project_id as string);
+    switchStatus({
+      id: project_id as string,
+      status: project?.status === "قيد التنفيذ" ? "منتهي" : "قيد التنفيذ",
+    });
   };
 
   const handleDelete = () => {
@@ -189,6 +192,7 @@ const ProjectProfilePage: React.FC = () => {
               checkedChildren="قيد التنفيذ"
               unCheckedChildren="منتهي"
               loading={switching}
+              className="bg-black"
             />
           )}
         </div>
@@ -199,11 +203,13 @@ const ProjectProfilePage: React.FC = () => {
         {/* Incomes */}
         <Card
           title={
-            <div className="flex justify-between items-center bg-gradient-to-r from-green-400 to-green-600 text-white p-3">
+            <div className="flex justify-between items-center bg-gradient-to-r from-green-400 to-green-600 text-white p-4 h-16">
               <span className="font-semibold">الإيرادات</span>
-              <Button type="primary" icon={<PlusOutlined />}>
-                إضافة
-              </Button>
+              {project?.status === "قيد التنفيذ" && (
+                <Button type="primary" icon={<PlusOutlined />}>
+                  إضافة
+                </Button>
+              )}
             </div>
           }
           variant="borderless"
@@ -229,11 +235,13 @@ const ProjectProfilePage: React.FC = () => {
         {/* Expenses */}
         <Card
           title={
-            <div className="flex justify-between items-center bg-gradient-to-r from-red-400 to-red-600 text-white p-3">
+            <div className="flex justify-between items-center bg-gradient-to-r from-red-400 to-red-600 text-white p-4 h-16">
               <span className="font-semibold">المصروفات</span>
-              <Button type="primary" icon={<PlusOutlined />}>
-                إضافة
-              </Button>
+              {project?.status === "قيد التنفيذ" && (
+                <Button type="primary" icon={<PlusOutlined />}>
+                  إضافة
+                </Button>
+              )}
             </div>
           }
           variant="borderless"
