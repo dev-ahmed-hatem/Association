@@ -38,7 +38,7 @@ INSTALLED_APPS = [
     'users.apps.UsersConfig',
     'clients.apps.ClientsConfig',
     'financials.apps.FinancialsConfig',
-    # 'projects.apps.ProjectsConfig',
+    'projects.apps.ProjectsConfig',
     # 'attendance.apps.AttendanceConfig',
 ]
 

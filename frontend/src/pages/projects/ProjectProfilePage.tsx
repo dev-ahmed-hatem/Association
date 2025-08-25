@@ -1,7 +1,20 @@
-import React, { ReactNode, useState } from "react";
-import { Card, Table, Tag, Button, Select } from "antd";
-import { PlusOutlined } from "@ant-design/icons";
-import type { ColumnsType } from "antd/es/table";
+import React, { ReactNode, useEffect, useState } from "react";
+import { Card, Table, Button, Popconfirm, Switch } from "antd";
+import { DeleteOutlined, EditOutlined, PlusOutlined } from "@ant-design/icons";
+import { useNavigate, useParams } from "react-router";
+import { FiTrendingUp } from "react-icons/fi";
+import {
+  clientsEndpoints,
+  useGetProjectQuery,
+  useProjectMutation,
+  useSwitchProjectStatusMutation,
+} from "@/app/api/endpoints/projects";
+import { axiosBaseQueryError } from "@/app/api/axiosBaseQuery";
+import Loading from "@/components/Loading";
+import ErrorPage from "../Error";
+import { useAppDispatch } from "@/app/redux/hooks";
+import { Project, ProjectStatus } from "@/types/project";
+import { useNotification } from "@/providers/NotificationProvider";
 
 type Transaction = {
   key: string;
@@ -9,8 +22,6 @@ type Transaction = {
   description: ReactNode;
   date: string;
 };
-
-const { Option } = Select;
 
 const incomeData: Transaction[] = [
   { key: "1", value: 1500, description: "دفعة أولى", date: "2025-01-15" },
@@ -20,10 +31,51 @@ const incomeData: Transaction[] = [
 const expenseData: Transaction[] = [
   { key: "1", value: 500, description: "شراء مواد", date: "2025-01-20" },
   { key: "2", value: 700, description: "أجور عمال", date: "2025-02-05" },
+  { key: "2", value: 700, description: "أجور عمال", date: "2025-02-05" },
+  { key: "2", value: 700, description: "أجور عمال", date: "2025-02-05" },
+  { key: "2", value: 700, description: "أجور عمال", date: "2025-02-05" },
+  { key: "2", value: 700, description: "أجور عمال", date: "2025-02-05" },
+  { key: "2", value: 700, description: "أجور عمال", date: "2025-02-05" },
+  { key: "2", value: 700, description: "أجور عمال", date: "2025-02-05" },
+  { key: "2", value: 700, description: "أجور عمال", date: "2025-02-05" },
+  { key: "2", value: 700, description: "أجور عمال", date: "2025-02-05" },
+  { key: "2", value: 700, description: "أجور عمال", date: "2025-02-05" },
+  { key: "2", value: 700, description: "أجور عمال", date: "2025-02-05" },
+  { key: "2", value: 700, description: "أجور عمال", date: "2025-02-05" },
+  { key: "2", value: 700, description: "أجور عمال", date: "2025-02-05" },
+  { key: "2", value: 700, description: "أجور عمال", date: "2025-02-05" },
+  { key: "2", value: 700, description: "أجور عمال", date: "2025-02-05" },
+  { key: "2", value: 700, description: "أجور عمال", date: "2025-02-05" },
+  { key: "2", value: 700, description: "أجور عمال", date: "2025-02-05" },
+  { key: "2", value: 700, description: "أجور عمال", date: "2025-02-05" },
+  { key: "2", value: 700, description: "أجور عمال", date: "2025-02-05" },
+  { key: "2", value: 700, description: "أجور عمال", date: "2025-02-05" },
+  { key: "2", value: 700, description: "أجور عمال", date: "2025-02-05" },
+  { key: "2", value: 700, description: "أجور عمال", date: "2025-02-05" },
 ];
 
 const ProjectProfilePage: React.FC = () => {
-  const [status, setStatus] = useState("قيد التنفيذ");
+  const navigate = useNavigate();
+  const dispatch = useAppDispatch();
+  const { project_id } = useParams();
+  const notification = useNotification();
+
+  const [status, setStatus] = useState<ProjectStatus | null>();
+
+  const {
+    data: project,
+    isFetching,
+    isError,
+    error: projectError,
+  } = useGetProjectQuery({ id: project_id as string });
+  const [
+    switchStatus,
+    { data: switchRes, isLoading: switching, isError: switchError },
+  ] = useSwitchProjectStatusMutation();
+  const [
+    deleteProject,
+    { isError: deleteError, isLoading: deleting, isSuccess: deleted },
+  ] = useProjectMutation();
 
   const columns = [
     { title: "البيان", dataIndex: "description", key: "description" },
@@ -45,34 +97,100 @@ const ProjectProfilePage: React.FC = () => {
     },
   ];
 
+  const toggleStatus = () => {
+    switchStatus(project_id as string);
+  };
+
+  const handleDelete = () => {
+    deleteProject({
+      url: `/projects/projects/${project_id}/`,
+      method: "DELETE",
+    });
+  };
+
+  useEffect(() => {
+    if (project) setStatus(project.status);
+  }, [project]);
+
+  useEffect(() => {
+    if (switchError) {
+      notification.error({
+        message: "حدث خطأ في تغيير الحالة ! برجاء إعادة المحاولة",
+      });
+    }
+  }, [switchError]);
+
+  useEffect(() => {
+    if (switchRes) {
+      if (project) setStatus(switchRes.status);
+      dispatch(
+        clientsEndpoints.util.updateQueryData(
+          "getProject",
+          { id: project_id as string },
+          (draft: Project) => {
+            draft.status = switchRes.status;
+          }
+        )
+      );
+      notification.success({
+        message: "تم تغيير الحالة بنجاح",
+      });
+    }
+  }, [switchRes]);
+
+  useEffect(() => {
+    if (deleteError) {
+      notification.error({
+        message: "حدث خطأ أثناء حذف المشروع ! برجاء إعادة المحاولة",
+      });
+    }
+  }, [deleteError]);
+
+  useEffect(() => {
+    if (deleted) {
+      notification.success({
+        message: "تم حذف المشروع بنجاح",
+      });
+
+      navigate("/projects");
+    }
+  }, [deleted]);
+
+  if (isFetching) return <Loading />;
+  if (isError) {
+    const error_title =
+      (projectError as axiosBaseQueryError).status === 404
+        ? "مشروع غير موجود! تأكد من كود المشروع المدخل."
+        : undefined;
+
+    return (
+      <ErrorPage subtitle={error_title} reload={error_title === undefined} />
+    );
+  }
+
   return (
     <div className="p-6 space-y-6">
       {/* Project Info */}
-      <Card className="shadow-md rounded-2xl bg-gradient-to-l from-[#3F3D56] to-indigo-700 text-white">
-        <div className="flex flex-col md:flex-row justify-between items-center md:items-start gap-6 p-4">
+      <Card className="shadow-md rounded-2xl bg-gradient-to-l from-indigo-950 to-indigo-400 text-white">
+        <div className="flex flex-col md:flex-row justify-between items-center gap-6 p-4">
           {/* Project Name */}
           <div>
-            <h2 className="text-2xl font-bold">اسم المشروع </h2>
-            <p className="text-gray-200 mt-1">تاريخ البدء: 2025-01-10</p>
+            <h2 className="text-2xl font-bold">{project?.name}</h2>
+            <p className="text-gray-200 mt-1">
+              تاريخ البدء: <span dir="rtl">{project?.start_date}</span>
+            </p>
           </div>
 
           {/* Project Status */}
-          <div className="flex flex-col items-center md:items-end gap-2 justify-center">
-            <Tag
-              color={status === "قيد التنفيذ" ? "blue" : "green"}
-              className="px-3 py-1 text-base rounded-xl"
-            >
-              {status}
-            </Tag>
-            {/* <Select
-              value={status}
-              onChange={(val) => setStatus(val)}
-              className="w-40"
-            >
-              <Option value="قيد التنفيذ">قيد التنفيذ</Option>
-              <Option value="منتهي">منتهي</Option>
-            </Select> */}
-          </div>
+          {status !== null && (
+            <Switch
+              checked={status === "قيد التنفيذ"}
+              onChange={toggleStatus}
+              checkedChildren="قيد التنفيذ"
+              unCheckedChildren="منتهي"
+              loading={switching}
+            />
+          )}
         </div>
       </Card>
 
@@ -137,6 +255,47 @@ const ProjectProfilePage: React.FC = () => {
             }
           />
         </Card>
+      </div>
+      <Card className="rounded-2xl shadow-md border-0 bg-gradient-to-r from-indigo-500 to-purple-600 text-white">
+        <div className="flex items-center justify-between">
+          {/* Icon */}
+          <div className="flex items-center gap-3">
+            <div className="bg-white bg-opacity-20 p-3 rounded-full">
+              <FiTrendingUp size={28} className="text-white" />
+            </div>
+            <h2 className="text-lg font-semibold">الصافي</h2>
+          </div>
+
+          {/* Value */}
+          <span className="text-2xl font-bold">value.toLocaleString() ج.م</span>
+        </div>
+      </Card>
+
+      <div className="btn-wrapper flex md:justify-end mt-4 flex-wrap gap-4">
+        <Button
+          type="primary"
+          icon={<EditOutlined />}
+          onClick={() => {
+            navigate(`/projects/edit/${project_id}`);
+          }}
+        >
+          تعديل البيانات
+        </Button>
+        <Popconfirm
+          title="هل أنت متأكد من حذف هذا المشروع؟"
+          onConfirm={handleDelete}
+          okText="نعم"
+          cancelText="لا"
+        >
+          <Button
+            className="enabled:bg-red-500 enabled:border-red-500 enabled:shadow-[0_2px_0_rgba(0,58,58,0.31)]
+                  enabled:hover:border-red-400 enabled:hover:bg-red-400 enabled:text-white"
+            icon={<DeleteOutlined />}
+            loading={deleting}
+          >
+            حذف المشروع
+          </Button>
+        </Popconfirm>
       </div>
     </div>
   );

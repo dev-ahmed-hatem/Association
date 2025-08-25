@@ -73,7 +73,7 @@ const ClientProfilePage: React.FC = () => {
     { data: switchRes, isLoading: switching, isError: switchError },
   ] = useSwitchClientActiveMutation();
   const [
-    deleteEmployee,
+    deleteClient,
     { isError: deleteError, isLoading: deleting, isSuccess: deleted },
   ] = useClientMutation();
 
@@ -86,7 +86,7 @@ const ClientProfilePage: React.FC = () => {
   };
 
   const handleDelete = () => {
-    deleteEmployee({
+    deleteClient({
       url: `/clients/clients/${client_id}/`,
       method: "DELETE",
       data: {},

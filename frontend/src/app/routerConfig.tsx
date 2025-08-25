@@ -7,6 +7,8 @@ import FinancialForm from "@/pages/financials/FinancialForm";
 import FinancialProfilePage from "@/pages/financials/FinancialProfilePage";
 import FinancialEdit from "@/pages/financials/FinancialEdit";
 import ProjectProfilePage from "@/pages/projects/ProjectProfilePage";
+import ProjectForm from "@/pages/projects/ProjectForm";
+import ProjectEdit from "@/pages/projects/ProjectEdit";
 
 const alterRoute = function (
   appRoutes: AppRoute[],
@@ -71,6 +73,8 @@ let routes: RouteObject[] = addSubRoutes(appRoutes, {
   ],
   projects: [
     { path: "project-profile/:project_id", element: <ProjectProfilePage /> },
+    { path: "add", element: <ProjectForm /> },
+    { path: "edit/:project_id", element: <ProjectEdit /> },
   ],
   "financials/incomes": [
     { path: "add", element: <FinancialForm financialType="income" /> },

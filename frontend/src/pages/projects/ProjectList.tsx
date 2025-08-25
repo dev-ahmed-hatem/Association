@@ -58,7 +58,7 @@ const ProjectsList: React.FC = () => {
 
         {/* Add Button */}
         <Link
-          to={"/clients/add"}
+          to={"/projects/add"}
           className="h-10 px-6 flex items-center text-white gap-2 rounded-lg
                 bg-gradient-to-l from-green-800 to-green-600 hover:from-green-700
               hover:to-green-500 shadow-[0_2px_0_rgba(0,58,58,0.31)]

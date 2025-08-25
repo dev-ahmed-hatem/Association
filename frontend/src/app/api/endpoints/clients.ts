@@ -68,36 +68,6 @@ export const clientsEndpoints = api.injectEndpoints({
       }),
       invalidatesTags: [{ type: "Client", id: "LIST" }],
     }),
-    // deleteEmployee: builder.mutation<void, string>({
-    //   query: (id) => ({
-    //     url: `/employees/employees/${id}/`,
-    //     method: "DELETE",
-    //   }),
-    //   invalidatesTags: [{ type: "Employee", id: "LIST" }],
-    // }),
-    // deleteEmployees: builder.mutation<void, number[]>({
-    //   query: (data) => ({
-    //     url: `/employees/multiple-delete/`,
-    //     method: "DELETE",
-    //     data,
-    //   }),
-    //   invalidatesTags: [{ type: "Employee", id: "LIST" }],
-    // }),
-    // getPaginatedDepartments: builder.query<
-    //   PaginatedResponse<Department>,
-    //   Record<string, any> | void
-    // >({
-    //   query: (params) => ({
-    //     url: `/employees/departments?${qs.stringify(params || {})}`,
-    //   }),
-    // }),
-    // getAllDepartments: builder.query<Department[], Record<string, any> | void>({
-    //   query: (params) => ({
-    //     url: `/employees/departments?no_pagination=true&${qs.stringify(
-    //       params || {}
-    //     )}`,
-    //   }),
-    // }),
   }),
   overrideExisting: false,
 });
