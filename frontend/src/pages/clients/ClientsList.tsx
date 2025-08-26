@@ -26,7 +26,7 @@ type ControlsType = {
 const ClientsList = () => {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(20);
   const [controls, setControls] = useState<ControlsType>({
     filters: { name: "active" },
   });
@@ -42,6 +42,12 @@ const ClientsList = () => {
   } = useGetWorkEntitiesQuery({ no_pagination: true });
 
   const columns: ColumnsType<Client> = [
+    {
+      title: "#",
+      key: "index",
+      render: (_: any, __: any, index: number) =>
+        (page ? (page - 1) * pageSize : 0) + index + 1,
+    },
     {
       title: "رقم العضوية",
       dataIndex: "membership_number",

@@ -44,7 +44,7 @@ const Breadcrumbs: React.FC = () => {
   }, [location.pathname]);
 
   return (
-    <div className="mb-7">
+    <div>
       <Breadcrumb
         itemRender={(route, params, routes, pathes) => {
           if (route.href === "")

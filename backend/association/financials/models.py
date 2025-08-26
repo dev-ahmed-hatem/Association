@@ -187,10 +187,6 @@ class FinancialRecord(models.Model):
 
 
 class Subscription(models.Model):
-    class Status(models.TextChoices):
-        PAID = "مدفوع", _("مدفوع")
-        UNPAID = "غير مدفوع", _("غير مدفوع")
-
     financial_record = models.ForeignKey(
         FinancialRecord,
         on_delete=models.RESTRICT,

@@ -7,6 +7,7 @@ from rest_framework.exceptions import ValidationError
 from .models import Client, WorkEntity
 from financials.models import RankFee, TransactionType, FinancialRecord, Installment, BankAccount
 from dateutil.relativedelta import relativedelta
+from datetime import date
 
 
 class WorkEntitySerializer(serializers.ModelSerializer):
@@ -35,6 +36,9 @@ class ClientReadSerializer(serializers.ModelSerializer):
     age = serializers.SerializerMethodField()
     rank_fee = serializers.SerializerMethodField()
 
+    # Dues
+    unpaid_subscriptions = serializers.SerializerMethodField()
+
     class Meta:
         model = Client
         fields = "__all__"
@@ -50,6 +54,14 @@ class ClientReadSerializer(serializers.ModelSerializer):
 
     def get_rank_fee(self, obj: Client):
         return RankFee.objects.get(rank=obj.rank).fee
+
+    def get_unpaid_subscriptions(self, obj):
+        today = date.today()
+        expected_count = 12
+        paid_count = obj.subscriptions.filter(
+            date__year=today.year
+        ).count()
+        return max(expected_count - paid_count, 0)
 
 
 class ClientWriteSerializer(serializers.ModelSerializer):

@@ -266,8 +266,8 @@ const ClientForm = ({
           </Row>
         </Card>
 
-        {/* Education */}
-        <Card title="البيانات التعليمية" className="mb-6">
+        {/* Work Details */}
+        <Card title="البيانات الوظيفية" className="mb-6">
           <Row gutter={16}>
             <Col xs={24} md={12}>
               <Form.Item
@@ -312,10 +312,7 @@ const ClientForm = ({
               </Form.Item>
             </Col>
           </Row>
-        </Card>
 
-        {/* Work Details */}
-        <Card title="البيانات الوظيفية" className="mb-6">
           <Row gutter={16}>
             <Col xs={24} md={12}>
               <Form.Item
