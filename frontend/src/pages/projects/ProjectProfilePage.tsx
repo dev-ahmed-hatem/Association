@@ -15,6 +15,9 @@ import ErrorPage from "../Error";
 import { useAppDispatch } from "@/app/redux/hooks";
 import { Project, ProjectStatus } from "@/types/project";
 import { useNotification } from "@/providers/NotificationProvider";
+import ProjectTransactionModal from "@/components/projects/ProjectTransactionModal";
+import { useGetProjectTransactionsQuery } from "@/app/api/endpoints/project_transactions.ts";
+import { ProjectTransaction } from "@/types/project_transaction";
 
 type Transaction = {
   key: string;
@@ -54,25 +57,35 @@ const ProjectProfilePage: React.FC = () => {
   ] = useSwitchProjectStatusMutation();
   const [
     deleteProject,
-    { isError: deleteError, isLoading: deleting, isSuccess: deleted },
+    {
+      isError: deleteIsError,
+      error: deleteError,
+      isLoading: deleting,
+      isSuccess: deleted,
+    },
   ] = useProjectMutation();
 
+  const {
+    data: transactions,
+    isFetching: fetchingTransactions,
+    isError: transactionIsError,
+  } = useGetProjectTransactionsQuery({ project: project_id as string });
+
   const columns = [
-    { title: "البيان", dataIndex: "description", key: "description" },
+    { title: "البيان", dataIndex: "statement", key: "statement" },
     {
       title: "القيمة",
-      dataIndex: "value",
-      key: "value",
-      // render: (v: number) => `${v} ج.م`,
+      dataIndex: "amount",
+      key: "amount",
     },
     { title: "التاريخ", dataIndex: "date", key: "date" },
   ];
 
-  const totalRow = (data: Transaction[]) => [
+  const totalRow = (amount: number) => [
     {
       key: "total",
-      value: data.reduce((sum, item) => sum + item.value, 0),
-      description: <strong>الإجمالي</strong>,
+      amount,
+      statement: <strong>الإجمالي</strong>,
       date: "",
     },
   ];
@@ -122,12 +135,13 @@ const ProjectProfilePage: React.FC = () => {
   }, [switchRes]);
 
   useEffect(() => {
-    if (deleteError) {
+    if (deleteIsError) {
+      let message = (deleteError as axiosBaseQueryError)?.data.detail ?? null;
       notification.error({
-        message: "حدث خطأ أثناء حذف المشروع ! برجاء إعادة المحاولة",
+        message: message ?? "حدث خطأ أثناء حذف المشروع ! برجاء إعادة المحاولة",
       });
     }
-  }, [deleteError]);
+  }, [deleteIsError]);
 
   useEffect(() => {
     if (deleted) {
@@ -152,10 +166,10 @@ const ProjectProfilePage: React.FC = () => {
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="space-y-6">
       {/* Project Info */}
       <Card className="shadow-md rounded-2xl bg-gradient-to-l from-indigo-950 to-indigo-400 text-white">
-        <div className="flex flex-col md:flex-row justify-between items-center gap-6 p-4">
+        <div className="flex flex-row justify-between items-center gap-6 p-4">
           {/* Project Name */}
           <div>
             <h2 className="text-2xl font-bold">{project?.name}</h2>
@@ -178,86 +192,114 @@ const ProjectProfilePage: React.FC = () => {
         </div>
       </Card>
 
-      {/* Transactions */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Incomes */}
-        <Card
-          title={
-            <div className="flex justify-between items-center bg-gradient-to-r from-green-400 to-green-600 text-white p-4 h-16">
-              <span className="font-semibold">الإيرادات</span>
-              {project?.status === "قيد التنفيذ" && (
-                <Button type="primary" icon={<PlusOutlined />}>
-                  إضافة
-                </Button>
-              )}
-            </div>
-          }
-          variant="borderless"
-          className="shadow-lg rounded-2xl"
-          styles={{
-            header: {
-              padding: 0,
-              borderRadius: "",
-            },
-          }}
-        >
-          <Table
-            dataSource={[...incomeData, ...totalRow(incomeData)]}
-            columns={columns}
-            rowKey="id"
-            pagination={false}
-            rowClassName={(record) =>
-              record.key === "total" ? "bg-green-50 font-semibold" : ""
-            }
-          />
-        </Card>
+      {fetchingTransactions && <Loading />}
 
-        {/* Expenses */}
-        <Card
-          title={
-            <div className="flex justify-between items-center bg-gradient-to-r from-red-400 to-red-600 text-white p-4 h-16">
-              <span className="font-semibold">المصروفات</span>
-              {project?.status === "قيد التنفيذ" && (
-                <Button type="primary" icon={<PlusOutlined />}>
-                  إضافة
-                </Button>
-              )}
-            </div>
-          }
-          variant="borderless"
-          className="shadow-lg rounded-2xl"
-          styles={{
-            header: {
-              padding: 0,
-              borderRadius: "",
-            },
-          }}
-        >
-          <Table
-            dataSource={[...expenseData, ...totalRow(expenseData)]}
-            columns={columns}
-            rowKey="id"
-            pagination={false}
-            rowClassName={(record) =>
-              record.key === "total" ? "bg-red-50 font-semibold" : ""
-            }
-          />
-        </Card>
-      </div>
-      <Card className="rounded-2xl shadow-md border-0 bg-gradient-to-r from-indigo-500 to-purple-600 text-white">
-        <div className="flex items-center justify-between">
-          {/* Icon */}
-          <div className="flex items-center gap-3">
-            <div className="bg-white bg-opacity-20 p-3 rounded-full">
-              <FiTrendingUp size={28} className="text-white" />
-            </div>
-            <h2 className="text-lg font-semibold">الصافي</h2>
+      {transactionIsError && (
+        <div className="flex flex-col items-center justify-center py-10">
+          <div className="text-red-500 text-2xl mb-2">⚠️</div>
+          <p className="text-lg font-semibold text-red-600">حدث خطأ</p>
+          <p className="text-gray-500 text-sm">يرجى إعادة المحاولة لاحقًا</p>
+        </div>
+      )}
+
+      {!fetchingTransactions && transactions && (
+        <>
+          {/* Transactions */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Incomes */}
+            <Card
+              title={
+                <div className="flex justify-between items-center bg-gradient-to-r from-green-400 to-green-600 text-white p-4 h-16">
+                  <span className="font-semibold">الإيرادات</span>
+                  {project?.status === "قيد التنفيذ" && (
+                    <ProjectTransactionModal
+                      project_id={project_id!}
+                      type="income"
+                    />
+                  )}
+                </div>
+              }
+              variant="borderless"
+              className="shadow-lg rounded-2xl"
+              styles={{
+                header: {
+                  padding: 0,
+                  borderRadius: "",
+                },
+              }}
+            >
+              <Table
+                dataSource={[
+                  ...transactions.incomes.transactions,
+                  ...totalRow(transactions.incomes.total),
+                ]}
+                columns={columns}
+                rowKey="id"
+                pagination={false}
+                rowClassName={(
+                  record: Partial<ProjectTransaction> & { key?: string }
+                ) =>
+                  record.key === "total" ? "bg-green-50 font-semibold" : ""
+                }
+              />
+            </Card>
+
+            {/* Expenses */}
+            <Card
+              title={
+                <div className="flex justify-between items-center bg-gradient-to-r from-red-400 to-red-600 text-white p-4 h-16">
+                  <span className="font-semibold">المصروفات</span>
+                  {project?.status === "قيد التنفيذ" && (
+                    <ProjectTransactionModal
+                      project_id={project_id!}
+                      type="expense"
+                    />
+                  )}
+                </div>
+              }
+              variant="borderless"
+              className="shadow-lg rounded-2xl"
+              styles={{
+                header: {
+                  padding: 0,
+                  borderRadius: "",
+                },
+              }}
+            >
+              <Table
+                dataSource={[
+                  ...transactions.expenses.transactions,
+                  ...totalRow(transactions.expenses.total),
+                ]}
+                columns={columns}
+                rowKey="id"
+                pagination={false}
+                rowClassName={(
+                  record: Partial<ProjectTransaction> & { key?: string }
+                ) => (record.key === "total" ? "bg-red-50 font-semibold" : "")}
+              />
+            </Card>
           </div>
 
-          {/* Value */}
-          <span className="text-2xl font-bold">500 ج.م</span>
-        </div>
-      </Card>
+          {/* net revenues */}
+          <Card className="rounded-2xl shadow-md border-0 bg-gradient-to-r from-indigo-500 to-purple-600 text-white">
+            <div className="flex items-center justify-between">
+              {/* Icon */}
+              <div className="flex items-center gap-3">
+                <div className="bg-white bg-opacity-20 p-3 rounded-full">
+                  <FiTrendingUp size={28} className="text-white" />
+                </div>
+                <h2 className="text-lg font-semibold">الصافي</h2>
+              </div>
+
+              {/* Value */}
+              <span className="text-2xl font-bold">
+                {transactions.net.toLocaleString()} ج.م
+              </span>
+            </div>
+          </Card>
+        </>
+      )}
 
       <div className="btn-wrapper flex md:justify-end mt-4 flex-wrap gap-4">
         <Button

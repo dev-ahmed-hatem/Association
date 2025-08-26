@@ -8,6 +8,7 @@ export const api = createApi({
   tagTypes: [
     "Client",
     "Project",
+    "ProjectTransaction",
     "WorkEntity",
     "BankAccount",
     "TransactionType",

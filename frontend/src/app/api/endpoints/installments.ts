@@ -24,7 +24,10 @@ export const installmentsEndpoints = api.injectEndpoints({
           const response = (await queryFulfilled).data;
           // Invalidate the Entities LIST tag on successful POST
           dispatch(
-            api.util.invalidateTags([{ type: "Installment", id: "LIST" }])
+            api.util.invalidateTags([
+              { type: "Installment", id: "LIST" },
+              { type: "Client", id: "LIST" },
+            ])
           );
         } catch {
           // Do nothing if the request fails

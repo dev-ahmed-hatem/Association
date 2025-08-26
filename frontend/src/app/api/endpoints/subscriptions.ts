@@ -32,7 +32,10 @@ export const subscriptionsEndpoints = api.injectEndpoints({
           const response = (await queryFulfilled).data;
           // Invalidate the Entities LIST tag on successful POST
           dispatch(
-            api.util.invalidateTags([{ type: "Subscription", id: "LIST" }])
+            api.util.invalidateTags([
+              { type: "Subscription", id: "LIST" },
+              { type: "Client", id: "LIST" },
+            ])
           );
         } catch {
           // Do nothing if the request fails

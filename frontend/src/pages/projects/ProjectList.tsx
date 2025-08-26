@@ -15,7 +15,7 @@ type ControlsType = {
   sort_by?: string;
   order?: SortOrder;
   filters: {
-    status?: string;
+    name?: string;
   };
 } | null;
 
@@ -55,7 +55,7 @@ const ProjectsList: React.FC = () => {
         { text: "قيد التنفيذ", value: "قيد التنفيذ" },
         { text: "منتهي", value: "منتهي" },
       ],
-      defaultFilteredValue: controls?.filters?.status?.split(","),
+      defaultFilteredValue: controls?.filters?.name?.split(","),
       sorter: true,
       sortOrder: controls?.sort_by === "name" ? controls?.order ?? null : null,
     },
@@ -122,7 +122,7 @@ const ProjectsList: React.FC = () => {
     page_size: pageSize,
     sort_by: controls?.sort_by,
     order: controls?.order === "descend" ? "-" : "",
-    status: controls?.filters.status,
+    status: controls?.filters.name,
   });
   const projects = rawProjects as PaginatedResponse<Project> | undefined;
 

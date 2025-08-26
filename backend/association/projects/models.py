@@ -42,3 +42,48 @@ class Project(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class ProjectTransaction(models.Model):
+    statement = models.CharField(
+        max_length=255,
+        verbose_name=_("البيان"),
+        error_messages={
+            "blank": _("يجب إدخال البيان"),
+            "null": _("يجب إدخال البيان"),
+        },
+    )
+
+    financial_record = models.ForeignKey(
+        "financials.FinancialRecord",
+        on_delete=models.CASCADE,
+        related_name="project_transactions",
+        verbose_name=_("المعاملة المالية"),
+        error_messages={
+            "null": _("يجب ربط العملية بمعاملة مالية"),
+            "blank": _("يجب ربط العملية بمعاملة مالية"),
+        },
+    )
+
+    project = models.ForeignKey(
+        Project,
+        on_delete=models.RESTRICT,
+        related_name="transactions",
+        verbose_name=_("المشروع"),
+        error_messages={
+            "null": _("يجب ربط العملية بمشروع"),
+            "blank": _("يجب ربط العملية بمشروع"),
+        },
+    )
+
+    class Meta:
+        verbose_name = _("عملية مشروع")
+        verbose_name_plural = _("عمليات المشاريع")
+
+    def __str__(self):
+        return f"{self.statement} - {self.project.name}"
+
+    def delete(self, *args, **kwargs):
+        if self.financial_record:
+            self.financial_record.delete()
+        super().delete(*args, **kwargs)
