@@ -9,7 +9,6 @@ export type Project = {
 
   total_incomes: number;
   total_expenses: number;
-  net: number;
   created_at: string;
   updated_at: string;
 };

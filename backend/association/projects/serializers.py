@@ -1,4 +1,5 @@
 from django.db import transaction
+from django.db.models import Sum
 
 from financials.models import BankAccount, FinancialRecord, TransactionType
 from .models import Project, ProjectTransaction
@@ -8,22 +9,22 @@ from django.utils.translation import gettext_lazy as _
 
 
 class ProjectSerializer(serializers.ModelSerializer):
-    total_incomes = serializers.SerializerMethodField()
-    total_expenses = serializers.SerializerMethodField()
-    net = serializers.SerializerMethodField()
+    total_incomes = serializers.SerializerMethodField(read_only=True)
+    total_expenses = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Project
         fields = '__all__'
 
-    def get_total_incomes(self, obj):
-        return 100
+    def get_total_incomes(self, obj: Project):
+        return ProjectTransaction.objects.filter(project=obj,
+                                                 financial_record__transaction_type__type=TransactionType.Type.INCOME).aggregate(
+            total=Sum('financial_record__amount'))["total"] or 0
 
-    def get_total_expenses(self, obj):
-        return 50
-
-    def get_net(self, obj):
-        return 50
+    def get_total_expenses(self, obj: Project):
+        return ProjectTransaction.objects.filter(project=obj,
+                                                 financial_record__transaction_type__type=TransactionType.Type.EXPENSE).aggregate(
+            total=Sum('financial_record__amount'))["total"] or 0
 
 
 class ProjectTransactionReadSerializer(serializers.ModelSerializer):
