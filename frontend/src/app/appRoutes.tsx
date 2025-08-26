@@ -51,7 +51,7 @@ export const appRoutes: AppRoute[] = [
           />
         ),
         icon: <FaProjectDiagram />,
-        label: "المشاريع",
+        label: "المشروعات",
       },
       {
         path: "financials",

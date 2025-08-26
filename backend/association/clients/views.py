@@ -90,3 +90,12 @@ class ClientViewSet(ModelViewSet):
             return Response(serializer)
         except Exception:
             return Response({'detail': _('عميل غير موجود')}, status=status.HTTP_404_NOT_FOUND)
+
+    def destroy(self, request, *args, **kwargs):
+        try:
+            return super(ClientViewSet, self).destroy(request, *args, **kwargs)
+        except RestrictedError:
+            return Response(
+                {"detail": _("لا يمكن حذف العميل لارتباطه بسجلات مالية موجودة")},
+                status=status.HTTP_400_BAD_REQUEST
+            )

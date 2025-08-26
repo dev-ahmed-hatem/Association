@@ -74,7 +74,12 @@ const ClientProfilePage: React.FC = () => {
   ] = useSwitchClientActiveMutation();
   const [
     deleteClient,
-    { isError: deleteError, isLoading: deleting, isSuccess: deleted },
+    {
+      isError: deleteIsError,
+      error: deleteError,
+      isLoading: deleting,
+      isSuccess: deleted,
+    },
   ] = useClientMutation();
 
   const dispatch = useAppDispatch();
@@ -124,12 +129,13 @@ const ClientProfilePage: React.FC = () => {
   }, [switchRes]);
 
   useEffect(() => {
-    if (deleteError) {
+    if (deleteIsError) {
+      let message = (deleteError as axiosBaseQueryError)?.data.detail ?? null;
       notification.error({
-        message: "حدث خطأ أثناء حذف العضو ! برجاء إعادة المحاولة",
+        message: message ?? "حدث خطأ أثناء حذف العضو ! برجاء إعادة المحاولة",
       });
     }
-  }, [deleteError]);
+  }, [deleteIsError]);
 
   useEffect(() => {
     if (deleted) {

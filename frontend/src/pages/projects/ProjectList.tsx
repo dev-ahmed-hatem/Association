@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Table, Input, Card, Badge, Avatar } from "antd";
+import { Table, Input, Card, Badge, Avatar, Divider } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
 import { Link, useNavigate } from "react-router";
 import { tablePaginationConfig } from "@/utils/antd";
@@ -10,6 +10,7 @@ import ErrorPage from "../Error";
 import Loading from "@/components/Loading";
 import { PaginatedResponse } from "@/types/paginatedResponse";
 import { useGetProjectsQuery } from "@/app/api/endpoints/projects";
+import ProjectStatistics from "@/components/projects/ProjectsStatistics";
 
 type ControlsType = {
   sort_by?: string;
@@ -130,7 +131,20 @@ const ProjectsList: React.FC = () => {
   if (isError) return <ErrorPage />;
   return (
     <>
-      <h1 className="mb-6 text-2xl md:text-3xl font-bold">المشاريع</h1>
+      <h1 className="mb-6 text-2xl md:text-3xl font-bold">المشروعات</h1>
+      <Divider />
+
+      <ProjectStatistics
+        {...{
+          totalProjects: 12,
+          inProgress: 7,
+          completed: 5,
+          totalIncomes: 125000,
+          totalExpenses: 82000,
+          net: 43000,
+        }}
+      />
+      <Divider />
 
       <div className="flex justify-between flex-wrap gap-2 mb-4">
         {/* Search Input */}
