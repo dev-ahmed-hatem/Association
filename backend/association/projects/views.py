@@ -19,6 +19,8 @@ class ProjectViewSet(viewsets.ModelViewSet):
         status_filters = self.request.query_params.get('status_filters', None)
         from_date_str = self.request.query_params.get('from_date', None)
         to_date_str = self.request.query_params.get('to_date', None)
+        sort_by = self.request.query_params.get('sort_by', None)
+        order = self.request.query_params.get('order', None)
 
         if search is not None:
             queryset = queryset.filter(name__icontains=search)
@@ -32,6 +34,9 @@ class ProjectViewSet(viewsets.ModelViewSet):
             to_date = datetime.strptime(to_date_str, '%Y-%m-%d')
 
             queryset = queryset.filter(start_date__range=[from_date, to_date])
+
+        if sort_by is not None:
+            queryset = queryset.order_by(f"{order}{sort_by}")
 
         return queryset
 

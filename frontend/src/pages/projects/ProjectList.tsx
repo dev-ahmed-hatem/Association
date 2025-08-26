@@ -1,49 +1,32 @@
 import React, { useState } from "react";
 import { Table, Input, Card, Badge, Avatar } from "antd";
-import { FolderOutlined, PlusOutlined } from "@ant-design/icons";
+import { PlusOutlined } from "@ant-design/icons";
 import { Link, useNavigate } from "react-router";
 import { tablePaginationConfig } from "@/utils/antd";
 import { Project } from "@/types/project";
+import { SortOrder } from "antd/lib/table/interface";
+import { ColumnsType } from "antd/es/table";
+import ErrorPage from "../Error";
+import Loading from "@/components/Loading";
+import { PaginatedResponse } from "@/types/paginatedResponse";
+import { useGetProjectsQuery } from "@/app/api/endpoints/projects";
 
-const mockProjects = [
-  {
-    id: 1,
-    name: "مشروع بناء",
-    staatus: "قيد التنفيذ",
-    start_date: "2025-01-01",
-    total_income: 100,
-    total_expenses: 100,
-    net: 200,
-  },
-  {
-    id: 2,
-    name: "مشروع صيانة",
-    staatus: "منتهي",
-    start_date: "2025-02-10",
-    total_income: 100,
-    total_expenses: 100,
-    net: 200,
-  },
-  {
-    id: 3,
-    name: "مشروع تطوير",
-    staatus: "قيد التنفيذ",
-    start_date: "2025-03-05",
-    total_income: 100,
-    total_expenses: 100,
-    net: 200,
-  },
-];
+type ControlsType = {
+  sort_by?: string;
+  order?: SortOrder;
+  filters: {
+    status?: string;
+  };
+} | null;
 
 const ProjectsList: React.FC = () => {
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [controls, setControls] = useState<ControlsType>();
 
-  const filteredProjects = mockProjects.filter((p) =>
-    p.name.toLowerCase().includes(search.toLowerCase())
-  );
-
-  const columns = [
+  const columns: ColumnsType<Project> = [
     {
       title: "اسم المشروع",
       dataIndex: "name",
@@ -58,27 +41,36 @@ const ProjectsList: React.FC = () => {
                 status={
                   record.status === "قيد التنفيذ" ? "processing" : "success"
                 }
-                text={record.status}
               />
             }
             style={{ backgroundColor: "#fff" }}
           />
           <div className="flex flex-col">
             <span className="font-medium text-gray-800">{record.name}</span>
-            <span className="text-xs text-gray-500">#{record.id}</span>
+            <span className="text-xs text-gray-500">{record.id}#</span>
           </div>
         </div>
       ),
+      filters: [
+        { text: "قيد التنفيذ", value: "قيد التنفيذ" },
+        { text: "منتهي", value: "منتهي" },
+      ],
+      defaultFilteredValue: controls?.filters?.status?.split(","),
+      sorter: true,
+      sortOrder: controls?.sort_by === "name" ? controls?.order ?? null : null,
     },
     {
       title: "تاريخ البداية",
       dataIndex: "start_date",
       key: "start_date",
+      sorter: true,
+      sortOrder:
+        controls?.sort_by === "start_date" ? controls?.order ?? null : null,
     },
     {
       title: "إجمالي الإيرادات",
-      dataIndex: "total_income",
-      key: "total_income",
+      dataIndex: "total_incomes",
+      key: "total_incomes",
       render: (value: number) => (
         <span className="text-green-600 font-semibold">
           {value.toLocaleString()} ج.م
@@ -99,7 +91,7 @@ const ProjectsList: React.FC = () => {
       title: "الصافي",
       key: "net",
       render: (_: any, record: any) => {
-        const net = record.total_income - record.total_expenses;
+        const net = record.total_incomes - record.total_expenses;
         return (
           <span
             className={`font-bold ${
@@ -113,6 +105,29 @@ const ProjectsList: React.FC = () => {
     },
   ];
 
+  // Search Function
+  const onSearch = (value: string) => {
+    setSearch(value);
+  };
+
+  const {
+    data: rawProjects,
+    isLoading,
+    isFetching,
+    isError,
+  } = useGetProjectsQuery({
+    no_pagination: false,
+    search,
+    page,
+    page_size: pageSize,
+    sort_by: controls?.sort_by,
+    order: controls?.order === "descend" ? "-" : "",
+    status: controls?.filters.status,
+  });
+  const projects = rawProjects as PaginatedResponse<Project> | undefined;
+
+  if (isLoading) return <Loading />;
+  if (isError) return <ErrorPage />;
   return (
     <>
       <h1 className="mb-6 text-2xl md:text-3xl font-bold">المشاريع</h1>
@@ -121,7 +136,7 @@ const ProjectsList: React.FC = () => {
         {/* Search Input */}
         <Input.Search
           placeholder="ابحث عن مشروع..."
-          onSearch={() => {}}
+          onSearch={(value) => onSearch(value)}
           className="mb-4 w-full max-w-md h-10"
           defaultValue={search}
           allowClear={true}
@@ -141,21 +156,44 @@ const ProjectsList: React.FC = () => {
         </Link>
       </div>
 
-      {/* 🔹 Projects Table */}
-      <Card>
+      {isFetching && <Loading />}
+
+      {/* Table */}
+      {!isFetching && projects && (
         <Table
           columns={columns}
-          dataSource={filteredProjects}
+          dataSource={projects?.data}
           rowKey="id"
-          pagination={tablePaginationConfig()}
+          pagination={tablePaginationConfig({
+            total: projects?.count,
+            current: projects?.page,
+            showQuickJumper: true,
+            pageSize,
+            onChange(page, pageSize) {
+              setPage(page);
+              setPageSize(pageSize);
+            },
+          })}
           bordered
           scroll={{ x: "max-content" }}
           className="clickable-table minsk-header"
+          onChange={(_, filters, sorter: any) => {
+            setControls({
+              ...(sorter.column?.key && { sort_by: sorter.column.key }),
+              ...(sorter.order && { order: sorter.order }),
+              filters: Object.fromEntries(
+                Object.entries(filters).map(([filter, values]) => [
+                  filter,
+                  (values as string[])?.join(),
+                ])
+              ),
+            });
+          }}
           onRow={(record) => ({
             onClick: () => navigate(`/projects/project-profile/${record.id}`),
           })}
         />
-      </Card>
+      )}
     </>
   );
 };

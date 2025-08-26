@@ -11,10 +11,11 @@ import { useGetClientsQuery } from "@/app/api/endpoints/clients";
 import ErrorPage from "../Error";
 import { PaginatedResponse } from "@/types/paginatedResponse";
 import { useGetWorkEntitiesQuery } from "@/app/api/endpoints/workentities";
+import { SortOrder } from "antd/lib/table/interface";
 
 type ControlsType = {
   sort_by?: string;
-  order?: string;
+  order?: SortOrder;
   filters: {
     rank?: string;
     name: string;
@@ -46,6 +47,10 @@ const ClientsList = () => {
       dataIndex: "membership_number",
       key: "membership_number",
       sorter: true,
+      sortOrder:
+        controls?.sort_by === "membership_number"
+          ? controls?.order ?? null
+          : null,
     },
     {
       title: "اسم العضو",
@@ -74,7 +79,8 @@ const ClientsList = () => {
           </span>
         </Space>
       ),
-      sorter: (a, b) => a.name.localeCompare(b.name),
+      sorter: true,
+      sortOrder: controls?.sort_by === "name" ? controls?.order ?? null : null,
       filters: [
         { text: "بالخدمة", value: "active" },
         { text: "متقاعد", value: "retired" },

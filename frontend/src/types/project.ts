@@ -6,6 +6,10 @@ export type Project = {
   start_date: string;
   status: ProjectStatus;
   created_by?: number | null;
+
+  total_incomes: number;
+  total_expenses: number;
+  net: number;
   created_at: string;
   updated_at: string;
 };

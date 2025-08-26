@@ -32,26 +32,6 @@ const expenseData: Transaction[] = [
   { key: "1", value: 500, description: "شراء مواد", date: "2025-01-20" },
   { key: "2", value: 700, description: "أجور عمال", date: "2025-02-05" },
   { key: "2", value: 700, description: "أجور عمال", date: "2025-02-05" },
-  { key: "2", value: 700, description: "أجور عمال", date: "2025-02-05" },
-  { key: "2", value: 700, description: "أجور عمال", date: "2025-02-05" },
-  { key: "2", value: 700, description: "أجور عمال", date: "2025-02-05" },
-  { key: "2", value: 700, description: "أجور عمال", date: "2025-02-05" },
-  { key: "2", value: 700, description: "أجور عمال", date: "2025-02-05" },
-  { key: "2", value: 700, description: "أجور عمال", date: "2025-02-05" },
-  { key: "2", value: 700, description: "أجور عمال", date: "2025-02-05" },
-  { key: "2", value: 700, description: "أجور عمال", date: "2025-02-05" },
-  { key: "2", value: 700, description: "أجور عمال", date: "2025-02-05" },
-  { key: "2", value: 700, description: "أجور عمال", date: "2025-02-05" },
-  { key: "2", value: 700, description: "أجور عمال", date: "2025-02-05" },
-  { key: "2", value: 700, description: "أجور عمال", date: "2025-02-05" },
-  { key: "2", value: 700, description: "أجور عمال", date: "2025-02-05" },
-  { key: "2", value: 700, description: "أجور عمال", date: "2025-02-05" },
-  { key: "2", value: 700, description: "أجور عمال", date: "2025-02-05" },
-  { key: "2", value: 700, description: "أجور عمال", date: "2025-02-05" },
-  { key: "2", value: 700, description: "أجور عمال", date: "2025-02-05" },
-  { key: "2", value: 700, description: "أجور عمال", date: "2025-02-05" },
-  { key: "2", value: 700, description: "أجور عمال", date: "2025-02-05" },
-  { key: "2", value: 700, description: "أجور عمال", date: "2025-02-05" },
 ];
 
 const ProjectProfilePage: React.FC = () => {
@@ -275,7 +255,7 @@ const ProjectProfilePage: React.FC = () => {
           </div>
 
           {/* Value */}
-          <span className="text-2xl font-bold">value.toLocaleString() ج.م</span>
+          <span className="text-2xl font-bold">500 ج.م</span>
         </div>
       </Card>
 

@@ -5,3 +5,13 @@
 .minsk-header thead th {
   @apply !bg-minsk-950 !text-white hover:!bg-minsk-800;
 }
+
+table .ant-table-filter-trigger,
+table .ant-table-column-sorter {
+  @apply !text-blue-50;
+}
+
+table .ant-table-filter-trigger.active,
+table .ant-table-column-sorter-up.active {
+  @apply !text-blue-500;
+}
