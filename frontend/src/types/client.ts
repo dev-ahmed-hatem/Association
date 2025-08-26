@@ -51,4 +51,9 @@ export interface Client {
   financial_record?: number;
   subscription_fee: number;
   paid_amount: number;
+
+  dues?: {
+    unpaid_subscriptions: number;
+    unpaid_installments: number;
+  };
 }

@@ -20,12 +20,25 @@ class ClientListSerializer(serializers.ModelSerializer):
     seniority = serializers.SerializerMethodField()
     work_entity = serializers.StringRelatedField(source="work_entity.name")
 
+    # Dues
+    dues = serializers.SerializerMethodField()
+
     class Meta:
         model = Client
-        fields = ["id", "name", "membership_number", "rank", "seniority", "work_entity", "is_active"]
+        fields = ["id", "name", "membership_number", "rank", "seniority", "work_entity", "is_active", "dues"]
 
     def get_seniority(self, obj: Client):
         return obj.get_seniority()
+
+    def get_dues(self, obj: Client):
+        today = date.today()
+        expected_count = 12
+        paid_count = obj.subscriptions.filter(
+            date__year=today.year
+        ).count()
+        unpaid_subscriptions = max(expected_count - paid_count, 0)
+        unpaid_installments = obj.installments.filter(status=Installment.Status.UNPAID).count()
+        return {"unpaid_subscriptions": unpaid_subscriptions, "unpaid_installments": unpaid_installments}
 
 
 class ClientReadSerializer(serializers.ModelSerializer):
@@ -35,9 +48,6 @@ class ClientReadSerializer(serializers.ModelSerializer):
     work_entity = serializers.StringRelatedField(source="work_entity.name")
     age = serializers.SerializerMethodField()
     rank_fee = serializers.SerializerMethodField()
-
-    # Dues
-    unpaid_subscriptions = serializers.SerializerMethodField()
 
     class Meta:
         model = Client
@@ -54,14 +64,6 @@ class ClientReadSerializer(serializers.ModelSerializer):
 
     def get_rank_fee(self, obj: Client):
         return RankFee.objects.get(rank=obj.rank).fee
-
-    def get_unpaid_subscriptions(self, obj):
-        today = date.today()
-        expected_count = 12
-        paid_count = obj.subscriptions.filter(
-            date__year=today.year
-        ).count()
-        return max(expected_count - paid_count, 0)
 
 
 class ClientWriteSerializer(serializers.ModelSerializer):

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Table, Input, Avatar, Space, Radio, Tag } from "antd";
+import { Table, Input, Avatar, Space, Radio, Tag, Tooltip, Badge } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
 import { Link, useNavigate } from "react-router";
 import { getInitials } from "../../utils";
@@ -22,6 +22,11 @@ type ControlsType = {
     work_entity?: string;
   };
 } | null;
+
+const assignmentLabels: Record<string, string> = {
+  unpaid_subscriptions: "اشتراكات",
+  unpaid_installments: "أقساط",
+};
 
 const ClientsList = () => {
   const [search, setSearch] = useState("");
@@ -123,8 +128,43 @@ const ClientsList = () => {
     },
     {
       title: "مستحقات",
-      dataIndex: "assignments",
-      key: "assignments",
+      dataIndex: "dues",
+      key: "dues",
+      render: (dues: Client["dues"]) => {
+        console.log(dues);
+
+        if (!dues) {
+          return <span>-</span>;
+        }
+
+        const entries = Object.entries(dues).filter(([_, count]) => count > 0);
+
+        if (entries.length === 0) {
+          return <span>-</span>;
+        }
+
+        return (
+          <div className="flex flex-wrap gap-2">
+            {entries.map(([key, count]) => (
+              <Tooltip
+                key={key}
+                title={`${count} ${assignmentLabels[key] ?? "مستحقات"}`}
+              >
+                <Badge
+                  count={count}
+                  style={{
+                    backgroundColor:
+                      key === "unpaid_subscriptions" ? "#f5222d" : "#fa8c16",
+                  }}
+                ></Badge>
+                <span className="px-2 py-1 rounded bg-gray-100">
+                  {assignmentLabels[key] ?? key}
+                </span>
+              </Tooltip>
+            ))}
+          </div>
+        );
+      },
     },
   ];
 
