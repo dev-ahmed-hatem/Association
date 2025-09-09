@@ -12,12 +12,16 @@ import {
 } from "antd";
 import { LoadingOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
-import { FinancialRecord, PaymentMethod } from "@/types/financial_record";
+import {
+  expensePaymentMethods,
+  FinancialRecord,
+  incomePaymentMethods,
+  PaymentMethod,
+  receiptPaymentMethods,
+} from "@/types/financial_record";
 import { useEffect, useState } from "react";
 import { useGetTransactionTypesQuery } from "@/app/api/endpoints/transaction_types";
-import {
-  TransactionKindArabic,
-} from "@/types/transaction_type";
+import { TransactionKindArabic } from "@/types/transaction_type";
 import Loading from "@/components/Loading";
 import ErrorPage from "../Error";
 import { useLazyGetBankAccountsQuery } from "@/app/api/endpoints/bank_accounts";
@@ -120,7 +124,7 @@ const FinancialForm = ({
   }, [recordDone]);
 
   useEffect(() => {
-    if (paymentMethod == "إيصال بنكي") {
+    if (["إيداع بنكي", "مصروف بنكي"].includes(paymentMethod)) {
       getAccounts({
         no_pagination: true,
       });
@@ -209,14 +213,23 @@ const FinancialForm = ({
                   placeholder="اختر نظام الدفع"
                   onChange={(value) => setPaymentMethod(value)}
                 >
-                  <Option value="نقدي">نقدي</Option>
-                  <Option value="إيصال بنكي">إيصال بنكي</Option>
+                  {financialType === "income"
+                    ? incomePaymentMethods.map((method, idx) => (
+                        <Option value={method} key={idx}>
+                          {method}
+                        </Option>
+                      ))
+                    : expensePaymentMethods.map((method, idx) => (
+                        <Option value={method} key={idx}>
+                          {method}
+                        </Option>
+                      ))}
                 </Select>
               </Form.Item>
             </Col>
           </Row>
 
-          {paymentMethod === "إيصال بنكي" && (
+          {receiptPaymentMethods.includes(paymentMethod) && (
             <Row gutter={16}>
               <Col xs={24} md={12}>
                 <Form.Item
@@ -247,9 +260,14 @@ const FinancialForm = ({
               <Col xs={24} md={12}>
                 <Form.Item
                   name="receipt_number"
-                  label="رقم الإيصال"
+                  label={paymentMethod === "شيك" ? "رقم الشيك" : "رقم الإيصال"}
                   rules={[
-                    { required: true, message: "يرجى إدخال رقم الإيصال" },
+                    {
+                      required: true,
+                      message: `يرجى إدخال ${
+                        paymentMethod === "شيك" ? "رقم الشيك" : "رقم الإيصال"
+                      }`,
+                    },
                   ]}
                 >
                   <Input className="w-full" />

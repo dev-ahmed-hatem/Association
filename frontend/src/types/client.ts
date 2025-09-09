@@ -31,7 +31,7 @@ export interface Client {
   national_id: string;
   birth_date: string;
   age: number;
-  hire_date: string;
+  residence?: string;
   phone_number: string;
   membership_type: string;
   work_entity: number | null;
@@ -50,7 +50,7 @@ export interface Client {
 
   financial_record?: number;
   subscription_fee: number;
-  paid_amount: number;
+  prepaid?: {amount: number, financial_record: number};
 
   dues?: {
     unpaid_subscriptions: number;

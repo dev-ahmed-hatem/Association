@@ -54,10 +54,10 @@ class ProjectTransaction(models.Model):
         },
     )
 
-    financial_record = models.ForeignKey(
+    financial_record = models.OneToOneField(
         "financials.FinancialRecord",
         on_delete=models.CASCADE,
-        related_name="project_transactions",
+        related_name="project_transaction",
         verbose_name=_("المعاملة المالية"),
         error_messages={
             "null": _("يجب ربط العملية بمعاملة مالية"),

@@ -11,7 +11,7 @@ const Welcome: React.FC = () => {
       <img
         src="./logo.jpeg"
         alt="Logo"
-        className="h-16 w-16 object-contain rounded-full border border-gray-200"
+        className="size-28 object-contain rounded-full border border-gray-200"
       />
 
       {/* Text */}

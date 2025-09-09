@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Table, Input, Card, Badge, Avatar, Divider } from "antd";
+import { Table, Input, Card, Badge, Avatar, Divider, Tag } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
 import { Link, useNavigate } from "react-router";
 import { tablePaginationConfig } from "@/utils/antd";
@@ -39,16 +39,21 @@ const ProjectsList: React.FC = () => {
             size="small"
             icon={
               <Badge
-                status={
-                  record.status === "قيد التنفيذ" ? "processing" : "success"
-                }
+                status={record.status === "منتهي" ? "success" : "processing"}
               />
             }
             style={{ backgroundColor: "#fff" }}
           />
           <div className="flex flex-col">
             <span className="font-medium text-gray-800">{record.name}</span>
-            <span className="text-xs text-gray-500">{record.id}#</span>
+            <div>
+              <span className="text-xs text-gray-500">{record.id}#</span>
+              {record.status === "منتهي" && (
+                <Tag className="m-2" color="green">
+                  منتهي
+                </Tag>
+              )}
+            </div>
           </div>
         </div>
       ),

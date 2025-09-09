@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import RestrictedError
 from django.utils.translation import gettext_lazy as _
 
 from users.models import User
@@ -70,9 +71,11 @@ class Client(models.Model):
         verbose_name=_("تاريخ الميلاد"),
         error_messages={"invalid": _("يرجى إدخال تاريخ صالح")}
     )
-    hire_date = models.DateField(
-        verbose_name=_("تاريخ التعيين"),
-        error_messages={"invalid": _("يرجى إدخال تاريخ صحيح")}
+    residence = models.CharField(
+        max_length=255,
+        verbose_name=_("محل الإقامة"),
+        blank=True,
+        null=True,
     )
     phone_number = models.CharField(
         max_length=15,
@@ -128,9 +131,10 @@ class Client(models.Model):
     )
 
     # joining financial fields
-    financial_record = models.ForeignKey(
+    prepaid = models.ForeignKey(
         "financials.FinancialRecord",
-        on_delete=models.RESTRICT,
+        on_delete=models.SET_NULL,
+        related_name="client",
         null=True,
         blank=True,
         verbose_name=_("المدفوع مقدما")
@@ -141,15 +145,6 @@ class Client(models.Model):
         decimal_places=2,
         verbose_name=_("رسوم الاشتراك"),
         help_text=_("القيمة الإجمالية لرسوم اشتراك العضو"),
-        error_messages={
-            "invalid": _("يرجى إدخال قيمة مالية صحيحة"),
-        }
-    )
-
-    paid_amount = models.DecimalField(
-        max_digits=12,
-        decimal_places=2,
-        verbose_name=_("المبلغ المدفوع"),
         error_messages={
             "invalid": _("يرجى إدخال قيمة مالية صحيحة"),
         }
@@ -172,6 +167,11 @@ class Client(models.Model):
     class Meta:
         verbose_name = _("عميل")
         verbose_name_plural = _("العملاء")
+
+    def delete(self, using=None, keep_parents=False):
+        if self.prepaid:
+            raise RestrictedError(_("لا يمكن حذف العميل لارتباطه بسجلات مالية موجودة"), self.prepaid)
+        super(Client, self).delete(using, keep_parents)
 
     @property
     def age(self):

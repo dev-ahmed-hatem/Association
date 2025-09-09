@@ -48,6 +48,7 @@ class ClientReadSerializer(serializers.ModelSerializer):
     work_entity = serializers.StringRelatedField(source="work_entity.name")
     age = serializers.SerializerMethodField()
     rank_fee = serializers.SerializerMethodField()
+    prepaid = serializers.SerializerMethodField()
 
     class Meta:
         model = Client
@@ -65,15 +66,20 @@ class ClientReadSerializer(serializers.ModelSerializer):
     def get_rank_fee(self, obj: Client):
         return RankFee.objects.get(rank=obj.rank).fee
 
+    def get_prepaid(self, obj: Client):
+        if obj.prepaid:
+            return {"amount": obj.prepaid.amount, "financial_record": obj.prepaid.id}
+        return None
+
 
 class ClientWriteSerializer(serializers.ModelSerializer):
     payment_method = serializers.ChoiceField(
-        choices=[("نقدي", "نقدي"), ("إيصال بنكي", "إيصال بنكي")],
+        choices=FinancialRecord.PaymentMethod.choices,
         required=True,
         error_messages={"required": "يرجى اختيار نظام الدفع"},
         write_only=True
     )
-    # Only required if payment_method == "إيصال بنكي"
+    # Only required if payment_method == "دفع بنكي"
     bank_account = serializers.IntegerField(
         required=False, allow_null=True,
         error_messages={"invalid": "يرجى إدخال بنك صالح"},
@@ -109,6 +115,17 @@ class ClientWriteSerializer(serializers.ModelSerializer):
         allow_null=True,
         write_only=True
     )
+    prepaid = serializers.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        required=True,
+        error_messages={
+            "invalid": "يرجى إدخال قيمة صالحة",
+        },
+        write_only=True
+    )
+    # paid_amount to be displayed in edit form
+    paid_amount = serializers.SerializerMethodField(read_only=True)
 
     def validate(self, data):
         """
@@ -117,21 +134,24 @@ class ClientWriteSerializer(serializers.ModelSerializer):
         - paid_amount <= subscription_fee
         - installments_count required if there is remaining amount
         """
+        is_create = self.instance is None
+
         subscription_fee = data.get("subscription_fee", 0)
-        paid_amount = data.get("paid_amount", 0)
-        remaining = subscription_fee - paid_amount
+        prepaid = data.get("prepaid", 0)
+        remaining = subscription_fee - prepaid
 
-        if data["payment_method"] == "إيصال بنكي":
-            if not data.get("bank_account"):
-                raise serializers.ValidationError({"bank_account": "يرجى إدخال البنك"})
-            if not data.get("receipt_number"):
-                raise serializers.ValidationError({"receipt_number": "يرجى إدخال رقم الإيصال"})
+        if is_create:
+            if data["payment_method"] in ["إيداع بنكي", "تحويل بنكي", "شيك"]:
+                if not data.get("bank_account"):
+                    raise serializers.ValidationError({"bank_account": "يرجى إدخال البنك"})
+                if not data.get("receipt_number"):
+                    raise serializers.ValidationError({"receipt_number": "يرجى إدخال رقم الإيصال"})
 
-        if paid_amount > subscription_fee:
-            raise serializers.ValidationError({"paid_amount": "المبلغ المدفوع لا يمكن أن يتجاوز رسوم الاشتراك"})
+            if prepaid > subscription_fee:
+                raise serializers.ValidationError({"prepaid": "المبلغ المدفوع لا يمكن أن يتجاوز رسوم الاشتراك"})
 
-        if remaining > 0 and not data.get("installments_count"):
-            raise serializers.ValidationError({"installments_count": "يرجى إدخال عدد الأقساط للمبلغ المتبقي"})
+            if remaining > 0 and not data.get("installments_count"):
+                raise serializers.ValidationError({"installments_count": "يرجى إدخال عدد الأقساط للمبلغ المتبقي"})
 
         return data
 
@@ -151,7 +171,7 @@ class ClientWriteSerializer(serializers.ModelSerializer):
         user = self.context['request'].user
 
         subscription_fee = validated_data.get("subscription_fee")
-        paid_amount = validated_data.get("paid_amount")
+        prepaid = validated_data.pop("prepaid")
         installments_count = validated_data.pop("installments_count", None)
         payment_method = validated_data.pop("payment_method")
         bank_account = validated_data.pop("bank_account", None)
@@ -162,7 +182,7 @@ class ClientWriteSerializer(serializers.ModelSerializer):
         # create initial client instance
         client = super().create({**validated_data, "created_by": user})
 
-        if subscription_fee == paid_amount:
+        if subscription_fee == prepaid:
             transaction_name = "رسوم عضوية"
             transaction_type, __ = TransactionType.objects.get_or_create(name=transaction_name,
                                                                          type=TransactionType.Type.INCOME,
@@ -172,7 +192,7 @@ class ClientWriteSerializer(serializers.ModelSerializer):
             transaction_type, __ = TransactionType.objects.get_or_create(name=transaction_name,
                                                                          type=TransactionType.Type.INCOME,
                                                                          system_related=True)
-            remaining = subscription_fee - paid_amount
+            remaining = subscription_fee - prepaid
             installment_amount = remaining / installments_count
             base_date = payment_date.replace(day=1)
 
@@ -186,16 +206,19 @@ class ClientWriteSerializer(serializers.ModelSerializer):
                 )
 
         bank_account_obj = None
-        if payment_method == "إيصال بنكي":
+        if payment_method in ["إيداع بنكي", "شيك", "تحويل بنكي"]:
             if not bank_account:
-                raise ValidationError({"bank_account": [_("يجب اختيار حساب بنكي عند الدفع بالإيصال")]})
+                raise ValidationError({"bank_account": [_("يجب اختيار حساب بنكي عند الدفع البنكي/الشيك")]})
             try:
                 bank_account_obj = BankAccount.objects.get(id=bank_account)
             except BankAccount.DoesNotExist:
                 raise ValidationError({"bank_account": [_("الحساب البنكي غير موجود")]})
 
+            if not receipt_number:
+                raise ValidationError({"receipt_number": [_("يجب إدخال رقم الإيصال/الشيك")]})
+
         financial_record = FinancialRecord.objects.create(
-            amount=paid_amount,
+            amount=prepaid,
             transaction_type=transaction_type,
             date=payment_date,
             payment_method=payment_method,
@@ -205,7 +228,11 @@ class ClientWriteSerializer(serializers.ModelSerializer):
             created_by=user,
         )
 
-        client.financial_record = financial_record
+        client.prepaid = financial_record
         client.save()
 
         return client
+
+    def get_paid_amount(self, obj: Client):
+        if obj.prepaid:
+            return obj.prepaid.amount

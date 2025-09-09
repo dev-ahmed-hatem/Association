@@ -23,7 +23,11 @@ import { handleServerErrors } from "@/utils/handleForm";
 import { useEffect, useState } from "react";
 import { useNotification } from "@/providers/NotificationProvider";
 import { useNavigate } from "react-router";
-import { PaymentMethod } from "@/types/financial_record";
+import {
+  incomePaymentMethods,
+  PaymentMethod,
+  receiptPaymentMethods,
+} from "@/types/financial_record";
 import { LoadingOutlined } from "@ant-design/icons";
 import { useLazyGetBankAccountsQuery } from "@/app/api/endpoints/bank_accounts";
 
@@ -80,12 +84,9 @@ const ClientForm = ({
     const data = {
       ...values,
       birth_date: values.birth_date.format("YYYY-MM-DD"),
-      hire_date: values.hire_date.format("YYYY-MM-DD"),
       subscription_date: values.subscription_date.format("YYYY-MM-DD"),
       payment_date: dayjs().format("YYYY-MM-DD"),
     };
-
-    console.log(data);
 
     addClient({
       data: data as Client,
@@ -95,7 +96,7 @@ const ClientForm = ({
   };
 
   useEffect(() => {
-    if (paymentMethod == "إيصال بنكي") {
+    if (["إيداع بنكي", "مصروف بنكي"].includes(paymentMethod)) {
       getAccounts({
         no_pagination: true,
       });
@@ -163,9 +164,6 @@ const ClientForm = ({
           ...initialValues,
           birth_date: initialValues?.birth_date
             ? dayjs(initialValues.birth_date)
-            : null,
-          hire_date: initialValues?.hire_date
-            ? dayjs(initialValues.hire_date)
             : null,
           subscription_date: initialValues?.subscription_date
             ? dayjs(initialValues.subscription_date)
@@ -264,6 +262,13 @@ const ClientForm = ({
               </Form.Item>
             </Col>
           </Row>
+          <Row gutter={16}>
+            <Col xs={24} md={24}>
+              <Form.Item name="residence" label="محل الإقامة">
+                <Input.TextArea placeholder="أدخل محل الإقامة" />
+              </Form.Item>
+            </Col>
+          </Row>
         </Card>
 
         {/* Work Details */}
@@ -349,17 +354,6 @@ const ClientForm = ({
           <Row gutter={16}>
             <Col xs={24} md={12}>
               <Form.Item
-                name="hire_date"
-                label="تاريخ التعيين"
-                rules={[
-                  { required: true, message: "يرجى إدخال تاريخ التعيين" },
-                ]}
-              >
-                <DatePicker format="YYYY-MM-DD" className="w-full" />
-              </Form.Item>
-            </Col>
-            <Col xs={24} md={12}>
-              <Form.Item
                 name="membership_number"
                 label="رقم العضوية"
                 rules={[
@@ -373,9 +367,6 @@ const ClientForm = ({
                 <Input placeholder="أدخل رقم العضوية" />
               </Form.Item>
             </Col>
-          </Row>
-
-          <Row gutter={[16, 16]}>
             <Col xs={24} md={12}>
               <Form.Item
                 name="membership_type"
@@ -389,6 +380,9 @@ const ClientForm = ({
                 </Select>
               </Form.Item>
             </Col>
+          </Row>
+
+          <Row gutter={[16, 16]}>
             <Col xs={24} md={12}>
               <Form.Item
                 name="subscription_date"
@@ -420,13 +414,7 @@ const ClientForm = ({
               </Col>
 
               <Col xs={24} md={12}>
-                <Form.Item
-                  name="paid_amount"
-                  label="المدفوع"
-                  rules={[
-                    { required: true, message: "يرجى إدخال المبلغ المدفوع" },
-                  ]}
-                >
+                <Form.Item name="paid_amount" label="المدفوع">
                   <InputNumber className="w-full" disabled={true} />
                 </Form.Item>
               </Col>
@@ -465,15 +453,18 @@ const ClientForm = ({
                     placeholder="اختر نظام الدفع"
                     onChange={(value) => setPaymentMethod(value)}
                   >
-                    <Option value="نقدي">نقدي</Option>
-                    <Option value="إيصال بنكي">إيصال بنكي</Option>
+                    {incomePaymentMethods.map((method, idx) => (
+                      <Option value={method} key={idx}>
+                        {method}
+                      </Option>
+                    ))}
                   </Select>
                 </Form.Item>
               </Col>
             </Row>
 
             {/* Bank Receipt Fields */}
-            {paymentMethod === "إيصال بنكي" && (
+            {receiptPaymentMethods.includes(paymentMethod) && (
               <Row gutter={16}>
                 <Col xs={24} md={12}>
                   <Form.Item
@@ -504,9 +495,16 @@ const ClientForm = ({
                 <Col xs={24} md={12}>
                   <Form.Item
                     name="receipt_number"
-                    label="رقم الإيصال"
+                    label={
+                      paymentMethod === "شيك" ? "رقم الشيك" : "رقم الإيصال"
+                    }
                     rules={[
-                      { required: true, message: "يرجى إدخال رقم الإيصال" },
+                      {
+                        required: true,
+                        message: `يرجى إدخال ${
+                          paymentMethod === "شيك" ? "رقم الشيك" : "رقم الإيصال"
+                        }`,
+                      },
                     ]}
                   >
                     <Input className="w-full" />
@@ -518,7 +516,7 @@ const ClientForm = ({
             <Row gutter={16}>
               <Col xs={24} md={12}>
                 <Form.Item
-                  name="paid_amount"
+                  name="prepaid"
                   label="المدفوع"
                   rules={[
                     { required: true, message: "يرجى إدخال المبلغ المدفوع" },

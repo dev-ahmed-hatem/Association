@@ -68,6 +68,18 @@ export const clientsEndpoints = api.injectEndpoints({
       }),
       invalidatesTags: [{ type: "Client", id: "LIST" }],
     }),
+    deleteFinancialRecords: builder.mutation<void, string>({
+      query: (id) => ({
+        url: `/clients/clients/${id}/delete_financial_records/`,
+        method: "DELETE",
+      }),
+      invalidatesTags: (result, error, arg) => [
+        { type: "Client", id: "LIST" },
+        { type: "Subscription", id: "LIST" },
+        { type: "Installment", id: "LIST" },
+        { type: "Client", id: arg },
+      ],
+    }),
   }),
   overrideExisting: false,
 });
@@ -77,4 +89,5 @@ export const {
   useGetClientQuery,
   useClientMutation,
   useSwitchClientActiveMutation,
+  useDeleteFinancialRecordsMutation,
 } = clientsEndpoints;

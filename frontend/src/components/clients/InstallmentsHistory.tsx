@@ -20,17 +20,16 @@ import Loading from "../Loading";
 import { useNotification } from "@/providers/NotificationProvider";
 import { Link } from "react-router";
 import { dayjs } from "@/utils/locale";
+import { Client } from "@/types/client";
 
 const InstallmentsHistory = ({
   client_id,
   subscription_fee,
-  paid_amount,
-  financial_record,
+  prepaid,
 }: {
   client_id: string;
   subscription_fee: number;
-  paid_amount: number;
-  financial_record?: number;
+  prepaid: Client["prepaid"];
 }) => {
   const notification = useNotification();
 
@@ -214,16 +213,14 @@ const InstallmentsHistory = ({
             <span className="text-gray-500 font-medium mb-1">
               المدفوع مقدما:
             </span>
-            {financial_record ? (
-              <Link to={`/financials/incomes/${financial_record}`}>
+            {prepaid ? (
+              <Link to={`/financials/incomes/${prepaid.financial_record}`}>
                 <span className="text-xl font-bold text-green-600 hover:text-green-500 cursor-pointer hover:underline">
-                  {paid_amount.toLocaleString()} ج.م
+                  {prepaid.amount.toLocaleString()} ج.م
                 </span>
               </Link>
             ) : (
-              <span className="text-xl font-bold text-green-600">
-                {paid_amount.toLocaleString()} ج.م
-              </span>
+              <span className="text-xl font-bold text-green-600">غير مسجل</span>
             )}
           </div>
         </div>

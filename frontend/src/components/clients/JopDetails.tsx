@@ -11,9 +11,6 @@ const JopDetails = ({ client }: { client: Client }) => {
       <Descriptions.Item label="جهة العمل">
         {client.work_entity}
       </Descriptions.Item>
-      <Descriptions.Item label="تاريخ التعيين">
-        {client.hire_date}
-      </Descriptions.Item>
       <Descriptions.Item label="رقم العضوية">
         {client.membership_number}
       </Descriptions.Item>

@@ -91,7 +91,9 @@ const FinancialProfilePage: React.FC = () => {
             <div>
               <h2 className="text-xl font-bold">
                 {record?.transaction_type.type === "إيراد" ? "إيراد" : "مصروف"}{" "}
-                – {record?.transaction_type.name}
+                – {record?.transaction_type.name}{" "}
+                {record?.transaction_type_name &&
+                  `(${record?.transaction_type_name})`}
               </h2>
               <p className="text-gray-500">
                 بتاريخ <span dir="rtl">{record?.date}</span>
@@ -142,7 +144,9 @@ const FinancialProfilePage: React.FC = () => {
         {/* Action Button */}
         {record?.transaction_type.system_related ? (
           <span>
-            <Tag color="blue" className="text-base px-2">تمت الإضافة تلقائيًا</Tag>
+            <Tag color="blue" className="text-base px-2">
+              تمت الإضافة تلقائيًا
+            </Tag>
           </span>
         ) : (
           <div className="btn-wrapper flex md:justify-end mt-4 flex-wrap gap-4">

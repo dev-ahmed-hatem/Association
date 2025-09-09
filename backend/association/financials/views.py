@@ -59,13 +59,12 @@ class FinancialRecordViewSet(ModelViewSet):
 
         type = self.request.query_params.get("type", None)
         date_str = self.request.query_params.get("date", None)
-        date = datetime.today().astimezone(settings.CAIRO_TZ).date()
         payment_methods = self.request.query_params.get('payment_methods', [])
         transaction_types = self.request.query_params.get('transaction_types', [])
 
         if date_str is not None:
             date = datetime.strptime(date_str, "%Y-%m-%d").date()
-        queryset = queryset.filter(date=date)
+            queryset = queryset.filter(date=date)
 
         if type is not None:
             queryset = queryset.filter(transaction_type__type=type)

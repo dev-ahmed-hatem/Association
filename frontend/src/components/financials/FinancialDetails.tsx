@@ -1,6 +1,10 @@
 import React from "react";
 import { Card, Descriptions, Tag } from "antd";
-import { FinancialRecord, paymentMethodColors } from "@/types/financial_record";
+import {
+  FinancialRecord,
+  paymentMethodColors,
+  receiptPaymentMethods,
+} from "@/types/financial_record";
 import { transactionTypeColors } from "@/types/transaction_type";
 import { textify } from "@/utils";
 
@@ -33,12 +37,16 @@ const FinancialDetails: React.FC<FinancialDetailsProps> = ({ item }) => {
             {item.payment_method}
           </Tag>
         </Descriptions.Item>
-        {item.payment_method === "إيصال بنكي" && (
+        {receiptPaymentMethods.includes(item.payment_method) && (
           <>
             <Descriptions.Item label="البنك">
               {item.bank_account?.name}
             </Descriptions.Item>
-            <Descriptions.Item label="رقم الإيصال">
+            <Descriptions.Item
+              label={`رقم ${
+                item.payment_method === "شيك" ? "الشيك" : "الإيصال"
+              }`}
+            >
               {item.receipt_number}
             </Descriptions.Item>
           </>

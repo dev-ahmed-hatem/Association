@@ -75,17 +75,25 @@ const ClientsList = () => {
             } size-2 inline-block`}
           ></span>
           {
-            <Avatar
-              className="bg-gradient-to-br from-[#2c2e83] to-[#494c9a] text-white font-semibold"
-              // className="text-white font-semibold bg-gradient-to-br from-[#007332] to-[#2d9f5f]"
-            >
+            <Avatar className="bg-gradient-to-br from-[#2c2e83] to-[#494c9a] text-white font-semibold">
               {getInitials(record.name)}
             </Avatar>
           }
           <span className="flex flex-col">
-            <div className="name text-base">{text}</div>
+            <div
+              className={`name text-base ${
+                record.is_active ? "font-bold" : "text-gray-500"
+              }`}
+            >
+              {text}
+            </div>
             <div className="id text-xs text-gray-400">
-              # {record.membership_number}
+              <span>{record.membership_number}#</span>{" "}
+              {!record.is_active && (
+                <Tag className="text-xs m-2" color="red">
+                  متقاعد
+                </Tag>
+              )}
             </div>
           </span>
         </Space>
@@ -131,8 +139,6 @@ const ClientsList = () => {
       dataIndex: "dues",
       key: "dues",
       render: (dues: Client["dues"]) => {
-        console.log(dues);
-
         if (!dues) {
           return <span>-</span>;
         }

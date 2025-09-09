@@ -14,6 +14,7 @@ import { useNotification } from "@/providers/NotificationProvider";
 import {
   clientsEndpoints,
   useClientMutation,
+  useDeleteFinancialRecordsMutation,
   useGetClientQuery,
   useSwitchClientActiveMutation,
 } from "@/app/api/endpoints/clients";
@@ -51,8 +52,7 @@ const items = (client: Client) => [
       <InstallmentsHistory
         client_id={client.id}
         subscription_fee={client.subscription_fee}
-        paid_amount={client.paid_amount}
-        financial_record={client.financial_record}
+        prepaid={client.prepaid}
       />
     ),
   },
@@ -73,6 +73,14 @@ const ClientProfilePage: React.FC = () => {
     { data: switchRes, isLoading: switching, isError: switchError },
   ] = useSwitchClientActiveMutation();
   const [
+    deleteFianancialRecords,
+    {
+      isLoading: deletingFinancialRecords,
+      isError: financialRecordsError,
+      isSuccess: deletedFinancialRecords,
+    },
+  ] = useDeleteFinancialRecordsMutation();
+  const [
     deleteClient,
     {
       isError: deleteIsError,
@@ -88,6 +96,10 @@ const ClientProfilePage: React.FC = () => {
 
   const toggleStatus = () => {
     switchActive(client_id as string);
+  };
+
+  const handleDeleteFinancialRecords = () => {
+    deleteFianancialRecords(client_id as string);
   };
 
   const handleDelete = () => {
@@ -109,6 +121,22 @@ const ClientProfilePage: React.FC = () => {
       });
     }
   }, [switchError]);
+
+  useEffect(() => {
+    if (financialRecordsError) {
+      notification.error({
+        message: "حدث خطأ أثناء حذف المعاملات المالية ! برجاء إعادة المحاولة",
+      });
+    }
+  }, [financialRecordsError]);
+
+  useEffect(() => {
+    if (deletedFinancialRecords) {
+      notification.success({
+        message: "تم حذف المعاملات المالية لهذا العضو",
+      });
+    }
+  }, [deletedFinancialRecords]);
 
   useEffect(() => {
     if (switchRes) {
@@ -228,6 +256,22 @@ const ClientProfilePage: React.FC = () => {
           >
             تعديل البيانات
           </Button>
+          <Popconfirm
+            title="هل أنت متأكد من حذف المعاملات المالية لهذا العضو؟"
+            onConfirm={handleDeleteFinancialRecords}
+            okText="نعم"
+            cancelText="لا"
+          >
+            <Button
+              className="enabled:bg-orange-500 enabled:border-orange-500 enabled:shadow-[0_2px_0_rgba(0,58,58,0.31)]
+      enabled:hover:border-orange-400 enabled:hover:bg-orange-400 enabled:text-white"
+              icon={<DeleteOutlined />}
+              loading={deletingFinancialRecords}
+            >
+              حذف المعاملات المالية
+            </Button>
+          </Popconfirm>
+
           <Popconfirm
             title="هل أنت متأكد من حذف هذا العضو؟"
             onConfirm={handleDelete}

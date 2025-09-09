@@ -3,7 +3,12 @@ import { Table, DatePicker, Statistic, Tag } from "antd";
 import { PlusOutlined, CalendarOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 import { Link, Outlet, useMatch, useNavigate } from "react-router";
-import { FinancialRecord, paymentMethodColors } from "@/types/financial_record";
+import {
+  expensePaymentMethods,
+  FinancialRecord,
+  incomePaymentMethods,
+  paymentMethodColors,
+} from "@/types/financial_record";
 import { tablePaginationConfig } from "../../utils/antd";
 import { ColumnsType } from "antd/es/table";
 import { TransactionKindArabic } from "@/types/transaction_type";
@@ -12,6 +17,7 @@ import Loading from "@/components/Loading";
 import ErrorPage from "../Error";
 import { PaginatedResponse } from "@/types/paginatedResponse";
 import { useGetTransactionTypesQuery } from "@/app/api/endpoints/transaction_types";
+import { SortOrder } from "antd/lib/table/interface";
 
 type Props = {
   financialType: "income" | "expense";
@@ -19,7 +25,7 @@ type Props = {
 
 type ControlsType = {
   sort_by?: string;
-  order?: string;
+  order?: SortOrder;
   filters: {
     payment_method?: string;
     transaction_type?: string;
@@ -57,10 +63,10 @@ const FinancialRecords: React.FC<Props> = ({ financialType }) => {
 
   const columns: ColumnsType<FinancialRecord> = [
     {
-      title: "رقم العملية",
-      dataIndex: "id",
-      key: "id",
-      sorter: true,
+      title: "#",
+      key: "index",
+      render: (_: any, __: any, index: number) =>
+        (page ? (page - 1) * pageSize : 0) + index + 1,
     },
     {
       title: "التاريخ",
@@ -72,7 +78,12 @@ const FinancialRecords: React.FC<Props> = ({ financialType }) => {
       title: "الفئة",
       dataIndex: "transaction_type",
       key: "transaction_type",
-      render: (text, record) => record.transaction_type.name,
+      render: (text, record) => (
+        <span>
+          {record.transaction_type.name}{" "}
+          {record.transaction_type_name && `(${record.transaction_type_name})`}
+        </span>
+      ),
       filters: types?.map((type) => ({ text: type.name, value: type.name })),
       defaultFilteredValue: controls?.filters?.transaction_type?.split(","),
     },
@@ -88,10 +99,16 @@ const FinancialRecords: React.FC<Props> = ({ financialType }) => {
           {record.payment_method}
         </Tag>
       ),
-      filters: [
-        { text: "إيصال بنكي", value: "إيصال بنكي" },
-        { text: "نقدي", value: "نقدي" },
-      ],
+      filters:
+        financialType === "income"
+          ? incomePaymentMethods.map((method) => ({
+              text: method,
+              value: method,
+            }))
+          : expensePaymentMethods.map((method) => ({
+              text: method,
+              value: method,
+            })),
       defaultFilteredValue: controls?.filters?.payment_method?.split(","),
     },
     {
@@ -109,6 +126,8 @@ const FinancialRecords: React.FC<Props> = ({ financialType }) => {
         />
       ),
       sorter: (a, b) => a.amount - b.amount,
+      sortOrder:
+        controls?.sort_by === "amount" ? controls?.order ?? null : null,
     },
   ];
 

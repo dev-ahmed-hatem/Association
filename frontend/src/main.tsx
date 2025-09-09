@@ -17,7 +17,9 @@ createRoot(document.getElementById("root")!).render(
       theme={{
         token: {
           colorPrimary: "#2c2e83",
+          fontSize: 17,
         },
+        components: { Badge: { statusSize: 12 } },
       }}
       form={{
         scrollToFirstError: { behavior: "smooth", block: "center" },

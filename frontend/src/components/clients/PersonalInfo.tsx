@@ -1,4 +1,5 @@
 import { Client } from "@/types/client";
+import { textify } from "@/utils";
 import { Descriptions } from "antd";
 
 const PersonalInfo = ({ client }: { client: Client }) => {
@@ -17,6 +18,9 @@ const PersonalInfo = ({ client }: { client: Client }) => {
       </Descriptions.Item>
       <Descriptions.Item label="الحالة الاجتماعية">
         {client.marital_status}
+      </Descriptions.Item>
+      <Descriptions.Item label="محل الإقامة">
+        {textify(client.residence) ?? "-"}
       </Descriptions.Item>
     </Descriptions>
   );

@@ -2,6 +2,8 @@ from rest_framework.viewsets import ModelViewSet
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework import status
+
+from financials.models import Installment, Subscription
 from .models import Client, WorkEntity
 from .serializers import WorkEntitySerializer, ClientListSerializer, ClientReadSerializer, ClientWriteSerializer
 from django.utils.translation import gettext_lazy as _
@@ -66,8 +68,8 @@ class ClientViewSet(ModelViewSet):
     @action(detail=True, methods=['get'])
     def detailed(self, request, pk=None):
         try:
-            employee = Client.objects.get(pk=pk)
-            data = ClientReadSerializer(employee, context={"request": self.request}).data
+            client = Client.objects.get(pk=pk)
+            data = ClientReadSerializer(client, context={"request": self.request}).data
             return Response(data)
         except Exception:
             return Response({'detail': _('عميل غير موجود')}, status=status.HTTP_404_NOT_FOUND)
@@ -75,21 +77,36 @@ class ClientViewSet(ModelViewSet):
     @action(detail=True, methods=['post'])
     def switch_active(self, request, pk=None):
         try:
-            employee = Client.objects.get(pk=pk)
-            employee.is_active = not employee.is_active
-            employee.save()
-            return Response({"is_active": employee.is_active})
+            client = Client.objects.get(pk=pk)
+            client.is_active = not client.is_active
+            client.save()
+            return Response({"is_active": client.is_active})
         except Exception:
-            return Response({'detail': _('عميل غير موجود')}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'detail': _('عضو غير موجود')}, status=status.HTTP_404_NOT_FOUND)
 
     @action(detail=True, methods=['get'])
     def form_data(self, request, pk=None):
         try:
-            employee = Client.objects.get(id=pk)
-            serializer = ClientWriteSerializer(employee, context={"request": self.request}).data
+            client = Client.objects.get(id=pk)
+            serializer = ClientWriteSerializer(client, context={"request": self.request}).data
             return Response(serializer)
         except Exception:
-            return Response({'detail': _('عميل غير موجود')}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'detail': _('عضو غير موجود')}, status=status.HTTP_404_NOT_FOUND)
+
+    @action(detail=True, methods=['delete'])
+    def delete_financial_records(self, request, pk=None):
+        try:
+            client = Client.objects.get(id=pk)
+            for i in Installment.objects.filter(client=client):
+                i.delete()
+            for s in Subscription.objects.filter(client=client):
+                s.delete()
+            if client.prepaid:
+                client.prepaid.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+
+        except Exception:
+            return Response({'detail': _('عضو غير موجود')}, status=status.HTTP_404_NOT_FOUND)
 
     def destroy(self, request, *args, **kwargs):
         try:

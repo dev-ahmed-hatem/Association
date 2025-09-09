@@ -96,7 +96,10 @@ class TransactionType(models.Model):
 class FinancialRecord(models.Model):
     class PaymentMethod(models.TextChoices):
         CASH = "نقدي", _("نقدي")
-        BANK_RECEIPT = "إيصال بنكي", _("إيصال بنكي")
+        BANK_DEPOSIT = "إيداع بنكي", _("إيداع بنكي")
+        BANK_EXPENSE = "مصروف بنكي", _("مصروف بنكي")
+        CHEQUE = "شيك", _("شيك")
+        BANK_TRANSFER = "تحويل بنكي", _("تحويل بنكي")
 
     amount = models.DecimalField(
         max_digits=12,
@@ -172,25 +175,12 @@ class FinancialRecord(models.Model):
     def __str__(self):
         return f"{self.amount} - {self.transaction_type}"
 
-    def clean(self):
-        if self.payment_method == self.PaymentMethod.CASH:
-            if self.bank_account:
-                raise ValidationError({"bank_account": _("لا يمكن اختيار حساب بنكي عند الدفع نقدًا")})
-            if self.receipt_number:
-                raise ValidationError({"receipt_number": _("لا يمكن إدخال رقم إيصال عند الدفع نقدًا")})
-
-        if self.payment_method == self.PaymentMethod.BANK_RECEIPT:
-            if not self.bank_account:
-                raise ValidationError({"bank_account": _("يرجى اختيار الحساب البنكي عند الدفع بواسطة إيصال")})
-            if not self.receipt_number:
-                raise ValidationError({"receipt_number": _("يرجى إدخال رقم الإيصال عند الدفع بواسطة إيصال")})
-
 
 class Subscription(models.Model):
-    financial_record = models.ForeignKey(
+    financial_record = models.OneToOneField(
         FinancialRecord,
-        on_delete=models.RESTRICT,
-        related_name="subscriptions",
+        on_delete=models.CASCADE,
+        related_name="subscription",
         verbose_name=_("المعاملة المالية"),
         error_messages={
             "null": _("يجب ربط الاشتراك بمعاملة مالية"),
@@ -248,16 +238,21 @@ class Subscription(models.Model):
     def __str__(self):
         return f"{self.amount} - ({self.date})"
 
+    def delete(self, using=None, keep_parents=False):
+        if self.financial_record:
+            self.financial_record.delete()
+        return super().delete(using, keep_parents)
+
 
 class Installment(models.Model):
     class Status(models.TextChoices):
         PAID = "مدفوع", _("مدفوع")
         UNPAID = "غير مدفوع", _("غير مدفوع")
 
-    financial_record = models.ForeignKey(
+    financial_record = models.OneToOneField(
         "financials.FinancialRecord",
-        on_delete=models.RESTRICT,
-        related_name="installments",
+        on_delete=models.CASCADE,
+        related_name="installment",
         verbose_name=_("المعاملة المالية"),
         blank=True,
         null=True,
@@ -265,7 +260,7 @@ class Installment(models.Model):
 
     client = models.ForeignKey(
         "clients.Client",
-        on_delete=models.CASCADE,
+        on_delete=models.RESTRICT,
         related_name="installments",
         verbose_name=_("العضو"),
         error_messages={
@@ -337,3 +332,8 @@ class Installment(models.Model):
             raise ValidationError(
                 {"paid_at": _("لا يمكن إدخال تاريخ الدفع إذا كان القسط غير مدفوع")}
             )
+
+    def delete(self, using=None, keep_parents=False):
+        if self.financial_record:
+            self.financial_record.delete()
+        return super().delete(using, keep_parents)
