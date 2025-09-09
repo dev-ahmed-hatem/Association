@@ -96,7 +96,7 @@ const ClientForm = ({
   };
 
   useEffect(() => {
-    if (["إيداع بنكي", "مصروف بنكي"].includes(paymentMethod)) {
+    if (receiptPaymentMethods.includes(paymentMethod)) {
       getAccounts({
         no_pagination: true,
       });

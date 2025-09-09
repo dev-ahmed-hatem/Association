@@ -2,6 +2,7 @@ import { ReactNode } from "react";
 import { PaymentMethod } from "./financial_record";
 
 export type ProjectTransaction = {
+  id: string;
   statement: ReactNode;
   amount: number;
   date: string;

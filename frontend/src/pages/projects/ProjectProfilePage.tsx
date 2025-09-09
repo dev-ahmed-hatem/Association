@@ -1,6 +1,16 @@
-import React, { ReactNode, useEffect, useState } from "react";
-import { Card, Table, Button, Popconfirm, Switch } from "antd";
-import { DeleteOutlined, EditOutlined, PlusOutlined } from "@ant-design/icons";
+import React, { useEffect, useState } from "react";
+import {
+  Card,
+  Table,
+  Button,
+  Popconfirm,
+  Switch,
+  Space,
+  Form,
+  Modal,
+  InputNumber,
+} from "antd";
+import { DeleteOutlined, EditOutlined } from "@ant-design/icons";
 import { useNavigate, useParams } from "react-router";
 import { FiTrendingUp } from "react-icons/fi";
 import {
@@ -16,34 +26,27 @@ import { useAppDispatch } from "@/app/redux/hooks";
 import { Project, ProjectStatus } from "@/types/project";
 import { useNotification } from "@/providers/NotificationProvider";
 import ProjectTransactionModal from "@/components/projects/ProjectTransactionModal";
-import { useGetProjectTransactionsQuery } from "@/app/api/endpoints/project_transactions.ts";
+import {
+  useGetProjectTransactionsQuery,
+  useProjectTransactionMutation,
+} from "@/app/api/endpoints/project_transactions.ts";
 import { ProjectTransaction } from "@/types/project_transaction";
-
-type Transaction = {
-  key: string;
-  value: number;
-  description: ReactNode;
-  date: string;
-};
-
-const incomeData: Transaction[] = [
-  { key: "1", value: 1500, description: "دفعة أولى", date: "2025-01-15" },
-  { key: "2", value: 2000, description: "دفعة ثانية", date: "2025-02-01" },
-];
-
-const expenseData: Transaction[] = [
-  { key: "1", value: 500, description: "شراء مواد", date: "2025-01-20" },
-  { key: "2", value: 700, description: "أجور عمال", date: "2025-02-05" },
-  { key: "2", value: 700, description: "أجور عمال", date: "2025-02-05" },
-];
 
 const ProjectProfilePage: React.FC = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const { project_id } = useParams();
   const notification = useNotification();
+  const [message, setMessage] = useState<string | null>(null);
 
   const [status, setStatus] = useState<ProjectStatus | null>();
+
+  // editing modal
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [editingRecord, setEditingRecord] = useState<ProjectTransaction | null>(
+    null
+  );
+  const [form] = Form.useForm();
 
   const {
     data: project,
@@ -65,10 +68,50 @@ const ProjectProfilePage: React.FC = () => {
     },
   ] = useProjectMutation();
 
+  const [
+    handleTransaction,
+    {
+      isLoading: loadingTransaction,
+      isError: transactionIsError,
+      isSuccess: transactionSuccess,
+    },
+  ] = useProjectTransactionMutation();
+
+  const editTransaction = (record: any) => {
+    setEditingRecord(record);
+    form.setFieldsValue({ amount: record.amount });
+    setIsModalVisible(true);
+  };
+
+  const handleModalOk = () => {
+    form.validateFields().then((values) => {
+      setMessage("تم تعديل القيمة");
+      handleTransaction({
+        url: `/projects/project-transactions/${editingRecord?.id}/update_amount/`,
+        data: { amount: values.amount },
+        method: "PATCH",
+      });
+    });
+  };
+
+  const handleModalCancel = () => {
+    setIsModalVisible(false);
+    setEditingRecord(null);
+    form.resetFields();
+  };
+
+  const deleteTransaction = (id: string) => {
+    setMessage("تم حذف السجل");
+    handleTransaction({
+      url: `/projects/project-transactions/${id}/`,
+      method: "DELETE",
+    });
+  };
+
   const {
     data: transactions,
     isFetching: fetchingTransactions,
-    isError: transactionIsError,
+    isError: transactionsIsError,
   } = useGetProjectTransactionsQuery({ project: project_id as string });
 
   const columns = [
@@ -79,6 +122,35 @@ const ProjectProfilePage: React.FC = () => {
       key: "amount",
     },
     { title: "التاريخ", dataIndex: "date", key: "date" },
+    {
+      title: "إجراءات",
+      key: "actions",
+      render: (_: any, record: any) =>
+        record.key !== "total" &&
+        project?.status === "قيد التنفيذ" && (
+          <Space>
+            <Button
+              type="primary"
+              icon={<EditOutlined />}
+              disabled={deleting || loadingTransaction}
+              onClick={() => editTransaction(record)}
+            />
+
+            <Popconfirm
+              title="هل أنت متأكد من حذف هذا السجل؟"
+              okText="نعم"
+              cancelText="لا"
+              onConfirm={() => deleteTransaction(record.id)}
+            >
+              <Button
+                danger
+                icon={<DeleteOutlined />}
+                disabled={deleting || loadingTransaction}
+              />
+            </Popconfirm>
+          </Space>
+        ),
+    },
   ];
 
   const totalRow = (amount: number) => [
@@ -133,6 +205,26 @@ const ProjectProfilePage: React.FC = () => {
       });
     }
   }, [switchRes]);
+
+  useEffect(() => {
+    if (transactionIsError) {
+      notification.error({
+        message: "حدث خطأ أثناء التنفيذ ! برجاء إعادة المحاولة",
+      });
+    }
+  }, [transactionIsError]);
+
+  useEffect(() => {
+    if (transactionSuccess) {
+      notification.success({
+        message: message,
+      });
+
+      setIsModalVisible(false);
+      setEditingRecord(null);
+      form.resetFields();
+    }
+  }, [transactionSuccess]);
 
   useEffect(() => {
     if (deleteIsError) {
@@ -194,7 +286,7 @@ const ProjectProfilePage: React.FC = () => {
 
       {fetchingTransactions && <Loading />}
 
-      {transactionIsError && (
+      {transactionsIsError && (
         <div className="flex flex-col items-center justify-center py-10">
           <div className="text-red-500 text-2xl mb-2">⚠️</div>
           <p className="text-lg font-semibold text-red-600">حدث خطأ</p>
@@ -322,11 +414,32 @@ const ProjectProfilePage: React.FC = () => {
                   enabled:hover:border-red-400 enabled:hover:bg-red-400 enabled:text-white"
             icon={<DeleteOutlined />}
             loading={deleting}
+            disabled={loadingTransaction}
           >
             حذف المشروع
           </Button>
         </Popconfirm>
       </div>
+
+      {/* editing amount modal */}
+      <Modal
+        title="تعديل القيمة"
+        open={isModalVisible}
+        onOk={handleModalOk}
+        onCancel={handleModalCancel}
+        okText="حفظ"
+        cancelText="إلغاء"
+      >
+        <Form form={form} layout="vertical" name="editForm">
+          <Form.Item
+            name="amount"
+            label="القيمة"
+            rules={[{ required: true, message: "يرجى إدخال القيمة" }]}
+          >
+            <InputNumber min={1} style={{ width: "100%" }} />
+          </Form.Item>
+        </Form>
+      </Modal>
     </div>
   );
 };

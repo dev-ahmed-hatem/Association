@@ -18,7 +18,12 @@ import {
   LoadingOutlined,
 } from "@ant-design/icons";
 import { useLazyGetBankAccountsQuery } from "@/app/api/endpoints/bank_accounts";
-import { PaymentMethod } from "@/types/financial_record";
+import {
+  expensePaymentMethods,
+  incomePaymentMethods,
+  PaymentMethod,
+  receiptPaymentMethods,
+} from "@/types/financial_record";
 import { ProjectTransaction } from "@/types/project_transaction";
 import dayjs from "dayjs";
 import { useProjectTransactionMutation } from "@/app/api/endpoints/project_transactions.ts";
@@ -91,7 +96,7 @@ const ProjectTransactionModal = ({
     useLazyGetBankAccountsQuery();
 
   useEffect(() => {
-    if (paymentMethod == "إيصال بنكي") {
+    if (receiptPaymentMethods.includes(paymentMethod)) {
       getAccounts({
         no_pagination: true,
       });
@@ -173,14 +178,23 @@ const ProjectTransactionModal = ({
                     placeholder="اختر نظام الدفع"
                     onChange={(value) => setPaymentMethod(value)}
                   >
-                    <Option value="نقدي">نقدي</Option>
-                    <Option value="إيصال بنكي">إيصال بنكي</Option>
+                    {type === "income"
+                      ? incomePaymentMethods.map((method, idx) => (
+                          <Option value={method} key={idx}>
+                            {method}
+                          </Option>
+                        ))
+                      : expensePaymentMethods.map((method, idx) => (
+                          <Option value={method} key={idx}>
+                            {method}
+                          </Option>
+                        ))}
                   </Select>
                 </Form.Item>
               </Col>
             </Row>
 
-            {paymentMethod === "إيصال بنكي" && (
+            {receiptPaymentMethods.includes(paymentMethod) && (
               <Row gutter={16}>
                 <Col xs={24} md={12}>
                   <Form.Item
@@ -211,9 +225,16 @@ const ProjectTransactionModal = ({
                 <Col xs={24} md={12}>
                   <Form.Item
                     name="receipt_number"
-                    label="رقم الإيصال"
+                    label={
+                      paymentMethod === "شيك" ? "رقم الشيك" : "رقم الإيصال"
+                    }
                     rules={[
-                      { required: true, message: "يرجى إدخال رقم الإيصال" },
+                      {
+                        required: true,
+                        message: `يرجى إدخال ${
+                          paymentMethod === "شيك" ? "رقم الشيك" : "رقم الإيصال"
+                        }`,
+                      },
                     ]}
                   >
                     <Input className="w-full" />

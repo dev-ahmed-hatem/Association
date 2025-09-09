@@ -5,7 +5,7 @@ from rest_framework import viewsets, status
 from financials.models import TransactionType
 from .serializers import ProjectSerializer, ProjectTransactionReadSerializer, ProjectTransactionWriteSerializer
 from rest_framework.response import Response
-from rest_framework.decorators import action
+from rest_framework.decorators import action, api_view
 from .models import Project, ProjectTransaction
 from django.utils.translation import gettext_lazy as _
 from django.db.models import Sum, RestrictedError
@@ -111,3 +111,14 @@ class ProjectTransactionViewSet(viewsets.ModelViewSet):
         if self.action in ['create', 'update', 'partial_update']:
             return ProjectTransactionWriteSerializer
         return ProjectTransactionReadSerializer
+
+    @action(detail=True, methods=['patch'])
+    def update_amount(self, request, pk=None):
+        try:
+            transaction = ProjectTransaction.objects.get(id=pk)
+            amount = request.data.get('amount')
+            transaction.financial_record.amount = amount
+            transaction.financial_record.save()
+            return Response({'amount': amount}, status=status.HTTP_200_OK)
+        except Exception:
+            return Response({'detail': _('عملية غير موجودة')}, status=status.HTTP_404_NOT_FOUND)
