@@ -1,6 +1,9 @@
 from django.db import models
+from django.db.models import Sum
 from django.utils.translation import gettext_lazy as _
 from django.conf import settings
+
+from financials.models import TransactionType
 
 
 class Project(models.Model):
@@ -42,6 +45,18 @@ class Project(models.Model):
 
     def __str__(self):
         return self.name
+
+    @property
+    def total_incomes(self):
+        return ProjectTransaction.objects.filter(project=self,
+                                                 financial_record__transaction_type__type=TransactionType.Type.INCOME).aggregate(
+            total=Sum('financial_record__amount'))["total"] or 0
+
+    @property
+    def total_expenses(self):
+        return ProjectTransaction.objects.filter(project=self,
+                                                 financial_record__transaction_type__type=TransactionType.Type.EXPENSE).aggregate(
+            total=Sum('financial_record__amount'))["total"] or 0
 
 
 class ProjectTransaction(models.Model):

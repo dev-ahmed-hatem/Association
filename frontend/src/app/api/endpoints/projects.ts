@@ -2,7 +2,7 @@ import api from "../apiSlice";
 import { PaginatedResponse } from "@/types/paginatedResponse";
 import qs from "query-string";
 import { QueryParams } from "@/types/query_param";
-import { Project, ProjectStatus } from "@/types/project";
+import { Project, ProjectsStats, ProjectStatus } from "@/types/project";
 
 export const clientsEndpoints = api.injectEndpoints({
   endpoints: (builder) => ({
@@ -69,6 +69,9 @@ export const clientsEndpoints = api.injectEndpoints({
       }),
       invalidatesTags: [{ type: "Project", id: "LIST" }],
     }),
+    getProjectsStats: builder.query<ProjectsStats, void>({
+      query: () => ({ url: "/projects/get-projects-stats/", method: "GET" }),
+    }),
   }),
   overrideExisting: false,
 });
@@ -78,4 +81,5 @@ export const {
   useGetProjectQuery,
   useProjectMutation,
   useSwitchProjectStatusMutation,
+  useGetProjectsStatsQuery,
 } = clientsEndpoints;

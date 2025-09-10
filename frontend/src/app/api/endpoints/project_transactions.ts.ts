@@ -31,6 +31,7 @@ export const projectTransactionsEndpoints = api.injectEndpoints({
           // Invalidate the Entities LIST tag on successful POST
           dispatch(
             api.util.invalidateTags([
+              { type: "Project", id: "LIST" },
               { type: "ProjectTransaction", id: "LIST" },
             ])
           );

@@ -17,14 +17,10 @@ class ProjectSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     def get_total_incomes(self, obj: Project):
-        return ProjectTransaction.objects.filter(project=obj,
-                                                 financial_record__transaction_type__type=TransactionType.Type.INCOME).aggregate(
-            total=Sum('financial_record__amount'))["total"] or 0
+        return obj.total_incomes
 
     def get_total_expenses(self, obj: Project):
-        return ProjectTransaction.objects.filter(project=obj,
-                                                 financial_record__transaction_type__type=TransactionType.Type.EXPENSE).aggregate(
-            total=Sum('financial_record__amount'))["total"] or 0
+        return obj.total_expenses
 
 
 class ProjectTransactionReadSerializer(serializers.ModelSerializer):

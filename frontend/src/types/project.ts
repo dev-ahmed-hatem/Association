@@ -12,3 +12,12 @@ export type Project = {
   created_at: string;
   updated_at: string;
 };
+
+export type ProjectsStats = {
+  total_projects: number,
+  in_progress: number,
+  completed: number,
+  total_incomes: number,
+  total_expenses: number,
+  net: number,
+};

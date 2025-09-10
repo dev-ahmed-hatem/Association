@@ -122,3 +122,22 @@ class ProjectTransactionViewSet(viewsets.ModelViewSet):
             return Response({'amount': amount}, status=status.HTTP_200_OK)
         except Exception:
             return Response({'detail': _('عملية غير موجودة')}, status=status.HTTP_404_NOT_FOUND)
+
+
+@api_view(['GET'])
+def get_projects_stats(request):
+    projects = Project.objects.all()
+    total_projects = projects.count()
+    in_progress = projects.filter(status=Project.Status.IN_PROGRESS).count()
+    completed = projects.filter(status=Project.Status.COMPLETED).count()
+    total_incomes = sum(project.total_incomes for project in projects)
+    total_expenses = sum(project.total_expenses for project in projects)
+    net = total_incomes - total_expenses
+
+    return Response({"total_projects": total_projects,
+                     "in_progress": in_progress,
+                     "completed": completed,
+                     "total_incomes": total_incomes,
+                     "total_expenses": total_expenses,
+                     "net": net
+                     }, status=status.HTTP_200_OK)
