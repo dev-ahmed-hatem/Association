@@ -139,16 +139,7 @@ const ProjectsList: React.FC = () => {
       <h1 className="mb-6 text-2xl md:text-3xl font-bold">المشروعات</h1>
       <Divider />
 
-      <ProjectStatistics
-        {...{
-          totalProjects: 12,
-          inProgress: 7,
-          completed: 5,
-          totalIncomes: 125000,
-          totalExpenses: 82000,
-          net: 43000,
-        }}
-      />
+      <ProjectStatistics />
       <Divider />
 
       <div className="flex justify-between flex-wrap gap-2 mb-4">
