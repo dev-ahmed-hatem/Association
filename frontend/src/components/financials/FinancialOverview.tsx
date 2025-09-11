@@ -1,10 +1,7 @@
 import { Card, Col, Row, Statistic, Typography } from "antd";
 import {
-  ArrowDownOutlined,
-  ArrowUpOutlined,
   CalendarOutlined,
   BankOutlined,
-  UserOutlined,
 } from "@ant-design/icons";
 import {
   PieChart,
@@ -36,6 +33,8 @@ const transactionTypesData = [
   { name: "أقساط", type: "إيراد", value: 12000 },
   { name: "رسوم اشتراك", type: "إيراد", value: 6000 },
   { name: "أخري", type: "إيراد", value: 9000 },
+  { name: "fdfd", type: "إيراد", value: 9000 },
+  { name: "dsd", type: "إيراد", value: 9000 },
 ];
 
 // Colors
@@ -139,7 +138,7 @@ const FinancialOverview = () => {
             <Bar
               dataKey="value"
               fill="#00C49F"
-              name="إيراد"
+              name="type"
               stackId="a"
               isAnimationActive={true}
             >

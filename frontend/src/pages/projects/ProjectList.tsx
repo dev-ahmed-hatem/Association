@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Table, Input, Card, Badge, Avatar, Divider, Tag } from "antd";
+import { Table, Input, Badge, Avatar, Divider, Tag } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
 import { Link, useNavigate } from "react-router";
 import { tablePaginationConfig } from "@/utils/antd";

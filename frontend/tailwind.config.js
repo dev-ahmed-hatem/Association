@@ -5,7 +5,7 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        cairo: ["ui-sans", "sans-serif"],
+        cairo: ["Cairo", "ui-sans-serif", "system-ui", "ui-sans", "sans-serif"],
       },
       colors: {
         orange: {

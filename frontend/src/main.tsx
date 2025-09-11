@@ -1,6 +1,7 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import "./styles/index.css";
+import "./styles/cairo.css";
 import { createBrowserRouter, RouterProvider } from "react-router";
 import routes from "./app/routerConfig";
 import { arEG } from "./utils/locale";
@@ -18,6 +19,7 @@ createRoot(document.getElementById("root")!).render(
         token: {
           colorPrimary: "#2c2e83",
           fontSize: 17,
+          fontFamily: "Cairo, ui-sans-serif, system-ui",
         },
         components: { Badge: { statusSize: 12 } },
       }}

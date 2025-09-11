@@ -1,5 +1,5 @@
 from rest_framework.decorators import action, api_view, permission_classes
-from django.db.models import RestrictedError
+from django.db.models import RestrictedError, Sum, Q, F
 from rest_framework.viewsets import ModelViewSet
 
 from clients.models import Client
@@ -180,3 +180,33 @@ class InstallmentViewSet(ModelViewSet):
             return Response({"detail": _("تم تسجيل دفع القسط بنجاح")}, status=status.HTTP_200_OK)
         except Exception:
             return Response({'detail': _('كود قسط غير موجود')}, status=status.HTTP_404_NOT_FOUND)
+
+
+@api_view(["GET"])
+def get_financials_stats(request):
+    current_month = datetime.now().astimezone(settings.CAIRO_TZ).month - 1
+    current_year = datetime.now().astimezone(settings.CAIRO_TZ).year
+
+    accounts_incomes = BankAccount.objects.annotate(total_incomes=Sum("financialrecord__amount", filter=Q(
+        financialrecord__date__month=current_month, financialrecord__date__year=current_year,
+        financialrecord__transaction_type__type=TransactionType.Type.INCOME))).values("name", "total_incomes")
+
+    accounts_expenses = BankAccount.objects.annotate(total_incomes=Sum("financialrecord__amount", filter=Q(
+        financialrecord__date__month=current_month, financialrecord__date__year=current_year,
+        financialrecord__transaction_type__type=TransactionType.Type.EXPENSE))).values("name", "total_incomes")
+
+    incomes_stats = FinancialRecord.objects.filter(date__month=current_month, date__year=current_year,
+                                                   transaction_type__type=TransactionType.Type.INCOME).values(
+        name=F("transaction_type__name"), type=F("transaction_type__type")).annotate(value=Sum("amount")).order_by(
+        "-value")[:4]
+
+    expenses_stats = FinancialRecord.objects.filter(date__month=current_month, date__year=current_year,
+                                                    transaction_type__type=TransactionType.Type.EXPENSE).values(
+        name=F("transaction_type__name"), type=F("transaction_type__type")).annotate(value=Sum("amount")).order_by(
+        "-value")[:4]
+
+    return Response({
+        "accounts_incomes": accounts_incomes,
+        "accounts_expenses": accounts_expenses,
+        "transaction_stats": list(incomes_stats) + list(expenses_stats),
+    }, status=status.HTTP_200_OK)
