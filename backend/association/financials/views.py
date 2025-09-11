@@ -190,10 +190,10 @@ def get_financials_stats(request):
 
     month_incomes = FinancialRecord.objects.filter(date__month=current_month, date__year=current_year,
                                                    transaction_type__type=TransactionType.Type.INCOME).aggregate(
-        Sum('amount'))["amount__sum"]
+        Sum('amount'))["amount__sum"] or 0
     month_expenses = FinancialRecord.objects.filter(date__month=current_month, date__year=current_year,
                                                     transaction_type__type=TransactionType.Type.EXPENSE).aggregate(
-        Sum('amount'))["amount__sum"]
+        Sum('amount'))["amount__sum"] or 0
 
     accounts_incomes = BankAccount.objects.annotate(value=Coalesce(Sum("financialrecord__amount", filter=Q(
         financialrecord__date__month=current_month, financialrecord__date__year=current_year,
