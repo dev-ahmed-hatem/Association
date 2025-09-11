@@ -1,8 +1,14 @@
-import { Card, Col, Row, Statistic, Typography } from "antd";
 import {
-  CalendarOutlined,
-  BankOutlined,
-} from "@ant-design/icons";
+  Button,
+  Card,
+  Col,
+  Divider,
+  Result,
+  Row,
+  Statistic,
+  Typography,
+} from "antd";
+import { CalendarOutlined, BankOutlined } from "@ant-design/icons";
 import {
   PieChart,
   Pie,
@@ -15,27 +21,11 @@ import {
   YAxis,
   CartesianGrid,
 } from "recharts";
+import { dayjs } from "@/utils/locale";
+import { useGetFinancialsStatsQuery } from "@/app/api/endpoints/financials_stats";
+import Loading from "../Loading";
 
 const { Title } = Typography;
-
-// Mock data
-const bankAccountsData = [
-  { name: "حساب البنك الأهلي", value: 12000 },
-  { name: "حساب بنك مصر", value: 8500 },
-  { name: "حساب CIB", value: 5000 },
-  { name: "حساب النقدي", value: 7000 },
-];
-
-const transactionTypesData = [
-  { name: "إيجار", type: "مصروف", value: 4000 },
-  { name: "رواتب", type: "مصروف", value: 7000 },
-  { name: "مشروعات", type: "إيراد", value: 10000 },
-  { name: "أقساط", type: "إيراد", value: 12000 },
-  { name: "رسوم اشتراك", type: "إيراد", value: 6000 },
-  { name: "أخري", type: "إيراد", value: 9000 },
-  { name: "fdfd", type: "إيراد", value: 9000 },
-  { name: "dsd", type: "إيراد", value: 9000 },
-];
 
 // Colors
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#a855f7"];
@@ -47,118 +37,38 @@ const cardStyle = {
 };
 
 const FinancialOverview = () => {
-  // group transaction types into income & expense
-  const groupedTransactions = transactionTypesData.reduce(
-    (acc, t) => {
-      if (t.type === "إيراد") {
-        acc.income.push(t);
-      } else {
-        acc.expense.push(t);
-      }
-      return acc;
-    },
-    {
-      income: [] as typeof transactionTypesData,
-      expense: [] as typeof transactionTypesData,
-    }
-  );
+  const { data, isFetching, isError, refetch } = useGetFinancialsStatsQuery();
 
+  if (isFetching) return <Loading />;
+  if (isError)
+    return (
+      <Result
+        status="error"
+        title={<span className="font-bold">خطأ</span>}
+        subTitle={"حدث خطأ أثناء الحصول على الإحصائيات المالية"}
+        extra={[
+          <Button key="retry" type="primary" onClick={refetch}>
+            إعادة المحاولة
+          </Button>,
+        ]}
+      />
+    );
   return (
     <div className="p-6">
-      {/* Bank Accounts Section */}
+      {/* Month Totals */}
       <div className="mb-10 text-center">
         <Title level={3} className="!text-2xl !font-bold !mb-0 text-gray-800">
-          إحصائيات الحسابات البنكية
+          إجماليات الشهر ({dayjs().month() + 1} - {dayjs().year()})
         </Title>
-        <p className="text-gray-500 mt-1">توزيع المعاملات حسب الحساب</p>
+        <p className="text-gray-500 mt-1">إجمالي الإيرادات والمصروفات</p>
       </div>
 
-      <Card className="shadow-md rounded-2xl">
-        <div className="flex flex-wrap items-center">
-          <div className="w-full md:w-1/2">
-            <ul className="space-y-2">
-              {bankAccountsData.map((acc, i) => (
-                <li
-                  key={i}
-                  className="flex justify-between items-center p-3 rounded-lg"
-                  style={{
-                    backgroundColor: COLORS[i % COLORS.length] + "20",
-                  }}
-                >
-                  <span className="font-semibold">{acc.name}</span>
-                  <span className="text-gray-700 font-bold">
-                    {acc.value} ج.م
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div className="w-full md:w-1/2">
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={bankAccountsData}
-                  dataKey="value"
-                  nameKey="name"
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={100}
-                  label
-                >
-                  {bankAccountsData.map((entry, index) => (
-                    <Cell
-                      key={`cell-${index}`}
-                      fill={COLORS[index % COLORS.length]}
-                    />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-      </Card>
-
-      {/* Transaction Types Section */}
-      <div className="mt-12 mb-10 text-center">
-        <Title level={3} className="!text-2xl !font-bold !mb-0 text-gray-800">
-          إحصائيات أنواع المعاملات
-        </Title>
-        <p className="text-gray-500 mt-1">المقارنة بين الإيرادات والمصروفات</p>
-      </div>
-
-      <Card className="shadow-md rounded-2xl mb-10">
-        <ResponsiveContainer width="100%" height={350}>
-          <BarChart data={transactionTypesData}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="name" />
-            <YAxis />
-            <Tooltip />
-            <Bar
-              dataKey="value"
-              fill="#00C49F"
-              name="type"
-              stackId="a"
-              isAnimationActive={true}
-            >
-              {transactionTypesData.map((entry, index) => (
-                <Cell
-                  key={`cell-inc-${index}`}
-                  fill={entry.type === "إيراد" ? "#00C49F" : "#FF4D4F"}
-                />
-              ))}
-            </Bar>
-          </BarChart>
-        </ResponsiveContainer>
-      </Card>
-
-      <Row gutter={[16, 16]}>
+      <Row gutter={[16, 16]} className="mb-10">
         <Col xs={24} md={12} lg={8}>
           <Card style={cardStyle}>
             <Statistic
               title="إيرادات الشهر"
-              value={45000}
+              value={data?.month_totals.incomes}
               prefix={<CalendarOutlined />}
               suffix="ج.م"
               valueStyle={{ color: "#3f8600" }}
@@ -170,7 +80,7 @@ const FinancialOverview = () => {
           <Card style={cardStyle}>
             <Statistic
               title="مصروفات الشهر"
-              value={20000}
+              value={data?.month_totals.expenses}
               prefix={<CalendarOutlined />}
               suffix="ج.م"
               valueStyle={{ color: "#cf1322" }}
@@ -179,13 +89,10 @@ const FinancialOverview = () => {
         </Col>
 
         <Col xs={24} md={12} lg={8}>
-          <Card
-          className="bg-minsk"
-            style={{ ...cardStyle, color: "white" }}
-          >
+          <Card className="bg-minsk" style={{ ...cardStyle, color: "white" }}>
             <Statistic
-              title={<span style={{ color: "white" }}>صافي الربح</span>}
-              value={25000}
+              title={<span style={{ color: "white" }}>الصافي</span>}
+              value={data?.month_totals.net}
               prefix={<BankOutlined />}
               suffix="ج.م"
               valueStyle={{ color: "white" }}
@@ -193,6 +100,175 @@ const FinancialOverview = () => {
           </Card>
         </Col>
       </Row>
+
+      <Divider className="my-12" />
+
+      {/* Bank Accounts Section */}
+      <div className="mb-10 text-center">
+        <Title level={3} className="!text-2xl !font-bold !mb-0 text-gray-800">
+          إحصائيات الحسابات البنكية
+        </Title>
+        <p className="text-gray-500 mt-1">توزيع المعاملات حسب الحساب</p>
+      </div>
+
+      <Card className="shadow-md rounded-2xl">
+        {/* Bank Accounts Incomes */}
+        <>
+          <div className="w-full mb-5 rounded-xl bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-600 p-3 shadow-md">
+            <Title
+              level={5}
+              className="!text-xl !font-bold !mb-0 text-white text-center"
+            >
+              الإيرادات
+            </Title>
+          </div>
+          <div className="flex flex-wrap items-center">
+            <div className="w-full md:w-1/2">
+              <ul className="space-y-3">
+                {data?.accounts_incomes.map((acc, i) => (
+                  <li
+                    key={i}
+                    className="flex flex-col sm:flex-row sm:justify-between sm:items-center p-4 rounded-xl shadow-sm"
+                    style={{
+                      backgroundColor: COLORS[i % COLORS.length] + "20",
+                    }}
+                  >
+                    {/* Account Name */}
+                    <span className="font-semibold text-base sm:text-lg text-gray-800 break-words">
+                      {acc.name}
+                    </span>
+
+                    {/* Value */}
+                    <span className="text-red-700 font-bold text-sm sm:text-base mt-2 sm:mt-0">
+                      {acc.value} ج.م
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="w-full md:w-1/2">
+              <ResponsiveContainer width="100%" height={300}>
+                <PieChart>
+                  <Pie
+                    data={data?.accounts_incomes}
+                    dataKey="value"
+                    nameKey="name"
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={100}
+                    label
+                  >
+                    {data?.accounts_incomes.map((entry, index) => (
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={COLORS[index % COLORS.length]}
+                      />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        </>
+
+        {/* Bank Account Expenses */}
+        <>
+          <div className="w-full mb-5 rounded-xl bg-gradient-to-r from-red-400 via-pink-500 to-rose-600 p-3 shadow-md">
+            <Title
+              level={5}
+              className="!text-xl !font-bold !mb-0 text-white text-center"
+            >
+              المصروفات
+            </Title>
+          </div>
+          <div className="flex flex-wrap items-center">
+            <div className="w-full md:w-1/2">
+              <ul className="space-y-3">
+                {data?.accounts_expenses.map((acc, i) => (
+                  <li
+                    key={i}
+                    className="flex flex-col sm:flex-row sm:justify-between sm:items-center p-4 rounded-xl shadow-sm"
+                    style={{
+                      backgroundColor: COLORS[i % COLORS.length] + "20",
+                    }}
+                  >
+                    {/* Account Name */}
+                    <span className="font-semibold text-base sm:text-lg text-gray-800 break-words">
+                      {acc.name}
+                    </span>
+
+                    {/* Value */}
+                    <span className="text-red-700 font-bold text-sm sm:text-base mt-2 sm:mt-0">
+                      {acc.value} ج.م
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="w-full md:w-1/2">
+              <ResponsiveContainer width="100%" height={300}>
+                <PieChart>
+                  <Pie
+                    data={data?.accounts_expenses}
+                    dataKey="value"
+                    nameKey="name"
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={100}
+                    label
+                  >
+                    {data?.accounts_expenses.map((entry, index) => (
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={COLORS[index % COLORS.length]}
+                      />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        </>
+      </Card>
+
+      <Divider className="my-12" />
+
+      {/* Transaction Types Section */}
+      <div className="mt-12 mb-10 text-center">
+        <Title level={3} className="!text-2xl !font-bold !mb-0 text-gray-800">
+          إحصائيات أنواع المعاملات
+        </Title>
+        <p className="text-gray-500 mt-1">المقارنة بين الإيرادات والمصروفات</p>
+      </div>
+
+      <Card className="shadow-md rounded-2xl">
+        <ResponsiveContainer width="100%" height={350}>
+          <BarChart data={data?.transaction_stats}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="name" />
+            <YAxis />
+            <Tooltip />
+            <Bar
+              dataKey="value"
+              fill="#00C49F"
+              name="إجمالي"
+              stackId="a"
+              isAnimationActive={true}
+            >
+              {data?.transaction_stats.map((entry, index) => (
+                <Cell
+                  key={`cell-inc-${index}`}
+                  fill={entry.type === "إيراد" ? "#00C49F" : "#FF4D4F"}
+                />
+              ))}
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+      </Card>
     </div>
   );
 };

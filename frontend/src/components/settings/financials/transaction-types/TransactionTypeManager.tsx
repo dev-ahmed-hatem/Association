@@ -151,6 +151,7 @@ const TransactionTypeManager = () => {
         columns={columns}
         dataSource={transactions}
         pagination={false}
+        scroll={{x: "max-content"}}
       />
 
       <TransactionTypeForm

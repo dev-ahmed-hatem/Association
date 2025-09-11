@@ -4,7 +4,7 @@ import qs from "query-string";
 import { QueryParams } from "@/types/query_param";
 import { Project, ProjectsStats, ProjectStatus } from "@/types/project";
 
-export const clientsEndpoints = api.injectEndpoints({
+export const projectsEndpoints = api.injectEndpoints({
   endpoints: (builder) => ({
     getProjects: builder.query<
       PaginatedResponse<Project> | Project[],
@@ -82,4 +82,4 @@ export const {
   useProjectMutation,
   useSwitchProjectStatusMutation,
   useGetProjectsStatsQuery,
-} = clientsEndpoints;
+} = projectsEndpoints;

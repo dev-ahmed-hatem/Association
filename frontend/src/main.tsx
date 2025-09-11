@@ -18,7 +18,7 @@ createRoot(document.getElementById("root")!).render(
       theme={{
         token: {
           colorPrimary: "#2c2e83",
-          fontSize: 17,
+          fontSize: 16,
           fontFamily: "Cairo, ui-sans-serif, system-ui",
         },
         components: { Badge: { statusSize: 12 } },

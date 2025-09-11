@@ -14,7 +14,7 @@ import { DeleteOutlined, EditOutlined } from "@ant-design/icons";
 import { useNavigate, useParams } from "react-router";
 import { FiTrendingUp } from "react-icons/fi";
 import {
-  clientsEndpoints,
+  projectsEndpoints,
   useGetProjectQuery,
   useProjectMutation,
   useSwitchProjectStatusMutation,
@@ -192,7 +192,7 @@ const ProjectProfilePage: React.FC = () => {
     if (switchRes) {
       if (project) setStatus(switchRes.status);
       dispatch(
-        clientsEndpoints.util.updateQueryData(
+        projectsEndpoints.util.updateQueryData(
           "getProject",
           { id: project_id as string },
           (draft: Project) => {
