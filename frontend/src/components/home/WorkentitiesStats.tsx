@@ -10,14 +10,14 @@ import {
   SafetyCertificateOutlined,
   FileTextOutlined,
 } from "@ant-design/icons";
-import { WorkEntity } from "@/types/workentity";
+import { HomeStats } from "@/types/client";
 
 const { Title } = Typography;
 
-type WorkEntityStat = WorkEntity & { clientCount: number };
+type WorkEntityStat = HomeStats["entities_count"];
 
 interface Props {
-  entities: WorkEntityStat[];
+  entities: WorkEntityStat;
 }
 
 const ICONS = [
@@ -71,8 +71,8 @@ const WorkEntityCards: React.FC<Props> = ({ entities }) => {
             >
               {ICONS[index % ICONS.length]}
             </div>
-            <div className="text-right flex-1 ml-4">
-              <div className="text-2xl font-bold">{entity.clientCount}</div>
+            <div className="text-right flex-1 ms-2">
+              <div className="text-2xl font-bold">{entity.count}</div>
               <div className="text-sm opacity-80">{entity.name}</div>
             </div>
             <div

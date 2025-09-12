@@ -28,7 +28,7 @@ names_list = [
 ]
 
 # Step 3: Create 20+ fake clients
-for i in range(25):
+for i in range(35):
     name = random.choice(names_list)
     rank = random.choice(RankChoices.values)
     national_id = "".join([str(random.randint(0, 9)) for _ in range(14)])
@@ -36,12 +36,12 @@ for i in range(25):
     birth_month = random.randint(1, 12)
     birth_day = random.randint(1, 28)  # keep safe for all months
     birth_date = date(birth_year, birth_month, birth_day)
-    hire_date = birth_date + timedelta(days=random.randint(20*365, 30*365))
     phone_number = "05" + "".join([str(random.randint(0, 9)) for _ in range(8)])
     membership_type = random.choice(MembershipType.values)
     work_entity = random.choice(work_entities)
     membership_number = str(random.randint(1000, 9999))  # numeric only
-    subscription_date = hire_date + timedelta(days=random.randint(30, 200))
+    subscription_date = birth_date + timedelta(days=random.randint(20 * 365, 30 * 365)) + timedelta(
+        days=random.randint(30, 200))
     marital_status = random.choice(MaritalStatus.values)
     graduation_year = random.randint(1995, 2020)
     class_rank = str(random.randint(1, 150))  # number only
@@ -51,7 +51,6 @@ for i in range(25):
         rank=rank,
         national_id=national_id,
         birth_date=birth_date,
-        hire_date=hire_date,
         phone_number=phone_number,
         membership_type=membership_type,
         work_entity=work_entity,
@@ -60,7 +59,8 @@ for i in range(25):
         marital_status=marital_status,
         graduation_year=graduation_year,
         class_rank=class_rank,
-        created_by=admin_user
+        created_by=admin_user,
+        subscription_fee=10000
     )
 
-print("✅ Successfully created 25 fake clients")
+print("✅ Successfully created 35 fake clients")

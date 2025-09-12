@@ -1,13 +1,13 @@
 from rest_framework.viewsets import ModelViewSet
-from rest_framework.decorators import action
+from rest_framework.decorators import action, api_view
 from rest_framework.response import Response
 from rest_framework import status
 
 from financials.models import Installment, Subscription
-from .models import Client, WorkEntity
+from .models import Client, WorkEntity, RankChoices
 from .serializers import WorkEntitySerializer, ClientListSerializer, ClientReadSerializer, ClientWriteSerializer
 from django.utils.translation import gettext_lazy as _
-from django.db.models import RestrictedError
+from django.db.models import RestrictedError, Count
 
 
 class WorkEntityViewSet(ModelViewSet):
@@ -116,3 +116,29 @@ class ClientViewSet(ModelViewSet):
                 {"detail": _("لا يمكن حذف العميل لارتباطه بسجلات مالية موجودة")},
                 status=status.HTTP_400_BAD_REQUEST
             )
+
+
+@api_view(["GET"])
+def get_home_stats(request):
+    ranks = Client.objects.values("rank").annotate(total=Count("id"))
+    rank_dict = {r["rank"]: r["total"] for r in ranks}
+
+    all_rank_counts = [{"rank": choice.value, "العدد": rank_dict.get(choice.value, 0)} for choice in RankChoices]
+
+    activity = Client.objects.values("is_active").annotate(total=Count("id"))
+    active_dict = {a["is_active"]: a["total"] for a in activity}
+
+    active_status = [
+        {"name": "بالخدمة", "value": active_dict.get(True, 0)},
+        {"name": "متقاعد", "value": active_dict.get(False, 0)},
+    ]
+
+    entities_count = WorkEntity.objects.annotate(count=Count("client")).values("name", "id", "count")
+
+    data = {
+        "rank_counts": all_rank_counts,
+        "active_status": active_status,
+        "entities_count": entities_count,
+    }
+
+    return Response(data, status=status.HTTP_200_OK)

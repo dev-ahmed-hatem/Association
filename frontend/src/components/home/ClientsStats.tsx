@@ -1,5 +1,5 @@
 import React from "react";
-import { Card, Typography } from "antd";
+import { Button, Card, Result, Typography } from "antd";
 import {
   BarChart,
   Bar,
@@ -17,26 +17,9 @@ import {
 import WorkEntityStatsCards from "./WorkentitiesStats";
 import { useGetWorkEntitiesQuery } from "@/app/api/endpoints/workentities";
 import Loading from "../Loading";
+import { useGetHomeStatsQuery } from "@/app/api/endpoints/clients";
 
 const { Title } = Typography;
-
-// Fake data
-const rankData = [
-  { rank: "ملازم", العدد: 12 },
-  { rank: "ملازم أول", العدد: 8 },
-  { rank: "نقيب", العدد: 15 },
-  { rank: "رائد", العدد: 6 },
-  { rank: "مقدم", العدد: 12 },
-  { rank: "عقيد", العدد: 8 },
-  { rank: "عميد", العدد: 15 },
-  { rank: "لواء", العدد: 6 },
-  { rank: "لواء مساعد وزير", العدد: 8 },
-];
-
-const activeData = [
-  { name: "بالخدمة", value: 28 },
-  { name: "متقاعد", value: 5 },
-];
 
 const COLORS = ["#00ca4b", "#FF8042"];
 
@@ -50,9 +33,30 @@ const subscriptionData = [
 ];
 
 const ClientStats: React.FC = () => {
-  const { data: entities, isFetching } = useGetWorkEntitiesQuery({
+  const {
+    data: homeStats,
+    isFetching,
+    isError,
+    refetch,
+  } = useGetHomeStatsQuery();
+  const { data: entities } = useGetWorkEntitiesQuery({
     no_pagination: true,
   });
+
+  if (isFetching) return <Loading />;
+  if (isError)
+    return (
+      <Result
+        status="error"
+        title={<span className="font-bold">خطأ</span>}
+        subTitle={"حدث خطأ أثناء الحصول على الإحصائيات"}
+        extra={[
+          <Button key="retry" type="primary" onClick={refetch}>
+            إعادة المحاولة
+          </Button>,
+        ]}
+      />
+    );
 
   return (
     <div className="p-4 gap-6">
@@ -70,7 +74,7 @@ const ClientStats: React.FC = () => {
           توزيع الأعضاء حسب الرتبة
         </Title>
         <ResponsiveContainer width="100%" height={250}>
-          <BarChart data={rankData}>
+          <BarChart data={homeStats?.rank_counts}>
             <XAxis dataKey="rank" />
             <YAxis />
             <Tooltip />
@@ -88,14 +92,14 @@ const ClientStats: React.FC = () => {
           <ResponsiveContainer width="100%" height={250}>
             <PieChart>
               <Pie
-                data={activeData}
+                data={homeStats?.active_status}
                 dataKey="value"
                 cx="50%"
                 cy="50%"
                 outerRadius={80}
                 label
               >
-                {activeData.map((_, index) => (
+                {homeStats?.active_status.map((_, index) => (
                   <Cell key={`cell-${index}`} fill={COLORS[index]} />
                 ))}
               </Pie>
@@ -129,12 +133,7 @@ const ClientStats: React.FC = () => {
 
       {isFetching && <Loading />}
       {entities && (
-        <WorkEntityStatsCards
-          entities={entities.map((entity) => ({
-            ...entity,
-            clientCount: Math.floor(Math.random() * (500 - 50 + 1)) + 50,
-          }))}
-        />
+        <WorkEntityStatsCards entities={homeStats!.entities_count} />
       )}
     </div>
   );

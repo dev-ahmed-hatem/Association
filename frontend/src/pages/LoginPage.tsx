@@ -63,7 +63,7 @@ const LoginPage = () => {
           <img
             src="/logo.jpeg"
             alt="Logo"
-            className="h-36 md:h-80 object-contain drop-shadow-md rounded-full"
+            className="h-40 md:h-80 object-contain drop-shadow-md rounded-full"
           />
         </div>
 

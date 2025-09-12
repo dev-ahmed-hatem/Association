@@ -1,7 +1,7 @@
 import api from "../apiSlice";
 import { PaginatedResponse } from "@/types/paginatedResponse";
 import qs from "query-string";
-import { Client } from "@/types/client";
+import { Client, HomeStats } from "@/types/client";
 import { QueryParams } from "@/types/query_param";
 
 export const clientsEndpoints = api.injectEndpoints({
@@ -80,6 +80,12 @@ export const clientsEndpoints = api.injectEndpoints({
         { type: "Client", id: arg },
       ],
     }),
+    getHomeStats: builder.query<HomeStats, void>({
+      query: () => ({
+        url: "/clients/get-home-stats/",
+        method: "GET",
+      }),
+    }),
   }),
   overrideExisting: false,
 });
@@ -90,4 +96,5 @@ export const {
   useClientMutation,
   useSwitchClientActiveMutation,
   useDeleteFinancialRecordsMutation,
+  useGetHomeStatsQuery,
 } = clientsEndpoints;

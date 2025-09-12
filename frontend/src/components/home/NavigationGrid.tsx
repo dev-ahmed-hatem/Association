@@ -3,7 +3,7 @@ import appRoutes, { AppRoute } from "../../app/appRoutes";
 
 export default function NavigationGrid() {
   return (
-    <div className="p3 md:p-4">
+    <div className="md:p-4">
       <h2 className="text-2xl font-semibold text-gray-900 mb-4">النظام</h2>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {appRoutes[0].children!.map((item: AppRoute, index) => (

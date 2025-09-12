@@ -50,10 +50,29 @@ export interface Client {
 
   financial_record?: number;
   subscription_fee: number;
-  prepaid?: {amount: number, financial_record: number};
+  prepaid?: { amount: number; financial_record: number };
 
   dues?: {
     unpaid_subscriptions: number;
     unpaid_installments: number;
   };
 }
+
+export type HomeStats = {
+  rank_counts: { rank: Rank; العدد: number }[];
+  active_status: [
+    {
+      name: "بالخدمة";
+      value: number;
+    },
+    {
+      name: "متقاعد";
+      value: number;
+    }
+  ];
+  entities_count: {
+    name: string;
+    id: number;
+    count: number;
+  }[];
+};
