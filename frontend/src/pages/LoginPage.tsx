@@ -56,14 +56,14 @@ const LoginPage = () => {
 
   if (verifying || logged || verified) return <Loading />;
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
-      <div className="bg-white shadow-xl rounded-md max-md max-md:border-x-4 border-minsk overflow-hidden flex flex-col md:flex-row w-full max-w-md md:max-w-4xl">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-100 via-gray-200 to-gray-300 p-4">
+      <div className="bg-white shadow-xl rounded-xl border border-gray-200 overflow-hidden flex flex-col md:flex-row w-full max-w-md md:max-w-4xl">
         {/* Left: Logo */}
-        <div className="md:w-1/2 max-md:h-52 bg-white flex items-center justify-center p-2">
+        <div className="md:w-1/2 h-48 md:h-auto bg-gradient-to-tr from-blue-900 via-blue-800 to-blue-700 flex items-center justify-center p-6">
           <img
             src="/logo.jpeg"
             alt="Logo"
-            className="max-lg:h-full md:w-full object-cover"
+            className="h-36 md:h-80 object-contain drop-shadow-md rounded-full"
           />
         </div>
 
