@@ -189,7 +189,7 @@ const FinancialStatistics: React.FC = () => {
 
         {/* الاشتراكات */}
         <Col xs={24} md={8} lg={8}>
-          <Card className="bg-gradient-to-br from-purple-500 to-purple-700 text-white">
+          <Card className="bg-gradient-to-br from-indigo-500 to-indigo-700 text-white">
             <Statistic
               title={<span className="text-white">الاشتراكات</span>}
               value={homeFinancialStats?.month_totals.subscriptions}
@@ -215,7 +215,7 @@ const FinancialStatistics: React.FC = () => {
 
         {/* القروض */}
         <Col xs={24} md={8} lg={8}>
-          <Card className="bg-gradient-to-br from-indigo-500 to-indigo-700 text-white">
+          <Card className="bg-gradient-to-br from-purple-500 to-purple-700 text-white">
             <Statistic
               title={<span className="text-white">القروض</span>}
               value={30000}
@@ -279,7 +279,7 @@ const FinancialStatistics: React.FC = () => {
                 <XAxis dataKey="month" />
                 <YAxis />
                 <Tooltip />
-                <Bar dataKey="قروض" fill="#8884d8" />
+                <Bar dataKey="قروض" fill="#9333ea" />
               </BarChart>
             </ResponsiveContainer>
           </Card>
