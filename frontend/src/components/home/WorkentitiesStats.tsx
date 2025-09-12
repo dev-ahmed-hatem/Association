@@ -55,7 +55,7 @@ const WorkEntityCards: React.FC<Props> = ({ entities }) => {
         {entities.map((entity, index) => (
           <Card
             key={entity.id}
-            className={`text-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300`}
+            className={`text-white rounded-xl shadow-xl hover:shadow-lg transition-all duration-300`}
             styles={{
               body: {
                 padding: "1rem",

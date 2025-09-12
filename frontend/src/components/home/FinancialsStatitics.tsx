@@ -94,7 +94,7 @@ const FinancialStatistics: React.FC = () => {
 
       <Row gutter={[16, 16]}>
         <Col xs={24} md={12}>
-          <Card title="الإيرادات والمصروفات عبر الشهور">
+          <Card title="الإيرادات والمصروفات عبر الشهور" className="shadow-lg">
             <ResponsiveContainer width="100%" height={250}>
               <AreaChart data={revenueExpenseData}>
                 <defs>
@@ -129,7 +129,7 @@ const FinancialStatistics: React.FC = () => {
         </Col>
 
         <Col xs={24} md={12}>
-          <Card title="القروض عبر الشهور">
+          <Card title="القروض عبر الشهور" className="shadow-lg">
             <ResponsiveContainer width="100%" height={250}>
               <BarChart data={loansData}>
                 <CartesianGrid strokeDasharray="3 3" />
@@ -151,7 +151,7 @@ const FinancialStatistics: React.FC = () => {
       <Row gutter={[16, 16]}>
         {/* Subscriptions (Current) */}
         <Col xs={24} md={12}>
-          <Card title="الاشتراكات الشهرية (الحالي)">
+          <Card title="الاشتراكات الشهرية (الحالي)" className="shadow-lg">
             <div className="text-center mb-4">
               <p className="text-xl font-bold text-green-600">
                 عدد المدفوعة: 120
@@ -188,7 +188,7 @@ const FinancialStatistics: React.FC = () => {
 
         {/* Installments (Current) */}
         <Col xs={24} md={12}>
-          <Card title="الأقساط (الحالي)">
+          <Card title="الأقساط (الحالي)" className="shadow-lg">
             <div className="text-center mb-4">
               <p className="text-xl font-bold text-green-600">
                 عدد المدفوعة: 80
@@ -227,7 +227,10 @@ const FinancialStatistics: React.FC = () => {
       {/* Previous Months Stats */}
       <Row gutter={[16, 16]} className="mt-6">
         <Col xs={24} md={12}>
-          <Card title="الاشتراكات الشهرية (الشهور السابقة)">
+          <Card
+            title="الاشتراكات الشهرية (الشهور السابقة)"
+            className="shadow-lg"
+          >
             <Progress percent={80} status="active" strokeColor="#00C49F" />
             <p className="mt-2 text-gray-500">20% من الاشتراكات متأخرة</p>
             <div className="mt-4 flex justify-between text-sm">
@@ -238,7 +241,7 @@ const FinancialStatistics: React.FC = () => {
         </Col>
 
         <Col xs={24} md={12}>
-          <Card title="الأقساط (الشهور السابقة)">
+          <Card title="الأقساط (الشهور السابقة)" className="shadow-lg">
             <Progress percent={65} status="exception" strokeColor="#FF8042" />
             <p className="mt-2 text-gray-500">35% من الأقساط متأخرة</p>
             <div className="mt-4 flex justify-between text-sm">

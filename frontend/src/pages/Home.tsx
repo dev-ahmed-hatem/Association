@@ -14,7 +14,6 @@ const Home = () => {
       <ClientStats />
       <Divider className="my-16" />
       <FinancialStatistics />
-      <div className="my-16"></div>
     </div>
   );
 };
