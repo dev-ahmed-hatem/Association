@@ -60,7 +60,7 @@ const FinancialStatistics: React.FC = () => {
         <Col xs={24} md={8}>
           <Card className="bg-gradient-to-br from-green-500 to-green-700 text-white">
             <Statistic
-              title="إجمالي الإيرادات"
+              title={<span className="text-white">إجمالي الإيرادات</span>}
               value={150000}
               prefix={<RiseOutlined />}
               suffix="جنيه"
@@ -71,7 +71,7 @@ const FinancialStatistics: React.FC = () => {
         <Col xs={24} md={8}>
           <Card className="bg-gradient-to-br from-red-500 to-red-700 text-white">
             <Statistic
-              title="إجمالي المصروفات"
+              title={<span className="text-white">إجمالي المصروفات</span>}
               value={85000}
               prefix={<FallOutlined />}
               suffix="جنيه"
@@ -82,7 +82,7 @@ const FinancialStatistics: React.FC = () => {
         <Col xs={24} md={8}>
           <Card className="bg-gradient-to-br from-blue-500 to-blue-700 text-white">
             <Statistic
-              title="إجمالي القروض"
+              title={<span className="text-white">إجمالي القروض</span>}
               value={30000}
               prefix={<BankOutlined />}
               suffix="جنيه"

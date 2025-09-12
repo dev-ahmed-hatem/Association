@@ -1,113 +1,82 @@
+import { useEffect, useState } from "react";
 import {
   Table,
+  Tag,
   DatePicker,
-  Space,
   Button,
   InputNumber,
-  Tag,
   Input,
   Popconfirm,
+  Space,
+  Avatar,
 } from "antd";
 import { EyeOutlined, DeleteOutlined } from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
 import dayjs, { Dayjs } from "dayjs";
-import { useEffect, useState } from "react";
-import { SubscriptionDisplay } from "@/types/subscription";
+import { getInitials, textify } from "@/utils";
+import { Link } from "react-router";
+import { NamedSubscription } from "@/types/subscription";
 import {
-  useGetYearSubscriptionsQuery,
+  useGetMonthSubscriptionsQuery,
   useSubscriptionMutation,
 } from "@/app/api/endpoints/subscriptions";
-import { textify } from "@/utils";
-import Loading from "../Loading";
+import Loading from "@/components/Loading";
+import { rankColors } from "@/types/client";
 import { useNotification } from "@/providers/NotificationProvider";
-import { Link } from "react-router";
+import { tablePaginationConfig } from "@/utils/antd";
 
-const SubscriptionHistory = ({
-  client_id,
-  rank_fee,
-}: {
-  client_id: string;
-  rank_fee: number;
-}) => {
-  const [selectedYear, setSelectedYear] = useState<Dayjs>(dayjs());
-  const notification = useNotification();
+const { MonthPicker } = DatePicker;
+
+const SubscriptionsPage = () => {
+  const [selectedMonth, setSelectedMonth] = useState<Dayjs>(dayjs());
+  const [subscriptions, setSubscriptions] = useState<
+    NamedSubscription[] | undefined
+  >(undefined);
   const [message, setMessage] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const notification = useNotification();
 
-  const {
-    data: paid,
-    isFetching,
-    isError,
-    isSuccess,
-  } = useGetYearSubscriptionsQuery({
-    client: client_id,
-    year: selectedYear.year(),
-  });
+  const { data, isFetching, isError, isSuccess } =
+    useGetMonthSubscriptionsQuery({
+      month: (selectedMonth.month() + 1).toString(),
+      year: selectedMonth.year().toString(),
+      search,
+      page,
+      page_size: pageSize,
+    });
   const [
     handleSubscription,
     { isLoading, isError: recordError, isSuccess: recorded },
   ] = useSubscriptionMutation();
 
-  // Generate monthly salary data for the selected year
-  const getYearSalaryData = (): SubscriptionDisplay[] => {
-    let yearData: SubscriptionDisplay[] = [];
-
-    const monthCount =
-      dayjs().year() === selectedYear.year() ? selectedYear.month() + 1 : 12;
-
-    for (let i = 0; i < monthCount; i++) {
-      const month = selectedYear.startOf("year").add(i, "month");
-
-      const paidMonth = paid?.[i + 1];
-
-      yearData.push(
-        paidMonth
-          ? {
-              id: paidMonth.id,
-              date: paidMonth.date,
-              status: "مدفوع",
-              notes: paidMonth.notes,
-              paid_at: paidMonth.paid_at,
-              amount: paidMonth.amount,
-              financial_record: paidMonth.financial_record,
-            }
-          : {
-              id: i.toString(),
-              date: month,
-              status: "غير مدفوع",
-              notes: "",
-              paid_at: "",
-              amount: rank_fee,
-            }
-      );
-    }
-    return yearData;
+  // Search Function
+  const onSearch = (value: string) => {
+    setSearch(value);
   };
 
-  const [subscriptions, setSubscriptions] = useState<SubscriptionDisplay[]>(
-    getYearSalaryData()
-  );
-
-  // mark as paid
-  const markAsPaid = (record: SubscriptionDisplay) => {
+  const markAsPaid = (record: NamedSubscription) => {
     const data = {
       amount: record.amount,
-      date: (record.date as Dayjs).startOf("month").format("YYYY-MM-DD"),
+      date: record.date as string,
       notes: record.notes,
       paid_at: dayjs().format("YYYY-MM-DD"),
-      client: client_id,
+      client: record.client_id,
     };
+
     setMessage("تم تسجيل الاشتراك");
     handleSubscription({ data });
   };
 
   const editRecord = (
-    record: SubscriptionDisplay,
+    record: NamedSubscription,
     field: "notes" | "amount",
     value: any
   ) => {
     setSubscriptions((prev) =>
-      prev.map((item) =>
-        item.date === record.date ? { ...item, [field]: value } : item
+      prev?.map((item) =>
+        item.id === record.id ? { ...item, [field]: value } : item
       )
     );
   };
@@ -120,14 +89,34 @@ const SubscriptionHistory = ({
     });
   };
 
-  // Table columns
-  const columns: ColumnsType<SubscriptionDisplay> = [
+  const columns: ColumnsType<NamedSubscription> = [
     {
-      title: "الشهر",
-      dataIndex: "date",
-      key: "date",
-      render: (value: string | Dayjs) =>
-        typeof value === "string" ? value : value.format("YYYY-MM"),
+      title: "اسم العضو",
+      dataIndex: "client",
+      key: "client",
+      render: (text, record) => (
+        <Space>
+          {
+            <Avatar className="bg-gradient-to-br from-[#2c2e83] to-[#494c9a] text-white font-semibold">
+              {getInitials(text)}
+            </Avatar>
+          }
+          <span className="flex flex-col">
+            <Link
+              to={`/clients/client-profile/${record.client_id}/`}
+              className={`name text-base font-bold hover:underline hover:text-minsk`}
+            >
+              {text}
+            </Link>
+            <div className="id text-xs text-gray-400">
+              <span>{record.membership_number}#</span>{" "}
+              <Tag className="text-sm m-2" color={rankColors[record.rank]}>
+                {record.rank}
+              </Tag>
+            </div>
+          </span>
+        </Space>
+      ),
     },
     {
       title: "قيمة الاشتراك",
@@ -227,8 +216,8 @@ const SubscriptionHistory = ({
   ];
 
   useEffect(() => {
-    setSubscriptions(getYearSalaryData());
-  }, [selectedYear, paid]);
+    setSubscriptions(data?.data);
+  }, [data]);
 
   useEffect(() => {
     if (recorded) {
@@ -246,36 +235,38 @@ const SubscriptionHistory = ({
     }
   }, [recordError]);
 
-  useEffect(() => {
-    if (isError) {
-      notification.error({
-        message: "حدث خطأ أثناء تحميل البيانات ! برجاء إعادة المحاولة",
-      });
-    }
-  }, [isError]);
-
   return (
-    <div>
-      {/* Year Picker */}
-      <Space
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          marginBottom: 16,
-        }}
-      >
-        <DatePicker
-          picker="year"
-          onChange={(date) => setSelectedYear(date || dayjs())}
-          value={selectedYear}
-          format="[السنة ]YYYY"
-          placeholder="اختر السنة"
-          className="w-full md:w-60"
-          disabledDate={(date) => date.year() > dayjs().year()}
-          disabled={isFetching}
-          allowClear={false}
+    <div className="space-y-6">
+      {/* Gradient header */}
+      <div className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-2xl p-6 shadow-lg text-center">
+        <h1 className="text-2xl md:text-3xl font-bold text-white">
+          سجل الاشتراكات - {dayjs(selectedMonth).format("MMMM YYYY")}
+        </h1>
+        <p className="text-white/90 mt-2">
+          عرض حالة اشتراكات جميع الأعضاء (في الخدمة) للشهر المحدد
+        </p>
+      </div>
+
+      {/* Controls */}
+      <div>
+        <MonthPicker
+          value={selectedMonth}
+          onChange={(date) => date && setSelectedMonth(date)}
+          placeholder="اختر الشهر"
+          className="w-full max-w-md"
         />
-      </Space>
+      </div>
+
+      <div>
+        <Input.Search
+          placeholder="ابحث عن عضو..."
+          onSearch={onSearch}
+          className="mb-4 w-full max-w-md h-10"
+          defaultValue={search}
+          allowClear={true}
+          onClear={() => setSearch("")}
+        />
+      </div>
 
       {isFetching && <Loading />}
 
@@ -287,17 +278,23 @@ const SubscriptionHistory = ({
         </div>
       )}
 
-      {/* Subscription Table */}
+      {/* Table */}
       {isSuccess && subscriptions && (
         <Table
           dataSource={subscriptions}
           columns={columns}
-          rowKey="date"
-          pagination={false}
+          rowKey="id"
           bordered
-          title={() =>
-            `سجل الاشتراكات - سنة ${dayjs(selectedYear).format("YYYY")}`
-          }
+          pagination={tablePaginationConfig({
+            total: data?.count,
+            current: data?.page,
+            showQuickJumper: true,
+            pageSize,
+            onChange(page, pageSize) {
+              setPage(page);
+              setPageSize(pageSize);
+            },
+          })}
           scroll={{ x: "max-content" }}
           className="minsk-header"
         />
@@ -306,4 +303,4 @@ const SubscriptionHistory = ({
   );
 };
 
-export default SubscriptionHistory;
+export default SubscriptionsPage;

@@ -16,6 +16,7 @@ import FinancialRecords from "@/pages/financials/FinancialRecords";
 import FinancialsPage from "@/pages/financials/FinancialsPage";
 import { GiReceiveMoney, GiPayMoney } from "react-icons/gi";
 import ProjectsList from "@/pages/projects/ProjectList";
+import SubscriptionsPage from "@/pages/financials/SubscriptionsPage";
 
 export type AppRoute = RouteObject & {
   key?: string;
@@ -73,7 +74,7 @@ export const appRoutes: AppRoute[] = [
           },
           {
             path: "subscriptions",
-            element: <h1 className="text-center">الاشتراكات الشهرية</h1>,
+            element: <SubscriptionsPage />,
             icon: <CalendarOutlined />,
             label: "الاشتراكات الشهرية",
           },

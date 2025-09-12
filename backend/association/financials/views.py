@@ -3,6 +3,7 @@ from django.db.models import RestrictedError, Sum, Q, F, Value, DecimalField
 from django.db.models.functions import Coalesce
 from rest_framework.viewsets import ModelViewSet
 
+from association.rest_framework_utils.custom_pagination import CustomPageNumberPagination
 from clients.models import Client
 from .serializers import BankAccountSerializer, TransactionTypeSerializer, FinancialRecordReadSerializer, \
     FinancialRecordWriteSerializer, RankFeeSerializer, SubscriptionWriteSerializer, SubscriptionReadSerializer, \
@@ -13,6 +14,7 @@ from django.utils.translation import gettext_lazy as _
 from datetime import datetime
 from django.conf import settings
 from .models import BankAccount, TransactionType, FinancialRecord, Subscription, RankFee, Installment
+from uuid import uuid4
 
 
 class BankAccountViewSet(ModelViewSet):
@@ -116,30 +118,6 @@ class SubscriptionViewSet(ModelViewSet):
         return SubscriptionReadSerializer
 
 
-@api_view(["GET"])
-@permission_classes((permissions.IsAuthenticated,))
-def get_year_subscriptions(request):
-    year = request.query_params.get("year", None)
-    client_id = request.query_params.get("client", None)
-
-    if not year:
-        return Response({"detail": _("يجب إدخال السنة")}, status=status.HTTP_400_BAD_REQUEST)
-
-    try:
-        client = Client.objects.get(pk=client_id)
-    except Client.DoesNotExist:
-        return Response({"detail": _("عميل غير موجود")}, status=status.HTTP_404_NOT_FOUND)
-
-    subscriptions = Subscription.objects.filter(date__year=year, client=client).order_by("date")
-
-    subs = {
-        sub.date.month: SubscriptionReadSerializer(sub, context={"request": request}).data
-        for sub in subscriptions
-    }
-
-    return Response(subs, status=status.HTTP_200_OK)
-
-
 class InstallmentViewSet(ModelViewSet):
     queryset = Installment.objects.all()
     serializer_class = InstallmentSerializer
@@ -226,3 +204,89 @@ def get_financials_stats(request):
             "net": month_incomes - month_expenses,
         }
     }, status=status.HTTP_200_OK)
+
+
+@api_view(["GET"])
+@permission_classes((permissions.IsAuthenticated,))
+def get_year_subscriptions(request):
+    year = request.query_params.get("year", None)
+    client_id = request.query_params.get("client", None)
+
+    if not year:
+        return Response({"detail": _("يجب إدخال السنة")}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        client = Client.objects.get(pk=client_id)
+    except Client.DoesNotExist:
+        return Response({"detail": _("عميل غير موجود")}, status=status.HTTP_404_NOT_FOUND)
+
+    subscriptions = Subscription.objects.filter(date__year=year, client=client).order_by("date")
+
+    subs = {
+        sub.date.month: SubscriptionReadSerializer(sub, context={"request": request}).data
+        for sub in subscriptions
+    }
+
+    return Response(subs, status=status.HTTP_200_OK)
+
+
+@api_view(["GET"])
+def get_month_subscriptions(request):
+    month = request.query_params.get("month")
+    year = request.query_params.get("year")
+    search = request.query_params.get("search")
+
+    today = datetime.now().astimezone(settings.CAIRO_TZ)
+    if not month or not year:
+        month, year = today.month, today.year
+
+    clients_qs = Client.objects.filter(is_active=True).only("id", "name", "rank", "membership_number")
+
+    if search:
+        clients_qs = clients_qs.filter(name__icontains=search)
+
+    clients = list(clients_qs.values("id", "name", "rank", "membership_number"))
+
+    subs = Subscription.objects.filter(
+        date__month=month, date__year=year
+    ).select_related("client")
+    subs_map = {s.client_id: s for s in subs}
+
+    fees = {r.rank: r.fee for r in RankFee.objects.all()}
+
+    results = []
+    for client in clients:
+        sub = subs_map.get(client["id"])
+        if sub:
+            results.append({
+                "id": sub.id,
+                "client": client["name"],
+                "client_id": client["id"],
+                "membership_number": client["membership_number"],
+                "rank": client["rank"],
+                "amount": sub.amount,
+                "status": "مدفوع",
+                "paid_at": sub.paid_at,
+                "date": sub.date,
+                "notes": sub.notes,
+            })
+        else:
+            results.append({
+                "id": str(uuid4()),  # temporary key
+                "client": client["name"],
+                "client_id": client["id"],
+                "membership_number": client["membership_number"],
+                "rank": client["rank"],
+                "amount": fees.get(client["rank"], 0),
+                "status": "غير مدفوع",
+                "paid_at": None,
+                "date": today.replace(day=1).date(),
+                "notes": None,
+            })
+
+    paginator = CustomPageNumberPagination()
+    page = paginator.paginate_queryset(results, request)
+    if page is not None:
+        return paginator.get_paginated_response(page)
+
+    return Response(results)

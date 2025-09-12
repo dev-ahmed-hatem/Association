@@ -27,7 +27,7 @@ const Base = ({ error }: { error?: any }) => {
       ) : (
         // nested routes
         <div className="padding-container py-7">
-          <div className="flex items-center flex-wrap gap-10">
+          <div className="flex items-center flex-wrap gap-10 mb-4">
             <Logo />
             <Breadcrumbs />
           </div>

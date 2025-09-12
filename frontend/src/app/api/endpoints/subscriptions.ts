@@ -1,10 +1,11 @@
 import api from "../apiSlice";
 import queryString from "query-string";
-import { Subscription } from "@/types/subscription";
+import { NamedSubscription, Subscription } from "@/types/subscription";
+import { PaginatedResponse } from "@/types/paginatedResponse";
 
 export const subscriptionsEndpoints = api.injectEndpoints({
   endpoints: (builder) => ({
-    getMonthSubscriptions: builder.query<
+    getYearSubscriptions: builder.query<
       Record<string, Subscription>,
       { year: number; client: string }
     >({
@@ -14,7 +15,27 @@ export const subscriptionsEndpoints = api.injectEndpoints({
         )}`,
       }),
       providesTags: (result, error, args) => [
-        { type: "Subscription", id: `${args.year} - ${args.client}` },
+        { type: "Subscription", id: `${args.year}-${args.client}` },
+        { type: "Subscription", id: "LIST" },
+      ],
+    }),
+    getMonthSubscriptions: builder.query<
+      PaginatedResponse<NamedSubscription>,
+      {
+        month: string;
+        year: string;
+        search: string;
+        page: number;
+        page_size: number;
+      }
+    >({
+      query: (params) => ({
+        url: `/financials/get-month-subscriptions/?${queryString.stringify(
+          params
+        )}`,
+      }),
+      providesTags: (result, error, args) => [
+        { type: "Subscription", id: `${args.year}-${args.month}` },
         { type: "Subscription", id: "LIST" },
       ],
     }),
@@ -45,5 +66,8 @@ export const subscriptionsEndpoints = api.injectEndpoints({
   }),
 });
 
-export const { useGetMonthSubscriptionsQuery, useSubscriptionMutation } =
-  subscriptionsEndpoints;
+export const {
+  useGetYearSubscriptionsQuery,
+  useGetMonthSubscriptionsQuery,
+  useSubscriptionMutation,
+} = subscriptionsEndpoints;
