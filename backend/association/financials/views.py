@@ -11,7 +11,7 @@ from .serializers import BankAccountSerializer, TransactionTypeSerializer, Finan
 from rest_framework.response import Response
 from rest_framework import status, permissions
 from django.utils.translation import gettext_lazy as _
-from datetime import datetime
+from datetime import datetime, date
 from django.conf import settings
 from .models import BankAccount, TransactionType, FinancialRecord, Subscription, RankFee, Installment
 from uuid import uuid4
@@ -236,9 +236,8 @@ def get_month_subscriptions(request):
     year = request.query_params.get("year")
     search = request.query_params.get("search")
 
-    today = datetime.now().astimezone(settings.CAIRO_TZ)
     if not month or not year:
-        month, year = today.month, today.year
+        return Response({"detail": _("يجب تحديد الشهر والسنة")}, status=status.HTTP_400_BAD_REQUEST)
 
     clients_qs = Client.objects.filter(is_active=True).only("id", "name", "rank", "membership_number")
 
@@ -280,7 +279,7 @@ def get_month_subscriptions(request):
                 "amount": fees.get(client["rank"], 0),
                 "status": "غير مدفوع",
                 "paid_at": None,
-                "date": today.replace(day=1).date(),
+                "date": date(int(year), int(month), 1).strftime("%Y-%m-%d"),
                 "notes": None,
             })
 

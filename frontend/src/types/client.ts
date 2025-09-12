@@ -75,4 +75,5 @@ export type HomeStats = {
     id: number;
     count: number;
   }[];
+  month_totals: { month: string; اشتراكات: number }[];
 };

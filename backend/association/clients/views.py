@@ -1,3 +1,4 @@
+from django.conf import settings
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.decorators import action, api_view
 from rest_framework.response import Response
@@ -7,7 +8,10 @@ from financials.models import Installment, Subscription
 from .models import Client, WorkEntity, RankChoices
 from .serializers import WorkEntitySerializer, ClientListSerializer, ClientReadSerializer, ClientWriteSerializer
 from django.utils.translation import gettext_lazy as _
-from django.db.models import RestrictedError, Count
+from django.db.models import RestrictedError, Count, Sum, Value, CharField
+from django.db.models.functions import TruncMonth, ExtractYear, ExtractMonth, Concat
+
+from datetime import datetime
 
 
 class WorkEntityViewSet(ModelViewSet):
@@ -120,11 +124,13 @@ class ClientViewSet(ModelViewSet):
 
 @api_view(["GET"])
 def get_home_stats(request):
+    # Rank Count
     ranks = Client.objects.values("rank").annotate(total=Count("id"))
     rank_dict = {r["rank"]: r["total"] for r in ranks}
 
     all_rank_counts = [{"rank": choice.value, "العدد": rank_dict.get(choice.value, 0)} for choice in RankChoices]
 
+    # Activity Status
     activity = Client.objects.values("is_active").annotate(total=Count("id"))
     active_dict = {a["is_active"]: a["total"] for a in activity}
 
@@ -135,10 +141,27 @@ def get_home_stats(request):
 
     entities_count = WorkEntity.objects.annotate(count=Count("client")).values("name", "id", "count")
 
+    # Subscription Growth
+    today = datetime.today().astimezone(settings.CAIRO_TZ).date()
+    start_date = today.replace(month=today.month - 6, day=1)
+
+    month_totals = (Subscription.objects.filter(date__gte=start_date)
+                    .annotate(month=TruncMonth("date"))
+                    .annotate(
+        month=Concat(ExtractYear("month"), Value("-"), ExtractMonth("month"), output_field=CharField(), ))
+                    .values(
+        "month").annotate(اشتراكات=Sum("amount")))
+
     data = {
         "rank_counts": all_rank_counts,
         "active_status": active_status,
         "entities_count": entities_count,
+        "month_totals": month_totals,
     }
 
     return Response(data, status=status.HTTP_200_OK)
+
+
+@api_view(["GET"])
+def get_home_financial_stats(request):
+    pass

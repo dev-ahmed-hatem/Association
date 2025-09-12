@@ -115,7 +115,7 @@ const ClientStats: React.FC = () => {
             نمو الاشتراكات
           </Title>
           <ResponsiveContainer width="100%" height={250}>
-            <LineChart data={subscriptionData}>
+            <LineChart data={homeStats!.month_totals}>
               <XAxis dataKey="month" />
               <YAxis />
               <Tooltip />
