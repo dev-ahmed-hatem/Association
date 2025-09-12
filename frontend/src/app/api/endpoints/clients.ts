@@ -1,7 +1,7 @@
 import api from "../apiSlice";
 import { PaginatedResponse } from "@/types/paginatedResponse";
 import qs from "query-string";
-import { Client, HomeStats } from "@/types/client";
+import { Client, HomeFinancialStats, HomeStats } from "@/types/client";
 import { QueryParams } from "@/types/query_param";
 
 export const clientsEndpoints = api.injectEndpoints({
@@ -86,6 +86,12 @@ export const clientsEndpoints = api.injectEndpoints({
         method: "GET",
       }),
     }),
+    getHomeFinancialStats: builder.query<HomeFinancialStats, void>({
+      query: () => ({
+        url: "/clients/get-home-financial-stats/",
+        method: "GET",
+      }),
+    }),
   }),
   overrideExisting: false,
 });
@@ -97,4 +103,5 @@ export const {
   useSwitchClientActiveMutation,
   useDeleteFinancialRecordsMutation,
   useGetHomeStatsQuery,
+  useGetHomeFinancialStatsQuery
 } = clientsEndpoints;

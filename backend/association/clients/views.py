@@ -1,14 +1,15 @@
+from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.decorators import action, api_view
 from rest_framework.response import Response
 from rest_framework import status
 
-from financials.models import Installment, Subscription
+from financials.models import Installment, Subscription, FinancialRecord, TransactionType
 from .models import Client, WorkEntity, RankChoices
 from .serializers import WorkEntitySerializer, ClientListSerializer, ClientReadSerializer, ClientWriteSerializer
 from django.utils.translation import gettext_lazy as _
-from django.db.models import RestrictedError, Count, Sum, Value, CharField
+from django.db.models import RestrictedError, Count, Sum, Value, CharField, Q
 from django.db.models.functions import TruncMonth, ExtractYear, ExtractMonth, Concat
 
 from datetime import datetime
@@ -143,7 +144,7 @@ def get_home_stats(request):
 
     # Subscription Growth
     today = datetime.today().astimezone(settings.CAIRO_TZ).date()
-    start_date = today.replace(month=today.month - 6, day=1)
+    start_date = (today - relativedelta(months=6)).replace(day=1)
 
     month_totals = (Subscription.objects.filter(date__gte=start_date)
                     .annotate(month=TruncMonth("date"))
@@ -164,4 +165,106 @@ def get_home_stats(request):
 
 @api_view(["GET"])
 def get_home_financial_stats(request):
-    pass
+    now = datetime.now().astimezone(settings.CAIRO_TZ)
+    current_month, current_year = now.month, now.year
+
+    # ---------- Current month stats ----------
+    incomes = (
+            FinancialRecord.objects.filter(
+                date__month=current_month,
+                date__year=current_year,
+                transaction_type__type=TransactionType.Type.INCOME,
+            ).aggregate(total=Sum("amount"))["total"]
+            or 0
+    )
+    expenses = (
+            FinancialRecord.objects.filter(
+                date__month=current_month,
+                date__year=current_year,
+                transaction_type__type=TransactionType.Type.EXPENSE,
+            ).aggregate(total=Sum("amount"))["total"]
+            or 0
+    )
+
+    # Subscriptions (current month)
+    current_month_subs = Subscription.objects.filter(
+        date__month=current_month, date__year=current_year
+    )
+    subscriptions_sum = current_month_subs.aggregate(total=Sum("amount"))["total"] or 0
+    subscriptions_count = current_month_subs.count()
+
+    # Installments (current month)
+    current_month_installments = Installment.objects.filter(
+        due_date__month=current_month, due_date__year=current_year
+    )
+    installments_sum = (
+            current_month_installments.filter(status=Installment.Status.PAID).aggregate(
+                total=Sum("amount")
+            )["total"]
+            or 0
+    )
+    installments_count = current_month_installments.filter(
+        status=Installment.Status.PAID
+    ).count()
+    unpaid_installments = current_month_installments.filter(
+        status=Installment.Status.UNPAID
+    ).count()
+
+    # ---------- Last 6 months ----------
+    today = now.date()
+    start_date = (today - relativedelta(months=6)).replace(day=1)
+    end_date = (today.replace(day=1) + relativedelta(months=1))
+
+    # Financial records (for charts, optional)
+    monthly_totals = (
+        FinancialRecord.objects.filter(date__gte=start_date)
+        .annotate(month=TruncMonth("date"))
+        .values("month")
+        .annotate(
+            total_incomes=Sum(
+                "amount", filter=Q(transaction_type__type=TransactionType.Type.INCOME)
+            ),
+            total_expenses=Sum(
+                "amount", filter=Q(transaction_type__type=TransactionType.Type.EXPENSE)
+            ),
+        )
+        .order_by("month")
+    )
+
+    active_clients = Client.objects.filter(is_active=True).count()
+
+    # Subscriptions last 6 months
+    subs_last_6m = Subscription.objects.filter(date__gte=start_date).count()
+    months_in_range = 6
+    total_unpaid_subscriptions = (active_clients * months_in_range) - subs_last_6m
+
+    # Installments last 6 months (total unpaid like subscriptions)
+    inst_last_6m = Installment.objects.filter(due_date__gte=start_date,
+                                              due_date__lt=end_date, ).aggregate(
+        paid=Count("id", filter=Q(status=Installment.Status.PAID)),
+        unpaid=Count("id", filter=Q(status=Installment.Status.UNPAID)),
+    )
+
+    return Response(
+        {
+            "month_totals": {
+                "incomes": incomes,
+                "expenses": expenses,
+                "net": incomes - expenses,
+                "subscriptions": subscriptions_sum,
+                "installments": installments_sum,
+            },
+            "last_6_monthly_totals": monthly_totals,
+            "subscriptions_count": subscriptions_count,
+            "active_clients": active_clients,
+            "installments_count": installments_count,
+            "unpaid_installments": unpaid_installments,
+            "last_6_month_subs_ins": {
+                "total_paid_subscriptions": subs_last_6m,
+                "total_paid_installments": inst_last_6m["paid"] or 0,
+                "total_unpaid_subscriptions": total_unpaid_subscriptions,
+                "total_unpaid_installments": inst_last_6m["unpaid"] or 0,
+            }
+        },
+        status=status.HTTP_200_OK,
+    )

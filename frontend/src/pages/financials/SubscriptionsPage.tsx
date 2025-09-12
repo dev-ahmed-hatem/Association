@@ -279,7 +279,7 @@ const SubscriptionsPage = () => {
       )}
 
       {/* Table */}
-      {isSuccess && subscriptions && (
+      {!isFetching && (
         <Table
           dataSource={subscriptions}
           columns={columns}

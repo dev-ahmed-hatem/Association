@@ -15,22 +15,12 @@ import {
   Legend,
 } from "recharts";
 import WorkEntityStatsCards from "./WorkentitiesStats";
-import { useGetWorkEntitiesQuery } from "@/app/api/endpoints/workentities";
 import Loading from "../Loading";
 import { useGetHomeStatsQuery } from "@/app/api/endpoints/clients";
 
 const { Title } = Typography;
 
 const COLORS = ["#00ca4b", "#FF8042"];
-
-const subscriptionData = [
-  { month: "2024-01", اشتراكات: 3 },
-  { month: "2024-02", اشتراكات: 5 },
-  { month: "2024-03", اشتراكات: 8 },
-  { month: "2024-04", اشتراكات: 4 },
-  { month: "2024-05", اشتراكات: 10 },
-  { month: "2024-06", اشتراكات: 7 },
-];
 
 const ClientStats: React.FC = () => {
   const {
@@ -39,9 +29,6 @@ const ClientStats: React.FC = () => {
     isError,
     refetch,
   } = useGetHomeStatsQuery();
-  const { data: entities } = useGetWorkEntitiesQuery({
-    no_pagination: true,
-  });
 
   if (isFetching) return <Loading />;
   if (isError)
@@ -131,10 +118,7 @@ const ClientStats: React.FC = () => {
         </Card>
       </div>
 
-      {isFetching && <Loading />}
-      {entities && (
-        <WorkEntityStatsCards entities={homeStats!.entities_count} />
-      )}
+      <WorkEntityStatsCards entities={homeStats!.entities_count} />
     </div>
   );
 };
