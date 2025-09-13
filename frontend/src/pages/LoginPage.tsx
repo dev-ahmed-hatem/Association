@@ -1,7 +1,7 @@
 import { Form, Input, Button } from "antd";
 import { UserOutlined, LockOutlined } from "@ant-design/icons";
 import { useLoginMutation, useVerifyMutation } from "@/app/api/endpoints/auth";
-import { useNavigate, useSearchParams } from "react-router";
+import { useSearchParams } from "react-router";
 import { useEffect, useState } from "react";
 import Loading from "@/components/Loading";
 import { storeTokens } from "@/utils/storage";
@@ -60,7 +60,7 @@ const LoginPage = () => {
       {/* Background */}
       <div className="absolute inset-0">
         <img
-          src="https://images.unsplash.com/photo-1503264116251-35a269479413?auto=format&fit=crop&w=1920&q=80"
+          src="/background.avif"
           alt="Background"
           className="w-full h-full object-cover opacity-30"
         />
