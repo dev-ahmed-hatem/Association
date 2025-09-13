@@ -56,31 +56,38 @@ const LoginPage = () => {
 
   if (verifying || logged || verified) return <Loading />;
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-100 via-gray-200 to-gray-300 p-4">
-      <div className="bg-white shadow-xl rounded-xl border border-gray-200 overflow-hidden flex flex-col md:flex-row w-full max-w-md md:max-w-4xl">
-        {/* Left: Logo */}
-        <div className="md:w-1/2 h-48 md:h-auto bg-gradient-to-tr from-blue-900 via-blue-800 to-blue-700 flex items-center justify-center p-6">
-          <img
-            src="/logo.jpeg"
-            alt="Logo"
-            className="h-40 md:h-80 object-contain drop-shadow-md rounded-full"
-          />
-        </div>
+    <div className="min-h-screen flex flex-col md:flex-row bg-minsk-950 text-white relative">
+      {/* Background */}
+      <div className="absolute inset-0">
+        <img
+          src="https://images.unsplash.com/photo-1503264116251-35a269479413?auto=format&fit=crop&w=1920&q=80"
+          alt="Background"
+          className="w-full h-full object-cover opacity-30"
+        />
+        <div className="absolute inset-0 bg-gradient-to-br from-minsk via-minsk-950 to-minsk-950 opacity-70"></div>
+      </div>
 
-        {/* Right: Form */}
-        <div className="md:w-1/2 w-full p-6 sm:p-10 flex flex-col justify-center text-right md:border-e-4 border-minsk">
-          <h2 className="text-2xl font-bold mb-8 max-md:text-center">
-            تسجيل دخول
-          </h2>
+      {/* Right side: Login form */}
+      <div className="relative z-10 flex-1 flex items-center justify-center p-4 sm:p-6">
+        <div className="bg-minsk-900/30 backdrop-blur-lg rounded-2xl shadow-2xl p-6 sm:p-8 w-full max-w-sm sm:max-w-md">
+          <div className="flex flex-col items-center mb-6">
+            <div className="flex items-center justify-center rounded-full border-2 border-minsk-500 bg-white">
+              <img
+                src="./logo.jpeg"
+                alt="Logo"
+                className="size-36 object-contain rounded-full border border-gray-200"
+              />
+            </div>
+          </div>
 
           <Form
             layout="vertical"
             onFinish={onFinish}
             form={form}
-            className="rtl text-right"
+            className="w-full"
           >
             <Form.Item
-              label="اسم المستخدم:"
+              label={<span className="text-white">اسم المستخدم</span>}
               name="username"
               rules={[{ required: true, message: "يرجى إدخال اسم المستخدم" }]}
             >
@@ -88,12 +95,11 @@ const LoginPage = () => {
                 size="large"
                 placeholder="اسم المستخدم"
                 prefix={<UserOutlined />}
-                autoFocus
               />
             </Form.Item>
 
             <Form.Item
-              label="كلمة المرور:"
+              label={<span className="text-white">كلمة المرور</span>}
               name="password"
               rules={[{ required: true, message: "يرجى إدخال كلمة المرور" }]}
             >
@@ -105,17 +111,17 @@ const LoginPage = () => {
             </Form.Item>
 
             {message && (
-              <div className="text-center text-base text-red-600 font-bold">
-                بيانات تسجيل خاطئة
+              <div className="text-center text-lg text-red-500 font-bold">
+                {message}
               </div>
             )}
 
-            <Form.Item className="text-center mt-5">
+            <Form.Item className="mt-6">
               <Button
                 type="primary"
                 htmlType="submit"
                 size="large"
-                className="text-white w-full"
+                className="w-full bg-minsk-600 hover:bg-minsk-800 border-none"
                 loading={logging}
               >
                 تسجيل دخول
@@ -123,6 +129,20 @@ const LoginPage = () => {
             </Form.Item>
           </Form>
         </div>
+      </div>
+
+      {/* Left side: Welcome section */}
+      <div className="relative z-10 flex-1 hidden md:flex flex-col justify-center items-start p-6 lg:p-12">
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-4 leading-snug text-orange-400">
+          جمعية التكافل الاجتماعي لضباط الشرطة بالمنوفية
+        </h1>
+        <p className="text-base sm:text-lg opacity-90 mb-2 text-green-500">
+          المشهرة برقم ٧٥٩ لسنة ١٩٩١
+        </p>
+        <p className="text-sm sm:text-base opacity-70 max-w-md mt-4">
+          مرحباً بكم في نظام تسجيل الدخول. يرجى إدخال بياناتكم للوصول إلى لوحة
+          التحكم الخاصة بكم.
+        </p>
       </div>
     </div>
   );
