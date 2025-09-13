@@ -68,7 +68,7 @@ const Navbar = ({
     >
       <div className="p-1 rounded-lg hover:bg-minsk-900 bg-opacity-75">
         <LuPanelRight
-          className="text-white text-2xl md:text-3xl cursor-pointer"
+          className="text-white text-3xl cursor-pointer"
           onClick={() => {
             setMenuOpen(!menuOpen);
           }}
@@ -90,7 +90,7 @@ const Navbar = ({
           onOpenChange={handleOpenChange}
         >
           <div className="p-1 rounded-lg hover:bg-minsk-800 bg-opacity-50">
-            <CgLogIn className="text-2xl md:text-3xl text-white cursor-pointer" />
+            <CgLogIn className="text-3xl text-white cursor-pointer" />
           </div>
         </Popover>
       </div>

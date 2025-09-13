@@ -16,7 +16,7 @@ const Welcome: React.FC = () => {
 
       {/* Text */}
       <div className="flex flex-col text-center sm:text-right flex-wrap">
-        <h1 className="text-lg sm:text-2xl font-bold flex items-center justify-center sm:justify-start gap-2">
+        <h1 className="text-xl sm:text-2xl font-bold flex items-center justify-center sm:justify-start gap-2">
           مرحبًا بك،
           <span className="text-yellow-400">{user?.name}</span>
           <SmileOutlined className="text-yellow-400" />
