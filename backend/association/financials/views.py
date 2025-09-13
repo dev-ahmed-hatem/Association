@@ -303,3 +303,32 @@ def get_month_subscriptions(request):
         return paginator.get_paginated_response(page)
 
     return Response(results)
+
+
+@api_view(["GET"])
+def get_month_installments(request):
+    month = request.query_params.get("month")
+    year = request.query_params.get("year")
+    search = request.query_params.get("search", "")
+
+    if not month or not year:
+        return Response({"detail": _("يجب تحديد الشهر والسنة")}, status=status.HTTP_400_BAD_REQUEST)
+
+    installments = Installment.objects.filter(
+        due_date__month=month, due_date__year=year, client__name__icontains=search
+    ).select_related("client")
+
+    results = [{
+        **InstallmentSerializer(instance=ins, context={"request": request}).data,
+        "client": ins.client.name,
+        "client_id": ins.client.id,
+        "membership_number": ins.client.membership_number,
+        "rank": ins.client.rank,
+    } for ins in installments]
+
+    paginator = CustomPageNumberPagination()
+    page = paginator.paginate_queryset(results, request)
+    if page is not None:
+        return paginator.get_paginated_response(page)
+
+    return Response(results)

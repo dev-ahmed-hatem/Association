@@ -1,6 +1,7 @@
 import api from "../apiSlice";
 import queryString from "query-string";
-import { Installment } from "@/types/installment";
+import { Installment, NamedInstallment } from "@/types/installment";
+import { PaginatedResponse } from "@/types/paginatedResponse";
 
 export const installmentsEndpoints = api.injectEndpoints({
   endpoints: (builder) => ({
@@ -9,6 +10,26 @@ export const installmentsEndpoints = api.injectEndpoints({
         url: `/financials/installments/?${queryString.stringify(params)}`,
       }),
       providesTags: [{ type: "Installment", id: "LIST" }],
+    }),
+    getMonthInstallments: builder.query<
+      PaginatedResponse<NamedInstallment>,
+      {
+        month: string;
+        year: string;
+        search: string;
+        page: number;
+        page_size: number;
+      }
+    >({
+      query: (params) => ({
+        url: `/financials/get-month-installments/?${queryString.stringify(
+          params
+        )}`,
+      }),
+      providesTags: (result, error, args) => [
+        { type: "Installment", id: `${args.year}-${args.month}` },
+        { type: "Installment", id: "LIST" },
+      ],
     }),
     installment: builder.mutation<
       Installment,
@@ -37,5 +58,8 @@ export const installmentsEndpoints = api.injectEndpoints({
   }),
 });
 
-export const { useInstallmentMutation, useGetInstallmentsQuery } =
-  installmentsEndpoints;
+export const {
+  useInstallmentMutation,
+  useGetInstallmentsQuery,
+  useGetMonthInstallmentsQuery,
+} = installmentsEndpoints;

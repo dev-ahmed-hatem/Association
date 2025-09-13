@@ -194,33 +194,6 @@ const InstallmentsHistory = ({
           </Popconfirm>
         ),
     },
-    // {
-    //   title: "إجراءات",
-    //   key: "actions",
-    //   render: (_, record) =>
-    //     record.status === "مدفوع" ? (
-    //       <Link
-    //         to={`/financials/incomes/${record.financial_record}/`}
-    //         className="text-minsk hover:text-minsk-800 hover:underline cursor-pointer font-bold"
-    //       >
-    //         تم التسجيل {record.paid_at}
-    //       </Link>
-    //     ) : (
-    //       <Popconfirm
-    //         title="تأكيد الدفع"
-    //         description="تأكيد الدفع بتاريخ اليوم؟"
-    //         okText="تأكيد"
-    //         cancelText="إلغاء"
-    //         placement="top"
-    //         onConfirm={() => markAsPaid(record)}
-    //         disabled={isLoading}
-    //       >
-    //         <Button type="primary" loading={isLoading}>
-    //           تسجيل كمدفوع
-    //         </Button>
-    //       </Popconfirm>
-    //     ),
-    // },
   ];
 
   useEffect(() => {

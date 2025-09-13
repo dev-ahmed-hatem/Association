@@ -8,22 +8,22 @@ import {
   Popconfirm,
   Space,
   Avatar,
+  InputNumber,
 } from "antd";
 import { EyeOutlined, DeleteOutlined } from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
 import dayjs, { Dayjs } from "dayjs";
-import { getInitials } from "@/utils";
+import { getInitials, textify } from "@/utils";
 import { Link } from "react-router";
-import { NamedInstallment } from "@/types/installment";
+import { Installment, NamedInstallment } from "@/types/installment";
 import {
-  // useGetMonthInstallmentsQuery,
+  useGetMonthInstallmentsQuery,
   useInstallmentMutation,
 } from "@/app/api/endpoints/installments";
 import Loading from "@/components/Loading";
 import { rankColors } from "@/types/client";
 import { useNotification } from "@/providers/NotificationProvider";
 import { tablePaginationConfig } from "@/utils/antd";
-import { useGetMonthSubscriptionsQuery } from "@/app/api/endpoints/subscriptions";
 
 const { MonthPicker } = DatePicker;
 
@@ -38,7 +38,7 @@ const InstallmentsPage = () => {
   const [pageSize, setPageSize] = useState(10);
   const notification = useNotification();
 
-  const { data, isFetching, isError } = useGetMonthSubscriptionsQuery({
+  const { data, isFetching, isError } = useGetMonthInstallmentsQuery({
     month: (selectedMonth.month() + 1).toString(),
     year: selectedMonth.year().toString(),
     search,
@@ -54,19 +54,38 @@ const InstallmentsPage = () => {
   // Search
   const onSearch = (value: string) => setSearch(value);
 
-  const markAsPaid = (record: NamedInstallment) => {
-    setMessage("تم تسجيل القسط كمدفوع");
+  const markAsPaid = (record: Installment & { notes?: string }) => {
+    const data = {
+      paid_at: dayjs().format("YYYY-MM-DD"),
+      amount: record.amount,
+      notes: record.notes,
+    };
+
+    setMessage("تم تسجيل القسط");
     handleInstallment({
-      url: `/financials/installments/${record.id}/mark-paid/`,
+      data,
+      url: `/financials/installments/${record.id}/payment/`,
       method: "PATCH",
     });
   };
 
-  const handleDelete = (id: number) => {
-    setMessage("تم حذف القسط");
+  const editRecord = (
+    record: Installment,
+    field: "notes" | "amount",
+    value: any
+  ) => {
+    setInstallments((prev) =>
+      prev?.map((item) =>
+        item.id === record.id ? { ...item, [field]: value } : item
+      )
+    );
+  };
+
+  const handleRevoke = (id: number) => {
+    setMessage("تم إلغاء الدفع");
     handleInstallment({
-      url: `/financials/installments/${id}/`,
-      method: "DELETE",
+      url: `/financials/installments/${id}/revoke/`,
+      method: "PATCH",
     });
   };
 
@@ -98,10 +117,23 @@ const InstallmentsPage = () => {
       ),
     },
     {
-      title: "المبلغ",
+      title: "رقم القسط",
+      dataIndex: "installment_number",
+      key: "installment_number",
+    },
+    {
+      title: "قيمة القسط",
       dataIndex: "amount",
       key: "amount",
-      render: (value) => <span>{value}</span>,
+      render: (value, record) =>
+        record.status === "مدفوع" ? (
+          <span>{value}</span>
+        ) : (
+          <InputNumber
+            value={value}
+            onChange={(value) => editRecord(record, "amount", value)}
+          />
+        ),
     },
     {
       title: "الحالة",
@@ -112,11 +144,27 @@ const InstallmentsPage = () => {
       ),
     },
     {
-      title: "تاريخ الاستحقاق",
-      dataIndex: "due_date",
-      key: "due_date",
+      title: "ملاحظات",
+      dataIndex: "notes",
+      key: "notes",
+      render: (value, record) =>
+        record.status === "مدفوع" ? (
+          <span>{textify(value) ?? "-"}</span>
+        ) : (
+          <Input
+            value={value}
+            onChange={(event) =>
+              editRecord(record, "notes", event.target.value)
+            }
+          />
+        ),
+    },
+    {
+      title: "تاريخ الدفع",
+      dataIndex: "paid_at",
+      key: "paid_at",
       render: (value?: string) => (
-        <span className="text-blue-700 font-bold">{value ?? "-"}</span>
+        <span className="text-minsk font-bold">{value ?? "-"}</span>
       ),
     },
     {
@@ -125,7 +173,7 @@ const InstallmentsPage = () => {
       render: (_, record) =>
         record.status === "مدفوع" ? (
           <Space>
-            <Link to={`/financials/installments/${record.id}/`}>
+            <Link to={`/financials/incomes/${record.financial_record}/`}>
               <Button
                 type="primary"
                 size="middle"
@@ -134,12 +182,13 @@ const InstallmentsPage = () => {
                 disabled={isLoading}
               />
             </Link>
+
             <Popconfirm
               title="تأكيد الحذف"
               description="هل أنت متأكد أنك تريد حذف هذا السجل؟"
               okText="نعم"
               cancelText="إلغاء"
-              onConfirm={() => handleDelete(record.id)}
+              onConfirm={() => handleRevoke(record.id)}
             >
               <Button
                 danger
@@ -154,7 +203,7 @@ const InstallmentsPage = () => {
         ) : (
           <Popconfirm
             title="تأكيد الدفع"
-            description="تأكيد دفع القسط بتاريخ اليوم؟"
+            description="تأكيد الدفع بتاريخ اليوم؟"
             okText="تأكيد"
             cancelText="إلغاء"
             placement="top"
@@ -170,7 +219,7 @@ const InstallmentsPage = () => {
   ];
 
   useEffect(() => {
-    // setInstallments(data?.data);
+    setInstallments(data?.data);
   }, [data]);
 
   useEffect(() => {
