@@ -160,6 +160,19 @@ class InstallmentViewSet(ModelViewSet):
         except Exception:
             return Response({'detail': _('كود قسط غير موجود')}, status=status.HTTP_404_NOT_FOUND)
 
+    @action(detail=True, methods=['patch'])
+    def revoke(self, request, pk=None):
+        try:
+            installment = Installment.objects.get(id=pk)
+            installment.status = Installment.Status.UNPAID
+            installment.paid_at = None
+            installment.save()
+            if installment.financial_record:
+                installment.financial_record.delete()
+            return Response({"detail": _("تم إلفاء دفع القسط بنجاح")}, status=status.HTTP_200_OK)
+        except Exception:
+            return Response({'detail': _('كود قسط غير موجود')}, status=status.HTTP_404_NOT_FOUND)
+
 
 @api_view(["GET"])
 def get_financials_stats(request):
@@ -268,6 +281,7 @@ def get_month_subscriptions(request):
                 "paid_at": sub.paid_at,
                 "date": sub.date,
                 "notes": sub.notes,
+                "financial_record": sub.financial_record.id
             })
         else:
             results.append({

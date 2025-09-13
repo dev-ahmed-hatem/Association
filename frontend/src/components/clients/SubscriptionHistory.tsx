@@ -241,7 +241,7 @@ const SubscriptionHistory = ({
   useEffect(() => {
     if (recordError) {
       notification.error({
-        message: "حدث خطأ أثناء تنفيذ ! برجاء إعادة المحاولة",
+        message: "حدث خطأ أثناء التنفيذ ! برجاء إعادة المحاولة",
       });
     }
   }, [recordError]);

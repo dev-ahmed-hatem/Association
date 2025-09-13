@@ -13,7 +13,9 @@ import {
   Input,
   Empty,
   Card,
+  Space,
 } from "antd";
+import { EyeOutlined, DeleteOutlined } from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
 import { useEffect, useState } from "react";
 import Loading from "../Loading";
@@ -34,6 +36,7 @@ const InstallmentsHistory = ({
   const notification = useNotification();
 
   const [installments, setInstallments] = useState<Installment[]>([]);
+  const [message, setMessage] = useState<string | null>(null);
 
   const {
     data: installmentsOriginal,
@@ -56,6 +59,7 @@ const InstallmentsHistory = ({
       notes: record.notes,
     };
 
+    setMessage("تم تسجيل القسط");
     handleInstallment({
       data,
       url: `/financials/installments/${record.id}/payment/`,
@@ -73,6 +77,14 @@ const InstallmentsHistory = ({
         item.id === record.id ? { ...item, [field]: value } : item
       )
     );
+  };
+
+  const handleRevoke = (id: number) => {
+    setMessage("تم إلغاء الدفع");
+    handleInstallment({
+      url: `/financials/installments/${id}/revoke/`,
+      method: "PATCH",
+    });
   };
 
   // Table columns
@@ -126,16 +138,46 @@ const InstallmentsHistory = ({
         ),
     },
     {
+      title: "تاريخ الدفع",
+      dataIndex: "paid_at",
+      key: "paid_at",
+      render: (value?: string) => (
+        <span className="text-minsk font-bold">{value ?? "-"}</span>
+      ),
+    },
+    {
       title: "إجراءات",
       key: "actions",
       render: (_, record) =>
         record.status === "مدفوع" ? (
-          <Link
-            to={`/financials/incomes/${record.financial_record}/`}
-            className="text-minsk hover:text-minsk-800 hover:underline cursor-pointer font-bold"
-          >
-            تم التسجيل {record.paid_at}
-          </Link>
+          <Space>
+            <Link to={`/financials/incomes/${record.financial_record}/`}>
+              <Button
+                type="primary"
+                size="middle"
+                icon={<EyeOutlined />}
+                title="عرض"
+                disabled={isLoading}
+              />
+            </Link>
+
+            <Popconfirm
+              title="تأكيد الحذف"
+              description="هل أنت متأكد أنك تريد حذف هذا السجل؟"
+              okText="نعم"
+              cancelText="إلغاء"
+              onConfirm={() => handleRevoke(record.id)}
+            >
+              <Button
+                danger
+                icon={<DeleteOutlined />}
+                size="middle"
+                className="hover:bg-red-600 hover:border-red-600 hover:text-white"
+                title="حذف"
+                disabled={isLoading}
+              />
+            </Popconfirm>
+          </Space>
         ) : (
           <Popconfirm
             title="تأكيد الدفع"
@@ -152,6 +194,33 @@ const InstallmentsHistory = ({
           </Popconfirm>
         ),
     },
+    // {
+    //   title: "إجراءات",
+    //   key: "actions",
+    //   render: (_, record) =>
+    //     record.status === "مدفوع" ? (
+    //       <Link
+    //         to={`/financials/incomes/${record.financial_record}/`}
+    //         className="text-minsk hover:text-minsk-800 hover:underline cursor-pointer font-bold"
+    //       >
+    //         تم التسجيل {record.paid_at}
+    //       </Link>
+    //     ) : (
+    //       <Popconfirm
+    //         title="تأكيد الدفع"
+    //         description="تأكيد الدفع بتاريخ اليوم؟"
+    //         okText="تأكيد"
+    //         cancelText="إلغاء"
+    //         placement="top"
+    //         onConfirm={() => markAsPaid(record)}
+    //         disabled={isLoading}
+    //       >
+    //         <Button type="primary" loading={isLoading}>
+    //           تسجيل كمدفوع
+    //         </Button>
+    //       </Popconfirm>
+    //     ),
+    // },
   ];
 
   useEffect(() => {
@@ -161,7 +230,7 @@ const InstallmentsHistory = ({
   useEffect(() => {
     if (installmentSuccess) {
       notification.success({
-        message: "تم تسجيل القسط",
+        message: message ?? "تم التنفيذ",
       });
     }
   }, [installmentSuccess]);
@@ -169,7 +238,7 @@ const InstallmentsHistory = ({
   useEffect(() => {
     if (installmentError) {
       notification.error({
-        message: "حدث خطأ أثناء تسجيل القسط ! برجاء إعادة المحاولة",
+        message: "حدث خطأ أثناء التنفيذ ! برجاء إعادة المحاولة",
       });
     }
   }, [installmentError]);

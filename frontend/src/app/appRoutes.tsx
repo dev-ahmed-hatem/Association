@@ -17,6 +17,7 @@ import FinancialsPage from "@/pages/financials/FinancialsPage";
 import { GiReceiveMoney, GiPayMoney } from "react-icons/gi";
 import ProjectsList from "@/pages/projects/ProjectList";
 import SubscriptionsPage from "@/pages/financials/SubscriptionsPage";
+import InstallmentsPage from "@/pages/financials/InstallmentsPage";
 
 export type AppRoute = RouteObject & {
   key?: string;
@@ -80,7 +81,7 @@ export const appRoutes: AppRoute[] = [
           },
           {
             path: "installments",
-            element: <h1 className="text-center">الأقساط</h1>,
+            element: <InstallmentsPage />,
             icon: <CreditCardOutlined />,
             label: "الأقساط",
           },

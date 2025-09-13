@@ -251,7 +251,7 @@ class Installment(models.Model):
 
     financial_record = models.OneToOneField(
         "financials.FinancialRecord",
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,
         related_name="installment",
         verbose_name=_("المعاملة المالية"),
         blank=True,
