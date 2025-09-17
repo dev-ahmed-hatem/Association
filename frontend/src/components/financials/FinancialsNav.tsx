@@ -1,37 +1,39 @@
 import { Link } from "react-router";
 import { CreditCardOutlined, CalendarOutlined } from "@ant-design/icons";
 import { GiPayMoney, GiReceiveMoney } from "react-icons/gi";
+import { FaHandHoldingUsd } from "react-icons/fa";
 
 const navItems = [
   {
     path: "/financials/incomes",
     label: "الإيرادات",
     icon: <GiReceiveMoney />,
-    color: "from-green-500 to-green-700",
   },
   {
     path: "/financials/expenses",
     label: "المصروفات",
     icon: <GiPayMoney />,
-    color: "from-red-500 to-red-700",
   },
   {
     path: "/financials/subscriptions",
     label: "الاشتراكات الشهرية",
     icon: <CalendarOutlined />,
-    color: "from-purple-500 to-purple-700",
   },
   {
     path: "/financials/installments",
     label: "الأقساط",
     icon: <CreditCardOutlined />,
-    color: "from-blue-500 to-blue-700",
+  },
+  {
+    path: "/financials/loans",
+    label: "القروض",
+    icon: <FaHandHoldingUsd />,
   },
 ];
 
 const FinancialsNav = () => {
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full">
+    <div className="grid grid-cols-2 md:grid-cols-5 gap-4 w-full">
       {navItems.map((item) => {
         return (
           <Link

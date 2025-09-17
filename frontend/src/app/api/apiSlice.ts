@@ -16,6 +16,8 @@ export const api = createApi({
     "RankFee",
     "Subscription",
     "Installment",
+    "Loan",
+    "Repayment"
   ],
   keepUnusedDataFor: 180,
   refetchOnReconnect: true,

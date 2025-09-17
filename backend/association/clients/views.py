@@ -5,7 +5,7 @@ from rest_framework.decorators import action, api_view
 from rest_framework.response import Response
 from rest_framework import status
 
-from financials.models import Installment, Subscription, FinancialRecord, TransactionType
+from financials.models import Installment, Subscription, FinancialRecord, TransactionType, Loan
 from .models import Client, WorkEntity, RankChoices
 from .serializers import WorkEntitySerializer, ClientListSerializer, ClientReadSerializer, ClientWriteSerializer
 from django.utils.translation import gettext_lazy as _
@@ -106,6 +106,9 @@ class ClientViewSet(ModelViewSet):
                 i.delete()
             for s in Subscription.objects.filter(client=client):
                 s.delete()
+            for l in Loan.objects.filter(client=client):
+                l.delete()
+
             if client.prepaid:
                 client.prepaid.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)

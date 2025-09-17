@@ -7,13 +7,13 @@ from association.rest_framework_utils.custom_pagination import CustomPageNumberP
 from clients.models import Client
 from .serializers import BankAccountSerializer, TransactionTypeSerializer, FinancialRecordReadSerializer, \
     FinancialRecordWriteSerializer, RankFeeSerializer, SubscriptionWriteSerializer, SubscriptionReadSerializer, \
-    InstallmentSerializer
+    InstallmentSerializer, LoanSerializer, RepaymentSerializer
 from rest_framework.response import Response
 from rest_framework import status, permissions
 from django.utils.translation import gettext_lazy as _
 from datetime import datetime, date
 from django.conf import settings
-from .models import BankAccount, TransactionType, FinancialRecord, Subscription, RankFee, Installment
+from .models import BankAccount, TransactionType, FinancialRecord, Subscription, RankFee, Installment, Loan, Repayment
 from uuid import uuid4
 
 
@@ -172,6 +172,97 @@ class InstallmentViewSet(ModelViewSet):
             return Response({"detail": _("تم إلفاء دفع القسط بنجاح")}, status=status.HTTP_200_OK)
         except Exception:
             return Response({'detail': _('كود قسط غير موجود')}, status=status.HTTP_404_NOT_FOUND)
+
+
+class LoanViewSet(ModelViewSet):
+    queryset = Loan.objects.all()
+    serializer_class = LoanSerializer
+
+    def get_queryset(self):
+        queryset = Loan.objects.all()
+
+        sort_by = self.request.query_params.get('sort_by', None)
+        order = self.request.query_params.get('order', None)
+
+        client_id = self.request.query_params.get("client_id", None)
+        client_name = self.request.query_params.get("client_name", None)
+
+        if client_id is not None:
+            queryset = queryset.filter(client_id=client_id)
+        if client_name:
+            queryset = queryset.filter(client__name__icontains=client_name)
+
+        if sort_by is not None:
+            queryset = queryset.order_by(f"{order}{sort_by}")
+
+        return queryset
+
+
+class RepaymentViewSet(ModelViewSet):
+    queryset = Repayment.objects.all()
+    serializer_class = RepaymentSerializer
+    pagination_class = None  # repayments usually listed fully for a loan
+
+    def get_queryset(self):
+        queryset = Repayment.objects.all()
+
+        loan_id = self.request.query_params.get("loan", None)
+        if loan_id is not None:
+            queryset = queryset.filter(loan_id=loan_id)
+
+        client_id = self.request.query_params.get("client", None)
+        if client_id is not None:
+            queryset = queryset.filter(loan__client_id=client_id)
+
+        return queryset
+
+    @action(detail=True, methods=["patch"])
+    def payment(self, request, pk=None):
+        try:
+            repayment = Repayment.objects.get(id=pk)
+            data = request.data
+
+            transaction_type, __ = TransactionType.objects.get_or_create(
+                name="سداد قرض",
+                type=TransactionType.Type.INCOME,
+                system_related=True,
+            )
+
+            financial_record = FinancialRecord.objects.create(
+                amount=data["amount"],
+                transaction_type=transaction_type,
+                date=data["paid_at"],
+                payment_method="سداد قرض",
+                notes=data.get("notes"),
+                created_by=request.user,
+            )
+
+            repayment.financial_record = financial_record
+            repayment.status = Repayment.Status.PAID
+            repayment.amount = data["amount"]
+            repayment.paid_at = data["paid_at"]
+            repayment.save()
+
+            return Response({"detail": _("تم تسجيل دفع السداد بنجاح")}, status=status.HTTP_200_OK)
+
+        except Repayment.DoesNotExist:
+            return Response({"detail": _("كود السداد غير موجود")}, status=status.HTTP_404_NOT_FOUND)
+
+    @action(detail=True, methods=["patch"])
+    def revoke(self, request, pk=None):
+        try:
+            repayment = Repayment.objects.get(id=pk)
+            repayment.status = Repayment.Status.UNPAID
+            repayment.paid_at = None
+            repayment.save()
+
+            if repayment.financial_record:
+                repayment.financial_record.delete()
+
+            return Response({"detail": _("تم إلغاء دفع السداد بنجاح")}, status=status.HTTP_200_OK)
+
+        except Repayment.DoesNotExist:
+            return Response({"detail": _("كود السداد غير موجود")}, status=status.HTTP_404_NOT_FOUND)
 
 
 @api_view(["GET"])

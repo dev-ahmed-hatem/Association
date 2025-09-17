@@ -4,7 +4,7 @@ import { QueryParams } from "@/types/query_param";
 import { FinancialRecord } from "@/types/financial_record";
 import { PaginatedResponse } from "@/types/paginatedResponse";
 
-export const transactionTypesEndpoints = api.injectEndpoints({
+export const financialRecordsEndpoints = api.injectEndpoints({
   endpoints: (builder) => ({
     getFinancialRecords: builder.query<
       PaginatedResponse<FinancialRecord> | FinancialRecord[],
@@ -72,4 +72,4 @@ export const {
   useLazyGetFinancialRecordsQuery,
   useGetFinancialRecordQuery,
   useFinancialRecordMutation,
-} = transactionTypesEndpoints;
+} = financialRecordsEndpoints;

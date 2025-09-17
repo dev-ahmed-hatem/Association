@@ -337,3 +337,157 @@ class Installment(models.Model):
         if self.financial_record:
             self.financial_record.delete()
         return super().delete(using, keep_parents)
+
+
+class Loan(models.Model):
+    financial_record = models.OneToOneField(
+        "financials.FinancialRecord",
+        on_delete=models.CASCADE,
+        related_name="loan",
+        verbose_name=_("المعاملة المالية"),
+        error_messages={
+            "null": _("يجب ربط القرض بمعاملة مالية"),
+            "blank": _("يجب تحديد المعاملة المالية"),
+        },
+    )
+
+    client = models.ForeignKey(
+        "clients.Client",
+        on_delete=models.RESTRICT,
+        related_name="loans",
+        verbose_name=_("العضو"),
+        error_messages={
+            "null": _("يجب ربط القرض بعضو"),
+            "blank": _("يجب تحديد العضو"),
+        },
+    )
+
+    amount = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        verbose_name=_("قيمة القرض"),
+        error_messages={
+            "invalid": _("يرجى إدخال قيمة مالية صحيحة"),
+        },
+    )
+
+    issued_date = models.DateField(
+        verbose_name=_("تاريخ إصدار القرض"),
+        error_messages={
+            "invalid": _("أدخل تاريخ صالح"),
+        },
+    )
+
+    notes = models.TextField(
+        null=True,
+        blank=True,
+        verbose_name=_("ملاحظات"),
+    )
+
+    class Meta:
+        verbose_name = _("قرض")
+        verbose_name_plural = _("القروض")
+        ordering = ["-issued_date"]
+
+    def __str__(self):
+        return f"قرض {self.client} - {self.amount} ({self.issued_date})"
+
+    def delete(self, using=None, keep_parents=False):
+        if self.financial_record:
+            self.financial_record.delete()
+        return super().delete(using, keep_parents)
+
+
+class Repayment(models.Model):
+    class Status(models.TextChoices):
+        PAID = "مدفوع", _("مدفوع")
+        UNPAID = "غير مدفوع", _("غير مدفوع")
+
+    financial_record = models.OneToOneField(
+        "financials.FinancialRecord",
+        on_delete=models.SET_NULL,
+        related_name="repayment",
+        verbose_name=_("المعاملة المالية"),
+        blank=True,
+        null=True,
+    )
+
+    loan = models.ForeignKey(
+        "financials.Loan",
+        on_delete=models.CASCADE,
+        related_name="repayments",
+        verbose_name=_("القرض"),
+        error_messages={
+            "null": _("يجب ربط السداد بقرض"),
+            "blank": _("يجب تحديد القرض"),
+        },
+    )
+
+    repayment_number = models.PositiveIntegerField(
+        verbose_name=_("رقم الدفعة"),
+        help_text=_("الرقم التسلسلي للدفعة لهذا القرض"),
+    )
+
+    due_date = models.DateField(
+        verbose_name=_("تاريخ الاستحقاق"),
+        error_messages={
+            "invalid": _("يرجى إدخال تاريخ صالح"),
+        },
+    )
+
+    amount = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        verbose_name=_("القيمة"),
+        error_messages={
+            "invalid": _("يرجى إدخال قيمة مالية صحيحة"),
+        },
+    )
+
+    status = models.CharField(
+        max_length=20,
+        choices=Status.choices,
+        default=Status.UNPAID,
+        verbose_name=_("الحالة"),
+    )
+
+    notes = models.TextField(
+        null=True,
+        blank=True,
+        verbose_name=_("ملاحظات"),
+    )
+
+    paid_at = models.DateField(
+        null=True,
+        blank=True,
+        verbose_name=_("تاريخ الدفع"),
+        error_messages={
+            "invalid": _("أدخل تاريخ صالح"),
+        },
+    )
+
+    class Meta:
+        verbose_name = _("سداد")
+        verbose_name_plural = _("السدادات")
+        ordering = ["loan", "repayment_number"]
+        unique_together = ("loan", "repayment_number")
+
+    def __str__(self):
+        return f"سداد {self.repayment_number} - {self.amount} ({self.get_status_display()})"
+
+    def clean(self):
+        from django.core.exceptions import ValidationError
+
+        if self.status == self.Status.PAID and not self.paid_at:
+            raise ValidationError(
+                {"paid_at": _("يجب إدخال تاريخ الدفع إذا كان السداد مدفوعًا")}
+            )
+        if self.status == self.Status.UNPAID and self.paid_at:
+            raise ValidationError(
+                {"paid_at": _("لا يمكن إدخال تاريخ الدفع إذا كان السداد غير مدفوع")}
+            )
+
+    def delete(self, using=None, keep_parents=False):
+        if self.financial_record:
+            self.financial_record.delete()
+        return super().delete(using, keep_parents)

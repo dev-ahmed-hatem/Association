@@ -1,7 +1,12 @@
 import Base from "@/pages/Base";
 import Error from "@/pages/Error";
 import SectionView from "@/pages/SectionView";
-import { FaMoneyBill, FaProjectDiagram, FaUser } from "react-icons/fa";
+import {
+  FaHandHoldingUsd,
+  FaMoneyBill,
+  FaProjectDiagram,
+  FaUser,
+} from "react-icons/fa";
 import {
   CalendarOutlined,
   CreditCardOutlined,
@@ -18,6 +23,7 @@ import { GiReceiveMoney, GiPayMoney } from "react-icons/gi";
 import ProjectsList from "@/pages/projects/ProjectList";
 import SubscriptionsPage from "@/pages/financials/SubscriptionsPage";
 import InstallmentsPage from "@/pages/financials/InstallmentsPage";
+import LoansPage from "@/pages/financials/LoansList";
 
 export type AppRoute = RouteObject & {
   key?: string;
@@ -84,6 +90,12 @@ export const appRoutes: AppRoute[] = [
             element: <InstallmentsPage />,
             icon: <CreditCardOutlined />,
             label: "الأقساط",
+          },
+          {
+            path: "loans",
+            element: <LoansPage />,
+            icon: <FaHandHoldingUsd />,
+            label: "القروض",
           },
         ],
       },
