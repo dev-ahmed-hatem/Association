@@ -16,6 +16,12 @@ class WorkEntitySerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class ClientSelectSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Client
+        fields = ['id', 'name']
+
+
 class ClientListSerializer(serializers.ModelSerializer):
     seniority = serializers.SerializerMethodField()
     work_entity = serializers.StringRelatedField(source="work_entity.name")

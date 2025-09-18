@@ -7,7 +7,8 @@ from rest_framework import status
 
 from financials.models import Installment, Subscription, FinancialRecord, TransactionType, Loan
 from .models import Client, WorkEntity, RankChoices
-from .serializers import WorkEntitySerializer, ClientListSerializer, ClientReadSerializer, ClientWriteSerializer
+from .serializers import WorkEntitySerializer, ClientListSerializer, ClientReadSerializer, ClientWriteSerializer, \
+    ClientSelectSerializer
 from django.utils.translation import gettext_lazy as _
 from django.db.models import RestrictedError, Count, Sum, Value, CharField, Q
 from django.db.models.functions import TruncMonth, ExtractYear, ExtractMonth, Concat
@@ -66,6 +67,10 @@ class ClientViewSet(ModelViewSet):
         return queryset
 
     def get_serializer_class(self):
+        serializer_type = self.request.query_params.get("serializer")
+        if serializer_type == "select":
+            return ClientSelectSerializer
+
         if self.action in ["create", "update", "partial_update"]:
             return ClientWriteSerializer
         return ClientListSerializer

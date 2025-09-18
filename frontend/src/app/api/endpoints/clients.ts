@@ -103,5 +103,5 @@ export const {
   useSwitchClientActiveMutation,
   useDeleteFinancialRecordsMutation,
   useGetHomeStatsQuery,
-  useGetHomeFinancialStatsQuery
+  useGetHomeFinancialStatsQuery,
 } = clientsEndpoints;
