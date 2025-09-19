@@ -83,9 +83,6 @@ const LoansList: React.FC = () => {
           {record.repayments.paid} من {record.repayments.total}
         </span>
       ),
-      sorter: (a, b) => a.amount - b.amount,
-      sortOrder:
-        controls?.sort_by === "amount" ? controls?.order ?? null : null,
     },
     {
       title: "ملاحظات",

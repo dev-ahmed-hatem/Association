@@ -21,6 +21,7 @@ import {
 import { Client } from "@/types/client";
 import SubscriptionHistory from "@/components/clients/SubscriptionHistory";
 import InstallmentsHistory from "@/components/clients/InstallmentsHistory";
+import LoansHistory from "@/components/clients/LoansHistory";
 
 const items = (client: Client) => [
   {
@@ -55,6 +56,11 @@ const items = (client: Client) => [
         prepaid={client.prepaid}
       />
     ),
+  },
+  {
+    label: `القروض`,
+    key: "6",
+    children: <LoansHistory client_id={client.id} />,
   },
 ];
 
