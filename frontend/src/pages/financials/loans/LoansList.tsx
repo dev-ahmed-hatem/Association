@@ -7,12 +7,12 @@ import { ColumnsType } from "antd/es/table";
 import { SortOrder } from "antd/lib/table/interface";
 
 import Loading from "@/components/Loading";
-import ErrorPage from "../Error";
-import { tablePaginationConfig } from "../../utils/antd";
 import { PaginatedResponse } from "@/types/paginatedResponse";
 
 import { Loan } from "@/types/loan";
 import { useLazyGetLoansQuery } from "@/app/api/endpoints/loans";
+import ErrorPage from "@/pages/Error";
+import { tablePaginationConfig } from "@/utils/antd";
 
 const LoansList: React.FC = () => {
   const isLoans = useMatch("/financials/loans");
@@ -168,7 +168,7 @@ const LoansList: React.FC = () => {
           scroll={{ x: "max-content" }}
           className="clickable-table minsk-header"
           onRow={(record) => ({
-            onClick: () => navigate(`/loans/${record.id}`),
+            onClick: () => navigate(`/financials/loans/${record.id}`),
           })}
         />
       )}

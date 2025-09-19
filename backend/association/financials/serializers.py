@@ -117,6 +117,7 @@ class LoanSerializer(serializers.ModelSerializer):
     payment_date = serializers.DateField(write_only=True, required=True)
     client_name = serializers.StringRelatedField(read_only=True, source="client.name")
     repayments = serializers.SerializerMethodField(read_only=True)
+    is_completed = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Loan
@@ -165,6 +166,9 @@ class LoanSerializer(serializers.ModelSerializer):
         return obj.repayments.aggregate(total=Count("id"),
                                         unpaid=Count("id", filter=Q(status=Repayment.Status.UNPAID)),
                                         paid=Count("id", filter=Q(status=Repayment.Status.PAID)))
+
+    def get_is_completed(self, obj: Loan):
+        return obj.is_completed
 
 
 class RepaymentSerializer(serializers.ModelSerializer):

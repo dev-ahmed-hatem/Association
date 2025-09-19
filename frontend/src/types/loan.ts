@@ -11,4 +11,5 @@ export type Loan = {
     unpaid: number;
     paid: number;
   };
+  is_completed: boolean;
 };

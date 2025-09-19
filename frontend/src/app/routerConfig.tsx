@@ -10,6 +10,7 @@ import ProjectProfilePage from "@/pages/projects/ProjectProfilePage";
 import ProjectForm from "@/pages/projects/ProjectForm";
 import ProjectEdit from "@/pages/projects/ProjectEdit";
 import LoanForm from "@/pages/financials/LoansForm";
+import LoanProfilePage from "@/pages/financials/loans/LoanProfilePage";
 
 const alterRoute = function (
   appRoutes: AppRoute[],
@@ -93,7 +94,10 @@ let routes: RouteObject[] = addSubRoutes(appRoutes, {
       element: <FinancialEdit financialType="expense" />,
     },
   ],
-  "financials/loans": [{ path: "add", element: <LoanForm /> }],
+  "financials/loans": [
+    { path: "add", element: <LoanForm /> },
+    { path: ":loan_id", element: <LoanProfilePage /> },
+  ],
 });
 
 export default routes;

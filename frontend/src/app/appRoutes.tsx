@@ -23,7 +23,7 @@ import { GiReceiveMoney, GiPayMoney } from "react-icons/gi";
 import ProjectsList from "@/pages/projects/ProjectList";
 import SubscriptionsPage from "@/pages/financials/SubscriptionsPage";
 import InstallmentsPage from "@/pages/financials/InstallmentsPage";
-import LoansPage from "@/pages/financials/LoansList";
+import LoansPage from "@/pages/financials/loans/LoansList";
 
 export type AppRoute = RouteObject & {
   key?: string;

@@ -1,7 +1,7 @@
 from django.db import models
 from django.contrib import auth
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin, _user_has_perm, Group, \
-    Permission
+    Permission as CorePermission
 
 
 class UserManager(BaseUserManager):
@@ -40,7 +40,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     # groups and permissions
     groups = models.ManyToManyField(Group, blank=True, related_name='custom_users')
-    user_permissions = models.ManyToManyField(Permission, blank=True, related_name='custom_user_permissions')
+    user_permissions = models.ManyToManyField(CorePermission, blank=True, related_name='custom_user_permissions')
 
     def has_perm(self, perm, obj=None):
         if self.is_superuser:

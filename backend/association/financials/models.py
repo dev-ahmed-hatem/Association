@@ -397,6 +397,10 @@ class Loan(models.Model):
             self.financial_record.delete()
         return super().delete(using, keep_parents)
 
+    @property
+    def is_completed(self):
+        return not self.repayments.filter(status=Repayment.Status.UNPAID).exists()
+
 
 class Repayment(models.Model):
     class Status(models.TextChoices):
