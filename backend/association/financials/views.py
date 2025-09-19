@@ -206,7 +206,7 @@ class RepaymentViewSet(ModelViewSet):
     def get_queryset(self):
         queryset = Repayment.objects.all()
 
-        loan_id = self.request.query_params.get("loan", None)
+        loan_id = self.request.query_params.get("loan_id", None)
         if loan_id is not None:
             queryset = queryset.filter(loan_id=loan_id)
 

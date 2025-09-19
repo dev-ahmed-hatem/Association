@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Card, Avatar, Tabs, Button, Popconfirm } from "antd";
 import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import { useParams, useNavigate } from "react-router";
@@ -8,8 +8,9 @@ import { axiosBaseQueryError } from "@/app/api/axiosBaseQuery";
 import { useGetLoanQuery, useLoanMutation } from "@/app/api/endpoints/loans";
 import { Loan } from "@/types/loan";
 import ErrorPage from "@/pages/Error";
-import LoanStatusBadge from "@/components/loans/LoanStatusBadge";
-import LoanDetails from "@/components/loans/LoanDetails";
+import LoanStatusBadge from "@/components/financials/loans/LoanStatusBadge";
+import LoanDetails from "@/components/financials/loans/LoanDetails";
+import LoanRepayments from "@/components/financials/loans/LoanRepayments";
 
 const items = (loan: Loan) => [
   {
@@ -20,7 +21,7 @@ const items = (loan: Loan) => [
   {
     label: "الأقساط / السداد",
     key: "2",
-    children: <></>,
+    children: <LoanRepayments loan_id={loan.id.toString()} />,
   },
 ];
 
@@ -35,8 +36,6 @@ const LoanProfilePage: React.FC = () => {
     isError,
     error: loanError,
   } = useGetLoanQuery({ id: loan_id as string });
-
-  const [isActive, setIsActive] = useState<boolean | null>(null);
 
   const [
     deleteLoan,
@@ -113,21 +112,19 @@ const LoanProfilePage: React.FC = () => {
         <div className="flex gap-1 flex-col text-sm"></div>
 
         <div className="btn-wrapper flex md:justify-end mt-4 flex-wrap gap-4">
-          <Button
-            type="primary"
-            icon={<EditOutlined />}
-            onClick={() => navigate(`/financials/loans/edit/${loan_id}`)}
-          >
-            تعديل البيانات
-          </Button>
-
           <Popconfirm
-            title="هل أنت متأكد من حذف هذا القرض؟"
+            title="سيتم حذف القرض بجميع السجلات المالية الخاصة به؟"
             onConfirm={handleDelete}
             okText="نعم"
             cancelText="لا"
           >
-            <Button danger icon={<DeleteOutlined />} loading={deleting}>
+            <Button
+              className="enabled:bg-red-500 enabled:border-red-500 enabled:shadow-[0_2px_0_rgba(0,58,58,0.31)]
+            enabled:hover:border-red-400 enabled:hover:bg-red-400 enabled:text-white"
+              danger
+              icon={<DeleteOutlined />}
+              loading={deleting}
+            >
               حذف القرض
             </Button>
           </Popconfirm>
