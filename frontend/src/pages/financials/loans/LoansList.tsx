@@ -168,7 +168,16 @@ const LoansList: React.FC = () => {
           scroll={{ x: "max-content" }}
           className="clickable-table minsk-header"
           onRow={(record) => ({
-            onClick: () => navigate(`/financials/loans/${record.id}`),
+            onClick: (e) => {
+              const target = e.target as HTMLElement;
+
+              // Check if the click originated inside a link
+              const isInsideLink = target.closest("a");
+
+              if (!isInsideLink) {
+                navigate(`${record.id}`);
+              }
+            },
           })}
         />
       )}
