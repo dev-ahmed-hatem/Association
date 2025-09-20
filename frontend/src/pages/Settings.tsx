@@ -1,6 +1,7 @@
 import { Tabs } from "antd";
 import ClientSettingsTab from "@/components/settings/clients/ClientsSettingsTab";
 import FinancialsSettingsTab from "@/components/settings/financials/FinancialsSettingsTab";
+import UserSettingsTab from "@/components/settings/users/UserSettingsTab";
 
 const SettingsPage = () => {
   return (
@@ -12,10 +13,10 @@ const SettingsPage = () => {
           <DefaultTabBar {...props} className="md:ps-2" />
         )}
         direction="rtl"
-        defaultActiveKey="client"
+        defaultActiveKey="clients"
         items={[
           {
-            key: "client",
+            key: "clients",
             label: "الأعضاء",
             children: <ClientSettingsTab />,
           },
@@ -23,6 +24,11 @@ const SettingsPage = () => {
             key: "financials",
             label: "الماليات",
             children: <FinancialsSettingsTab />,
+          },
+          {
+            key: "users",
+            label: "المستخدمين",
+            children: <UserSettingsTab />,
           },
         ]}
       />

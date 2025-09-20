@@ -5,6 +5,26 @@ from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, Permis
 from django.utils.translation import gettext_lazy as _
 
 
+# Permissions
+class Module(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+    slug = models.SlugField(unique=True)
+
+    def __str__(self):
+        return self.name
+
+
+class Permission(models.Model):
+    module = models.ForeignKey(Module, related_name="permissions", on_delete=models.CASCADE)
+    action = models.CharField(max_length=50)  # e.g. "view", "create", "update", "delete"
+
+    class Meta:
+        unique_together = ("module", "action")
+
+    def __str__(self):
+        return f"{self.module.name}.{self.action}"
+
+
 class UserManager(BaseUserManager):
     def create_user(self, username, password=None, **extra_fields):
         if not username:
@@ -25,10 +45,12 @@ class UserManager(BaseUserManager):
 class User(AbstractBaseUser, PermissionsMixin):
     class Role(models.TextChoices):
         manager = "مدير", _("مدير")
-        moderator = "مستخدم", _("مستخدم")
+        moderator = "مشرف", _("مشرف")
 
     name = models.CharField(max_length=100, default="")
-    username = models.CharField(max_length=20, unique=True)
+    username = models.CharField(max_length=20, unique=True, error_messages={
+        "unique": _("اسم المستخدم موجود بالفعل")
+    })
     role = models.CharField(max_length=20, choices=Role.choices, default=Role.moderator)
 
     is_active = models.BooleanField(default=True)
@@ -42,6 +64,9 @@ class User(AbstractBaseUser, PermissionsMixin):
     # groups and permissions
     groups = models.ManyToManyField(Group, blank=True, related_name='custom_users')
     user_permissions = models.ManyToManyField(CorePermission, blank=True, related_name='custom_user_permissions')
+
+    # custom permissions
+    permissions = models.ManyToManyField(Permission, blank=True, related_name='user_permissions')
 
     def has_perm(self, perm, obj=None):
         if self.is_superuser:
@@ -64,32 +89,4 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     @property
     def is_staff(self):
-        return self.is_superuser or self.is_moderator
-
-
-# Permissions
-class Module(models.Model):
-    name = models.CharField(max_length=100, unique=True)
-    slug = models.SlugField(unique=True)
-
-    def __str__(self):
-        return self.name
-
-
-class Permission(models.Model):
-    module = models.ForeignKey(Module, related_name="permissions", on_delete=models.CASCADE)
-    action = models.CharField(max_length=50)  # e.g. "view", "create", "update", "delete"
-
-    class Meta:
-        unique_together = ("module", "action")
-
-    def __str__(self):
-        return f"{self.module.name}.{self.action}"
-
-
-class UserPermission(models.Model):
-    user = models.ForeignKey(User, related_name="permissions", on_delete=models.CASCADE)
-    permission = models.ForeignKey(Permission, related_name="users", on_delete=models.CASCADE)
-
-    class Meta:
-        unique_together = ("user", "permission")
+        return True

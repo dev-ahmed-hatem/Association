@@ -1,10 +1,8 @@
 export type User = {
+  id: string;
   name: string;
   username: string;
-  phone: string;
-  national_id: string;
+  role: "مدير" | "مشرف";
   is_active: boolean;
-  is_moderator: boolean;
   is_superuser: boolean;
-  is_root: boolean;
 };

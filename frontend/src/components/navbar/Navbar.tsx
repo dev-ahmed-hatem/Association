@@ -5,13 +5,11 @@ import { useAppSelector } from "@/app/redux/hooks";
 import { LuPanelRight } from "react-icons/lu";
 import { CgLogIn } from "react-icons/cg";
 import { CodeOutlined, CrownOutlined, TeamOutlined } from "@ant-design/icons";
+import { User } from "@/types/user";
 
 // Role Tag Renderer
-const renderRoleTag = (user?: {
-  is_root?: boolean;
-  is_superuser?: boolean;
-}) => {
-  if (user?.is_root) {
+const renderRoleTag = (user?: User) => {
+  if (user?.is_superuser) {
     return (
       <Tag
         icon={<CodeOutlined />}
@@ -23,7 +21,7 @@ const renderRoleTag = (user?: {
     );
   }
 
-  if (user?.is_superuser) {
+  if (user?.role === "مدير") {
     return (
       <Tag
         icon={<CrownOutlined />}
@@ -76,14 +74,7 @@ const Navbar = ({
       </div>
       <div className="user">
         <Popover
-          content={
-            <UserMenu
-              role={
-                renderRoleTag(user!)
-                // user?.is_root ? "مطور" : user?.is_superuser ? "مدير" : "مشرف"
-              }
-            />
-          }
+          content={<UserMenu role={renderRoleTag(user!)} />}
           title={user?.name || <span className="text-red-500">بلا اسم</span>}
           trigger="click"
           open={open}

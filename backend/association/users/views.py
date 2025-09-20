@@ -18,7 +18,7 @@ class UserViewSet(ModelViewSet):
     serializer_class = UserSerializer
 
     def get_queryset(self):
-        queryset = super(UserViewSet, self).get_queryset()
+        queryset = User.objects.filter(is_superuser=False)
 
         search_query = self.request.query_params.get('search', None)
 

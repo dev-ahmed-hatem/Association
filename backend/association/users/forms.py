@@ -11,6 +11,7 @@ class UserAdminForm(UserAdmin):
         ("Personal Information", {'fields': ['name', 'role']}),
         ("Authentication", {'fields': ['username', 'password']}),
         ("Permissions", {'fields': ['is_active', 'is_superuser', 'user_permissions']}),
+        ("Custom Permissions", {'fields': ['permissions']}),
     ]
     add_fieldsets = [
         (None, {'fields': ['username', 'password1', 'password2', 'name', 'role', 'is_active', 'is_superuser']}),

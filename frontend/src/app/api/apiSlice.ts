@@ -6,6 +6,7 @@ export const api = createApi({
   baseQuery: axiosBaseQuery(),
   endpoints: () => ({}),
   tagTypes: [
+    "User",
     "Client",
     "Project",
     "ProjectTransaction",
@@ -17,7 +18,7 @@ export const api = createApi({
     "Subscription",
     "Installment",
     "Loan",
-    "Repayment"
+    "Repayment",
   ],
   keepUnusedDataFor: 180,
   refetchOnReconnect: true,
