@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib import auth
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin, _user_has_perm, Group, \
     Permission as CorePermission
+from django.utils.translation import gettext_lazy as _
 
 
 class UserManager(BaseUserManager):
@@ -22,21 +23,21 @@ class UserManager(BaseUserManager):
 
 
 class User(AbstractBaseUser, PermissionsMixin):
+    class Role(models.TextChoices):
+        manager = "مدير", _("مدير")
+        moderator = "مستخدم", _("مستخدم")
+
     name = models.CharField(max_length=100, default="")
     username = models.CharField(max_length=20, unique=True)
-    phone = models.CharField(unique=True, max_length=20, null=True, blank=True)
-    national_id = models.CharField(max_length=20, unique=True, null=True, blank=True)
+    role = models.CharField(max_length=20, choices=Role.choices, default=Role.moderator)
 
     is_active = models.BooleanField(default=True)
 
-    is_moderator = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
-    is_root = models.BooleanField(default=False)
 
     objects = UserManager()
 
     USERNAME_FIELD = 'username'
-    REQUIRED_FIELDS = ['phone', 'national_id']
 
     # groups and permissions
     groups = models.ManyToManyField(Group, blank=True, related_name='custom_users')
@@ -64,3 +65,31 @@ class User(AbstractBaseUser, PermissionsMixin):
     @property
     def is_staff(self):
         return self.is_superuser or self.is_moderator
+
+
+# Permissions
+class Module(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+    slug = models.SlugField(unique=True)
+
+    def __str__(self):
+        return self.name
+
+
+class Permission(models.Model):
+    module = models.ForeignKey(Module, related_name="permissions", on_delete=models.CASCADE)
+    action = models.CharField(max_length=50)  # e.g. "view", "create", "update", "delete"
+
+    class Meta:
+        unique_together = ("module", "action")
+
+    def __str__(self):
+        return f"{self.module.name}.{self.action}"
+
+
+class UserPermission(models.Model):
+    user = models.ForeignKey(User, related_name="permissions", on_delete=models.CASCADE)
+    permission = models.ForeignKey(Permission, related_name="users", on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = ("user", "permission")
