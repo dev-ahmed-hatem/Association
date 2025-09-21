@@ -41,6 +41,7 @@ class ClientViewSet(ModelViewSet):
 
         status_filters = self.request.query_params.get('status', [])
         rank_filters = self.request.query_params.get('rank', [])
+        graduation_year_filters = self.request.query_params.get('graduation_year', [])
         entities_filters = self.request.query_params.get('entities', [])
         sort_by = self.request.query_params.get('sort_by', None)
         order = self.request.query_params.get('order', None)
@@ -60,6 +61,10 @@ class ClientViewSet(ModelViewSet):
         if len(rank_filters) > 0:
             rank_filters = rank_filters.split(',')
             queryset = queryset.filter(rank__in=rank_filters)
+
+        if len(graduation_year_filters) > 0:
+            graduation_year_filters = graduation_year_filters.split(',')
+            queryset = queryset.filter(graduation_year__in=graduation_year_filters)
 
         if sort_by is not None:
             queryset = queryset.order_by(f"{order}{sort_by}")

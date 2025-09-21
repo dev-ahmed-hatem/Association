@@ -246,7 +246,7 @@ const InstallmentsHistory = ({
               رسوم العضوية:
             </span>
             <span className="text-xl font-bold text-indigo-600">
-              {subscription_fee.toLocaleString()} ج.م
+              {subscription_fee} ج.م
             </span>
           </div>
 
@@ -258,7 +258,7 @@ const InstallmentsHistory = ({
             {prepaid ? (
               <Link to={`/financials/incomes/${prepaid.financial_record}`}>
                 <span className="text-xl font-bold text-green-600 hover:text-green-500 cursor-pointer hover:underline">
-                  {prepaid.amount.toLocaleString()} ج.م
+                  {prepaid.amount.toString()} ج.م
                 </span>
               </Link>
             ) : (

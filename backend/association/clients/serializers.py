@@ -74,7 +74,7 @@ class ClientReadSerializer(serializers.ModelSerializer):
 
     def get_prepaid(self, obj: Client):
         if obj.prepaid:
-            return {"amount": obj.prepaid.amount, "financial_record": obj.prepaid.id}
+            return {"amount": str(obj.prepaid.amount), "financial_record": obj.prepaid.id}
         return None
 
 

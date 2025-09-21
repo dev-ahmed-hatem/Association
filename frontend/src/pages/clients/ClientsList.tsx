@@ -1,8 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Table, Input, Avatar, Space, Radio, Tag, Tooltip, Badge } from "antd";
-import { PlusOutlined } from "@ant-design/icons";
+import { PlusOutlined, UserOutlined } from "@ant-design/icons";
 import { Link, useNavigate } from "react-router";
-import { getInitials } from "../../utils";
 import { tablePaginationConfig } from "../../utils/antd";
 import Loading from "@/components/Loading";
 import { ColumnsType } from "antd/es/table";
@@ -20,6 +19,7 @@ type ControlsType = {
     rank?: string;
     name: string;
     work_entity?: string;
+    seniority?: string;
   };
 } | null;
 
@@ -75,9 +75,10 @@ const ClientsList = () => {
             } size-2 inline-block`}
           ></span>
           {
-            <Avatar className="bg-gradient-to-br from-[#2c2e83] to-[#494c9a] text-white font-semibold">
-              {getInitials(record.name)}
-            </Avatar>
+            <Avatar
+              className="bg-gradient-to-br from-[#2c2e83] to-[#494c9a] text-white font-semibold"
+              icon={<UserOutlined />}
+            />
           }
           <span className="flex flex-col">
             <div
@@ -123,6 +124,11 @@ const ClientsList = () => {
       title: "رقم الأقدمية",
       dataIndex: "seniority",
       key: "seniority",
+      filters: Array.from(
+        { length: new Date().getFullYear() - 1980 + 1 },
+        (_, i) => 1980 + i
+      ).map((year) => ({ value: year, text: year })),
+      defaultFilteredValue: controls?.filters?.seniority?.split(","),
     },
     {
       title: "جهة العمل",
@@ -194,6 +200,7 @@ const ClientsList = () => {
     order: controls?.order === "descend" ? "-" : "",
     status: controls?.filters.name,
     rank: controls?.filters.rank,
+    graduation_year: controls?.filters.seniority,
     entities: controls?.filters.work_entity,
   });
   const clients = rawClients as PaginatedResponse<Client> | undefined;
