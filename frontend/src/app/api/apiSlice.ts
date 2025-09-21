@@ -19,6 +19,7 @@ export const api = createApi({
     "Installment",
     "Loan",
     "Repayment",
+    "PermissionsList"
   ],
   keepUnusedDataFor: 180,
   refetchOnReconnect: true,

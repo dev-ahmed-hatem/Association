@@ -1,4 +1,3 @@
-import { WorkEntity } from "@/types/workentity";
 import api from "../apiSlice";
 import queryString from "query-string";
 import { QueryParams } from "@/types/query_param";
@@ -45,7 +44,34 @@ export const usersEndpoints = api.injectEndpoints({
         }
       },
     }),
+    getPermissionsList: builder.query<string[], string>({
+      query: (user_id) => ({
+        url: `/users/users/${user_id}/permissions_list/`,
+        method: "GET",
+      }),
+      providesTags: (result, error, arg) => [
+        { type: "PermissionsList", id: arg },
+      ],
+    }),
+    setPermissions: builder.mutation<
+      any,
+      { user_id: string; permissions: Record<string, boolean> }
+    >({
+      query: (arg) => ({
+        url: `/users/users/${arg.user_id}/set_permissions/`,
+        method: "POST",
+        data: arg.permissions,
+      }),
+      invalidatesTags: (result, error, arg) => [
+        { type: "PermissionsList", id: arg.user_id },
+      ],
+    }),
   }),
 });
 
-export const { useGetUsersQuery, useUserMutation } = usersEndpoints;
+export const {
+  useGetUsersQuery,
+  useUserMutation,
+  useGetPermissionsListQuery,
+  useSetPermissionsMutation,
+} = usersEndpoints;

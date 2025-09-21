@@ -1,16 +1,16 @@
 from rest_framework import status
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.viewsets import ModelViewSet
 from django.db.models import Q
+from django.utils.translation import gettext_lazy as _
 from .serializers import UserSerializer
-from .models import User
+from .models import User, Permission
 
 # for getting models permissions
 from django.apps import apps
 from django.contrib.contenttypes.models import ContentType
-from django.contrib.auth.models import Permission
 
 
 class UserViewSet(ModelViewSet):
@@ -37,11 +37,39 @@ class UserViewSet(ModelViewSet):
 
         return queryset
 
+    @action(detail=True, methods=['GET'])
+    def permissions_list(self, request, pk=None):
+        try:
+            user = User.objects.get(pk=pk)
+            permissions = [str(perm) for perm in user.permissions.all()]
+            return Response(permissions)
+        except Exception:
+            return Response({'detail': _('عميل غير موجود')}, status=status.HTTP_404_NOT_FOUND)
+
+    @action(detail=True, methods=['POST'])
+    def set_permissions(self, request, pk=None):
+        try:
+            user = User.objects.get(pk=pk)
+            data = request.data
+            for perm_action in data:
+                module = perm_action.split(".")[0]
+                action_name = perm_action.split(".")[1]
+                perm = Permission.objects.get(module__name=module, action=action_name)
+                if data[perm_action]:
+                    user.permissions.add(perm)
+                else:
+                    user.permissions.remove(perm)
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        except User.DoesNotExist:
+            return Response({'detail': _('عميل غير موجود')}, status=status.HTTP_404_NOT_FOUND)
+
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_user_permissions(request):
-    user_permissions = {}
+    """
+    unused
+    """
     username = request.GET.get('username', None)
     if username is not None:
         try:
@@ -57,6 +85,9 @@ def get_user_permissions(request):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def get_models_permissions(request):
+    """
+    unused
+    """
     user_permissions = {}
     user = request.user
     data = request.data
@@ -76,6 +107,9 @@ def get_models_permissions(request):
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def set_user_permissions(request):
+    """
+    unused
+    """
     try:
         permission_list = request.data.get("permissions", [])
         username = request.data.get("username", None)

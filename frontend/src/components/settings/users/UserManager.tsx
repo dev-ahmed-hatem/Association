@@ -4,7 +4,6 @@ import {
   PlusOutlined,
   EditOutlined,
   DeleteOutlined,
-  SettingOutlined,
   LockOutlined,
 } from "@ant-design/icons";
 import ErrorPage from "@/pages/Error";
@@ -14,12 +13,11 @@ import { axiosBaseQueryError } from "@/app/api/axiosBaseQuery";
 import { useGetUsersQuery, useUserMutation } from "@/app/api/endpoints/users";
 import { User } from "@/types/user";
 import UserForm from "./UserForm";
-import { useNavigate } from "react-router";
 import { handleServerErrors } from "@/utils/handleForm";
+import PermissionManager from "./PermissionManager";
 
 const UserManager = () => {
   const notification = useNotification();
-  const navigate = useNavigate();
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [changePassword, setChangePassword] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -110,12 +108,7 @@ const UserManager = () => {
               >
                 <Button danger icon={<DeleteOutlined />} />
               </Popconfirm>
-              <Button
-                icon={<SettingOutlined />}
-                onClick={() => navigate(`/users/${record.id}/permissions`)}
-              >
-                الصلاحيات
-              </Button>
+              <PermissionManager user_id={record.id} />
             </>
           )}
           <Button
