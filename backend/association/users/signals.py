@@ -2,14 +2,19 @@ from django.db.models.signals import post_migrate
 from .models import Module, Permission
 
 modules_perms = {
-    "الأعضاء": ["عرض", "إضافة", "تعديل", "حذف"],
-    "المشروعات": ["عرض", "إضافة", "تعديل", "حذف"],
-    "الإيرادات": ["عرض", "إضافة", "تعديل", "حذف"],
-    "المصروفات": ["عرض", "إضافة", "تعديل", "حذف"],
-    "الاشتراكات": ["عرض", "إضافة", "تعديل", "حذف"],
-    "الأقساط": ["عرض", "إضافة", "تعديل", "حذف"],
-    "القروض": ["عرض", "إضافة", "حذف"],
-    "الإعدادات": ["جهات العمل", "الحسابات البنكية", "أنواع المعاملات المالية", "الاشتراكات حسب الرتبة"],
+    "members": ["view", "add", "edit", "delete"],
+    "projects": ["view", "add", "edit", "delete"],
+    "revenues": ["view", "add", "edit", "delete"],
+    "expenses": ["view", "add", "edit", "delete"],
+    "subscriptions": ["view", "add", "delete"],
+    "installments": ["view", "add", "delete"],
+    "loans": ["view", "add", "delete"],
+    "settings": [
+        "workEntities",
+        "bankAccounts",
+        "financialTransactionTypes",
+        "rankBasedSubscriptions",
+    ],
 }
 
 

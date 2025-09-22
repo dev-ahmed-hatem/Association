@@ -24,6 +24,7 @@ import ProjectsList from "@/pages/projects/ProjectList";
 import SubscriptionsPage from "@/pages/financials/SubscriptionsPage";
 import InstallmentsPage from "@/pages/financials/InstallmentsPage";
 import LoansPage from "@/pages/financials/loans/LoansList";
+import PermissionProvider from "@/providers/PermissionProvider";
 
 export type AppRoute = RouteObject & {
   key?: string;
@@ -37,7 +38,9 @@ export const appRoutes: AppRoute[] = [
     path: "",
     element: (
       <AuthProvider>
-        <Base />
+        <PermissionProvider>
+          <Base />
+        </PermissionProvider>
       </AuthProvider>
     ),
     errorElement: <Base error={true} />,

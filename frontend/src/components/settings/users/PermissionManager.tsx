@@ -10,20 +10,65 @@ import Loading from "@/components/Loading";
 import ErrorPage from "@/pages/Error";
 import { useNotification } from "@/providers/NotificationProvider";
 
-const modules_perms: Record<string, string[]> = {
-  الأعضاء: ["عرض", "إضافة", "تعديل", "حذف"],
-  المشروعات: ["عرض", "إضافة", "تعديل", "حذف"],
-  الإيرادات: ["عرض", "إضافة", "تعديل", "حذف"],
-  المصروفات: ["عرض", "إضافة", "تعديل", "حذف"],
-  الاشتراكات: ["عرض", "إضافة", "تعديل", "حذف"],
-  الأقساط: ["عرض", "إضافة", "تعديل", "حذف"],
-  القروض: ["عرض", "إضافة", "حذف"],
-  الإعدادات: [
-    "جهات العمل",
-    "الحسابات البنكية",
-    "أنواع المعاملات المالية",
-    "الاشتراكات حسب الرتبة",
+const modules_perms: Record<string, { label: string; value: string }[]> = {
+  members: [
+    { label: "عرض", value: "view" },
+    { label: "إضافة", value: "add" },
+    { label: "تعديل", value: "edit" },
+    { label: "حذف", value: "delete" },
   ],
+  projects: [
+    { label: "عرض", value: "view" },
+    { label: "إضافة", value: "add" },
+    { label: "تعديل", value: "edit" },
+    { label: "حذف", value: "delete" },
+  ],
+  revenues: [
+    { label: "عرض", value: "view" },
+    { label: "إضافة", value: "add" },
+    { label: "تعديل", value: "edit" },
+    { label: "حذف", value: "delete" },
+  ],
+  expenses: [
+    { label: "عرض", value: "view" },
+    { label: "إضافة", value: "add" },
+    { label: "تعديل", value: "edit" },
+    { label: "حذف", value: "delete" },
+  ],
+  subscriptions: [
+    { label: "عرض", value: "view" },
+    { label: "إضافة", value: "add" },
+    { label: "تعديل", value: "edit" },
+    { label: "حذف", value: "delete" },
+  ],
+  installments: [
+    { label: "عرض", value: "view" },
+    { label: "إضافة", value: "add" },
+    { label: "تعديل", value: "edit" },
+    { label: "حذف", value: "delete" },
+  ],
+  loans: [
+    { label: "عرض", value: "view" },
+    { label: "إضافة", value: "add" },
+    { label: "حذف", value: "delete" },
+  ],
+  settings: [
+    { label: "جهات العمل", value: "workEntities" },
+    { label: "الحسابات البنكية", value: "bankAccounts" },
+    { label: "أنواع المعاملات المالية", value: "financialTransactionTypes" },
+    { label: "الاشتراكات حسب الرتبة", value: "rankBasedSubscriptions" },
+  ],
+};
+
+const moduleLabels: Record<string, string> = {
+  members: "الأعضاء",
+  projects: "المشروعات",
+  revenues: "الإيرادات",
+  expenses: "المصروفات",
+  subscriptions: "الاشتراكات",
+  installments: "الأقساط",
+  loans: "القروض",
+  settings: "الإعدادات",
 };
 
 type PermissionManagerProps = {
@@ -69,20 +114,20 @@ const PermissionManager = ({ user_id }: PermissionManagerProps) => {
   };
 
   const items: CollapseProps["items"] = Object.entries(modules_perms).map(
-    ([module, perms], idx) => ({
-      key: module,
-      label: module,
+    ([moduleKey, perms]) => ({
+      key: moduleKey,
+      label: moduleLabels[moduleKey], // Arabic header
       children: (
         <div className="grid grid-cols-2 gap-2">
-          {perms.map((perm) => {
-            const permName = `${module}.${perm}`;
+          {perms.map(({ label, value }) => {
+            const permName = `${moduleKey}.${value}`;
             return (
               <Checkbox
                 key={permName}
                 checked={checked.includes(permName)}
                 onChange={(e) => handleCheck(permName, e.target.checked)}
               >
-                {perm}
+                {label}
               </Checkbox>
             );
           })}
