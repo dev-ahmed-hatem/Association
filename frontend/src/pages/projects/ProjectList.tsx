@@ -11,6 +11,7 @@ import Loading from "@/components/Loading";
 import { PaginatedResponse } from "@/types/paginatedResponse";
 import { useGetProjectsQuery } from "@/app/api/endpoints/projects";
 import ProjectStatistics from "@/components/projects/ProjectsStatistics";
+import { usePermission } from "@/providers/PermissionProvider";
 
 type ControlsType = {
   sort_by?: string;
@@ -21,6 +22,7 @@ type ControlsType = {
 } | null;
 
 const ProjectsList: React.FC = () => {
+  const { can, hasModulePermission } = usePermission();
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
@@ -134,42 +136,54 @@ const ProjectsList: React.FC = () => {
 
   if (isLoading) return <Loading />;
   if (isError) return <ErrorPage />;
+  if (!hasModulePermission("projects"))
+    return (
+      <ErrorPage
+        title="ليس لديك صلاحية للوصول إلى هذه الصفحة"
+        subtitle="يرجى التواصل مع مدير النظام للحصول على الصلاحيات اللازمة."
+        reload={false}
+      />
+    );
+
   return (
     <>
       <h1 className="mb-6 text-2xl md:text-3xl font-bold">المشروعات</h1>
       <Divider />
-
-      <ProjectStatistics />
+      {can("projects.view") && <ProjectStatistics />}
       <Divider />
 
       <div className="flex justify-between flex-wrap gap-2 mb-4">
         {/* Search Input */}
-        <Input.Search
-          placeholder="ابحث عن مشروع..."
-          onSearch={(value) => onSearch(value)}
-          className="mb-4 w-full max-w-md h-10"
-          defaultValue={search}
-          allowClear={true}
-          onClear={() => setSearch("")}
-        />
+        {can("projcts.view") && (
+          <Input.Search
+            placeholder="ابحث عن مشروع..."
+            onSearch={(value) => onSearch(value)}
+            className="mb-4 w-full max-w-md h-10"
+            defaultValue={search}
+            allowClear={true}
+            onClear={() => setSearch("")}
+          />
+        )}
 
         {/* Add Button */}
-        <Link
-          to={"/projects/add"}
-          className="h-10 px-6 flex items-center text-white gap-2 rounded-lg
+        {can("projects.add") && (
+          <Link
+            to={"/projects/add"}
+            className="h-10 px-6 flex items-center text-white gap-2 rounded-lg
                 bg-gradient-to-l from-green-800 to-green-600 hover:from-green-700
               hover:to-green-500 shadow-[0_2px_0_rgba(0,58,58,0.31)]
                 transition-all duration-200"
-        >
-          <PlusOutlined />
-          <span>إضافة مشروع</span>
-        </Link>
+          >
+            <PlusOutlined />
+            <span>إضافة مشروع</span>
+          </Link>
+        )}
       </div>
 
       {isFetching && <Loading />}
 
       {/* Table */}
-      {!isFetching && projects && (
+      {can("projects.view") && !isFetching && projects && (
         <Table
           columns={columns}
           dataSource={projects?.data}

@@ -31,8 +31,10 @@ import {
   useProjectTransactionMutation,
 } from "@/app/api/endpoints/project_transactions.ts";
 import { ProjectTransaction } from "@/types/project_transaction";
+import { usePermission } from "@/providers/PermissionProvider";
 
 const ProjectProfilePage: React.FC = () => {
+  const { can } = usePermission();
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const { project_id } = useParams();
@@ -256,6 +258,14 @@ const ProjectProfilePage: React.FC = () => {
       <ErrorPage subtitle={error_title} reload={error_title === undefined} />
     );
   }
+  if (!can("projects.view"))
+    return (
+      <ErrorPage
+        title="ليس لديك صلاحية للوصول إلى هذه الصفحة"
+        subtitle="يرجى التواصل مع مدير النظام للحصول على الصلاحيات اللازمة."
+        reload={false}
+      />
+    );
 
   return (
     <div className="space-y-6">
@@ -271,7 +281,7 @@ const ProjectProfilePage: React.FC = () => {
           </div>
 
           {/* Project Status */}
-          {status !== null && (
+          {can("projects.edit") && status !== null && (
             <Switch
               checked={status === "قيد التنفيذ"}
               onChange={toggleStatus}
@@ -303,7 +313,7 @@ const ProjectProfilePage: React.FC = () => {
               title={
                 <div className="flex justify-between items-center bg-gradient-to-r from-green-400 to-green-600 text-white p-4 h-16">
                   <span className="font-semibold">الإيرادات</span>
-                  {project?.status === "قيد التنفيذ" && (
+                  {can("incomes.add") && project?.status === "قيد التنفيذ" && (
                     <ProjectTransactionModal
                       project_id={project_id!}
                       type="income"
@@ -341,7 +351,7 @@ const ProjectProfilePage: React.FC = () => {
               title={
                 <div className="flex justify-between items-center bg-gradient-to-r from-red-400 to-red-600 text-white p-4 h-16">
                   <span className="font-semibold">المصروفات</span>
-                  {project?.status === "قيد التنفيذ" && (
+                  {can("expenses.add") && project?.status === "قيد التنفيذ" && (
                     <ProjectTransactionModal
                       project_id={project_id!}
                       type="expense"
@@ -394,31 +404,35 @@ const ProjectProfilePage: React.FC = () => {
       )}
 
       <div className="btn-wrapper flex md:justify-end mt-4 flex-wrap gap-4">
-        <Button
-          type="primary"
-          icon={<EditOutlined />}
-          onClick={() => {
-            navigate(`/projects/edit/${project_id}`);
-          }}
-        >
-          تعديل البيانات
-        </Button>
-        <Popconfirm
-          title="هل أنت متأكد من حذف هذا المشروع؟"
-          onConfirm={handleDelete}
-          okText="نعم"
-          cancelText="لا"
-        >
+        {can("projects.edit") && (
           <Button
-            className="enabled:bg-red-500 enabled:border-red-500 enabled:shadow-[0_2px_0_rgba(0,58,58,0.31)]
-                  enabled:hover:border-red-400 enabled:hover:bg-red-400 enabled:text-white"
-            icon={<DeleteOutlined />}
-            loading={deleting}
-            disabled={loadingTransaction}
+            type="primary"
+            icon={<EditOutlined />}
+            onClick={() => {
+              navigate(`/projects/edit/${project_id}`);
+            }}
           >
-            حذف المشروع
+            تعديل البيانات
           </Button>
-        </Popconfirm>
+        )}
+        {can("projects.delete") && (
+          <Popconfirm
+            title="هل أنت متأكد من حذف هذا المشروع؟"
+            onConfirm={handleDelete}
+            okText="نعم"
+            cancelText="لا"
+          >
+            <Button
+              className="enabled:bg-red-500 enabled:border-red-500 enabled:shadow-[0_2px_0_rgba(0,58,58,0.31)]
+                  enabled:hover:border-red-400 enabled:hover:bg-red-400 enabled:text-white"
+              icon={<DeleteOutlined />}
+              loading={deleting}
+              disabled={loadingTransaction}
+            >
+              حذف المشروع
+            </Button>
+          </Popconfirm>
+        )}
       </div>
 
       {/* editing amount modal */}

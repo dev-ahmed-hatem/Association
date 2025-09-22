@@ -6,12 +6,15 @@ import { useNavigate } from "react-router";
 import { handleServerErrors } from "@/utils/handleForm";
 import { axiosBaseQueryError } from "@/app/api/axiosBaseQuery";
 import { useProjectMutation } from "@/app/api/endpoints/projects";
+import ErrorPage from "../Error";
+import { usePermission } from "@/providers/PermissionProvider";
 
 type ProjectFormProps = {
   initialValues?: { id?: number; name?: string; start_date?: string };
 };
 
 const ProjectForm = ({ initialValues }: ProjectFormProps) => {
+  const { can } = usePermission();
   const [form] = Form.useForm();
   const notification = useNotification();
   const navigate = useNavigate();
@@ -59,6 +62,26 @@ const ProjectForm = ({ initialValues }: ProjectFormProps) => {
   }, [isSuccess, project]);
 
   const isEditing = Boolean(initialValues);
+
+  if (isEditing) {
+    if (!can("projects.edit")) {
+      return (
+        <ErrorPage
+          title="ليس لديك صلاحية للوصول إلى هذه الصفحة"
+          subtitle="يرجى التواصل مع مدير النظام للحصول على الصلاحيات اللازمة."
+          reload={false}
+        />
+      );
+    }
+  } else if (!can("projects.add")) {
+    return (
+      <ErrorPage
+        title="ليس لديك صلاحية للوصول إلى هذه الصفحة"
+        subtitle="يرجى التواصل مع مدير النظام للحصول على الصلاحيات اللازمة."
+        reload={false}
+      />
+    );
+  }
 
   return (
     <>

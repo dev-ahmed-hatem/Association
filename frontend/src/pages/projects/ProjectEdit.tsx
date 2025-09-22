@@ -4,8 +4,18 @@ import Loading from "@/components/Loading";
 import ProjectForm from "./ProjectForm";
 import { axiosBaseQueryError } from "@/app/api/axiosBaseQuery";
 import ErrorPage from "../Error";
+import { usePermission } from "@/providers/PermissionProvider";
 
 const ProjectEdit = () => {
+  const { can } = usePermission();
+  if (!can("projects.edit"))
+    return (
+      <ErrorPage
+        title="ليس لديك صلاحية للوصول إلى هذه الصفحة"
+        subtitle="يرجى التواصل مع مدير النظام للحصول على الصلاحيات اللازمة."
+        reload={false}
+      />
+    );
   const { project_id } = useParams();
   if (!project_id) return <ErrorPage />;
 

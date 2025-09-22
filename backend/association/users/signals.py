@@ -2,9 +2,9 @@ from django.db.models.signals import post_migrate
 from .models import Module, Permission
 
 modules_perms = {
-    "members": ["view", "add", "edit", "delete"],
+    "clients": ["view", "add", "edit", "delete"],
     "projects": ["view", "add", "edit", "delete"],
-    "revenues": ["view", "add", "edit", "delete"],
+    "incomes": ["view", "add", "edit", "delete"],
     "expenses": ["view", "add", "edit", "delete"],
     "subscriptions": ["view", "add", "delete"],
     "installments": ["view", "add", "delete"],
