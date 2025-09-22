@@ -21,6 +21,7 @@ import { textify } from "@/utils";
 import Loading from "../Loading";
 import { useNotification } from "@/providers/NotificationProvider";
 import { Link } from "react-router";
+import { usePermission } from "@/providers/PermissionProvider";
 
 const SubscriptionHistory = ({
   client_id,
@@ -29,6 +30,7 @@ const SubscriptionHistory = ({
   client_id: string;
   rank_fee: number;
 }) => {
+  const { can } = usePermission();
   const [selectedYear, setSelectedYear] = useState<Dayjs>(dayjs());
   const notification = useNotification();
   const [message, setMessage] = useState<string | null>(null);
@@ -181,47 +183,55 @@ const SubscriptionHistory = ({
       render: (_, record) =>
         record.status === "مدفوع" ? (
           <Space>
-            <Link to={`/financials/incomes/${record.financial_record}/`}>
-              <Button
-                type="primary"
-                size="middle"
-                icon={<EyeOutlined />}
-                title="عرض"
-                disabled={isLoading}
-              />
-            </Link>
+            {can("incomes.view") && (
+              <Link to={`/financials/incomes/${record.financial_record}/`}>
+                <Button
+                  type="primary"
+                  size="middle"
+                  icon={<EyeOutlined />}
+                  title="عرض"
+                  disabled={isLoading}
+                />
+              </Link>
+            )}
 
-            <Popconfirm
-              title="تأكيد الحذف"
-              description="هل أنت متأكد أنك تريد حذف هذا السجل؟"
-              okText="نعم"
-              cancelText="إلغاء"
-              onConfirm={() => handleDelete(record.id)}
-            >
-              <Button
-                danger
-                icon={<DeleteOutlined />}
-                size="middle"
-                className="hover:bg-red-600 hover:border-red-600 hover:text-white"
-                title="حذف"
-                disabled={isLoading}
-              />
-            </Popconfirm>
+            {can("subscriptions.delete") && (
+              <Popconfirm
+                title="تأكيد الحذف"
+                description="هل أنت متأكد أنك تريد حذف هذا السجل؟"
+                okText="نعم"
+                cancelText="إلغاء"
+                onConfirm={() => handleDelete(record.id)}
+              >
+                <Button
+                  danger
+                  icon={<DeleteOutlined />}
+                  size="middle"
+                  className="hover:bg-red-600 hover:border-red-600 hover:text-white"
+                  title="حذف"
+                  disabled={isLoading}
+                />
+              </Popconfirm>
+            )}
           </Space>
         ) : (
-          <Popconfirm
-            title="تأكيد الدفع"
-            description="تأكيد الدفع بتاريخ اليوم؟"
-            okText="تأكيد"
-            cancelText="إلغاء"
-            placement="top"
-            onConfirm={() => markAsPaid(record)}
-            disabled={isLoading}
-          >
-            <Button type="primary" loading={isLoading}>
-              تسجيل كمدفوع
-            </Button>
-          </Popconfirm>
+          <>
+            {can("subscriptions.add") && (
+              <Popconfirm
+                title="تأكيد الدفع"
+                description="تأكيد الدفع بتاريخ اليوم؟"
+                okText="تأكيد"
+                cancelText="إلغاء"
+                placement="top"
+                onConfirm={() => markAsPaid(record)}
+                disabled={isLoading}
+              >
+                <Button type="primary" loading={isLoading}>
+                  تسجيل كمدفوع
+                </Button>
+              </Popconfirm>
+            )}
+          </>
         ),
     },
   ];

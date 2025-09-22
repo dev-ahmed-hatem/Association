@@ -11,7 +11,7 @@ import ErrorPage from "@/pages/Error";
 import { useNotification } from "@/providers/NotificationProvider";
 
 const modules_perms: Record<string, { label: string; value: string }[]> = {
-  members: [
+  clients: [
     { label: "عرض", value: "view" },
     { label: "إضافة", value: "add" },
     { label: "تعديل", value: "edit" },
@@ -23,7 +23,7 @@ const modules_perms: Record<string, { label: string; value: string }[]> = {
     { label: "تعديل", value: "edit" },
     { label: "حذف", value: "delete" },
   ],
-  revenues: [
+  incomes: [
     { label: "عرض", value: "view" },
     { label: "إضافة", value: "add" },
     { label: "تعديل", value: "edit" },
@@ -61,9 +61,9 @@ const modules_perms: Record<string, { label: string; value: string }[]> = {
 };
 
 const moduleLabels: Record<string, string> = {
-  members: "الأعضاء",
+  clients: "الأعضاء",
   projects: "المشروعات",
-  revenues: "الإيرادات",
+  incomes: "الإيرادات",
   expenses: "المصروفات",
   subscriptions: "الاشتراكات",
   installments: "الأقساط",

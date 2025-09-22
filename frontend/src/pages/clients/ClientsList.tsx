@@ -11,6 +11,7 @@ import ErrorPage from "../Error";
 import { PaginatedResponse } from "@/types/paginatedResponse";
 import { useGetWorkEntitiesQuery } from "@/app/api/endpoints/workentities";
 import { SortOrder } from "antd/lib/table/interface";
+import { usePermission } from "@/providers/PermissionProvider";
 
 type ControlsType = {
   sort_by?: string;
@@ -29,6 +30,8 @@ const assignmentLabels: Record<string, string> = {
 };
 
 const ClientsList = () => {
+  const { can, hasModulePermission } = usePermission();
+
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
@@ -207,55 +210,69 @@ const ClientsList = () => {
 
   if (isLoading || fetchingEntities) return <Loading />;
   if (isError || entitiesError) return <ErrorPage />;
+  if (!hasModulePermission("clients"))
+    return (
+      <ErrorPage
+        title="ليس لديك صلاحية للوصول إلى هذه الصفحة"
+        subtitle="يرجى التواصل مع مدير النظام للحصول على الصلاحيات اللازمة."
+        reload={false}
+      />
+    );
   return (
     <>
       <h1 className="mb-6 text-2xl md:text-3xl font-bold">الأعضاء</h1>
 
       <div className="flex justify-between flex-wrap mb-4 gap-6">
-        <div className="flex flex-col w-full max-w-md">
-          {/* Search Input */}
-          <Input.Search
-            placeholder="ابحث عن عضو..."
-            onSearch={onSearch}
-            className="mb-4 w-full max-w-md h-10"
-            defaultValue={search}
-            allowClear={true}
-            onClear={() => setSearch("")}
-          />
+        {can("clients.view") && (
+          <div className="flex flex-col w-full max-w-md">
+            {/* Search Input */}
+            <Input.Search
+              placeholder="ابحث عن عضو..."
+              onSearch={onSearch}
+              className="mb-4 w-full max-w-md h-10"
+              defaultValue={search}
+              allowClear={true}
+              onClear={() => setSearch("")}
+            />
 
-          {/* Radio Group for Search Type */}
-          <div className="flex flex-wrap gap-3 items-center">
-            <span>بحث ب:</span>
-            <Radio.Group
-              value={searchType}
-              onChange={(e) => setSearchType(e.target.value)}
-              className="mt-2 flex"
-              defaultValue={"name__icontains"}
-            >
-              <Radio.Button value="name__icontains">الاسم</Radio.Button>
-              <Radio.Button value="membership_number">رقم العضوية</Radio.Button>
-              <Radio.Button value="phone_number">رقم الموبايل</Radio.Button>
-            </Radio.Group>
+            {/* Radio Group for Search Type */}
+            <div className="flex flex-wrap gap-3 items-center">
+              <span>بحث ب:</span>
+              <Radio.Group
+                value={searchType}
+                onChange={(e) => setSearchType(e.target.value)}
+                className="mt-2 flex"
+                defaultValue={"name__icontains"}
+              >
+                <Radio.Button value="name__icontains">الاسم</Radio.Button>
+                <Radio.Button value="membership_number">
+                  رقم العضوية
+                </Radio.Button>
+                <Radio.Button value="phone_number">رقم الموبايل</Radio.Button>
+              </Radio.Group>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Add Button */}
-        <Link
-          to={"/clients/add"}
-          className="h-10 px-6 flex items-center text-white gap-2 rounded-lg
+        {can("clients.add") && (
+          <Link
+            to={"/clients/add"}
+            className="h-10 px-6 flex items-center text-white gap-2 rounded-lg
           bg-gradient-to-l from-green-800 to-green-600 hover:from-green-700
         hover:to-green-500 shadow-[0_2px_0_rgba(0,58,58,0.31)]
           transition-all duration-200"
-        >
-          <PlusOutlined />
-          <span>إضافة عضو</span>
-        </Link>
+          >
+            <PlusOutlined />
+            <span>إضافة عضو</span>
+          </Link>
+        )}
       </div>
 
       {isFetching && <Loading />}
 
       {/* Table */}
-      {!isFetching && clients && (
+      {can("clients.view") && !isFetching && clients && (
         <Table
           dataSource={clients?.data}
           columns={columns}

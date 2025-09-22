@@ -7,10 +7,12 @@ import React, { ReactNode, useContext, useEffect } from "react";
 
 type PermissionContextType = {
   can: (permission: string) => boolean;
+  hasModulePermission: (mod: string) => boolean;
 };
 
 const PermissionContext = React.createContext<PermissionContextType>({
   can: () => false,
+  hasModulePermission: () => false,
 });
 
 const PermissionProvider: React.FC<{ children: ReactNode }> = ({
@@ -29,6 +31,9 @@ const PermissionProvider: React.FC<{ children: ReactNode }> = ({
   const can = (permission: string) =>
     permissions.includes(permission) || user?.role === "مدير";
 
+  const hasModulePermission = (mod: string) =>
+    permissions.some((perm) => perm.startsWith(perm)) || user?.role === "مدير";
+
   useEffect(() => {
     if (permissionsList) dispatch(setPermissions(permissionsList));
   }, [permissionsList]);
@@ -43,7 +48,7 @@ const PermissionProvider: React.FC<{ children: ReactNode }> = ({
       />
     );
   return (
-    <PermissionContext.Provider value={{ can }}>
+    <PermissionContext.Provider value={{ can, hasModulePermission }}>
       {children}
     </PermissionContext.Provider>
   );

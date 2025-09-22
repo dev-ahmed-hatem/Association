@@ -30,6 +30,7 @@ import {
 } from "@/types/financial_record";
 import { LoadingOutlined } from "@ant-design/icons";
 import { useLazyGetBankAccountsQuery } from "@/app/api/endpoints/bank_accounts";
+import { usePermission } from "@/providers/PermissionProvider";
 
 const { Option } = Select;
 
@@ -50,6 +51,8 @@ const ClientForm = ({
   client_id?: string;
 }) => {
   const [form] = Form.useForm<ClientFormValues>();
+  const { can } = usePermission();
+
   const notification = useNotification();
   const navigate = useNavigate();
 
@@ -129,6 +132,26 @@ const ClientForm = ({
       );
     }
   }, [isSuccess]);
+
+  if (initialValues) {
+    if (!can("clients.edit")) {
+      return (
+        <ErrorPage
+          title="ليس لديك صلاحية للوصول إلى هذه الصفحة"
+          subtitle="يرجى التواصل مع مدير النظام للحصول على الصلاحيات اللازمة."
+          reload={false}
+        />
+      );
+    }
+  } else if (!can("clients.add")) {
+    return (
+      <ErrorPage
+        title="ليس لديك صلاحية للوصول إلى هذه الصفحة"
+        subtitle="يرجى التواصل مع مدير النظام للحصول على الصلاحيات اللازمة."
+        reload={false}
+      />
+    );
+  }
 
   if (loadingEntities) return <Loading />;
   if (entitiesError) return <ErrorPage />;

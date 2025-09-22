@@ -22,49 +22,11 @@ import { Client } from "@/types/client";
 import SubscriptionHistory from "@/components/clients/SubscriptionHistory";
 import InstallmentsHistory from "@/components/clients/InstallmentsHistory";
 import LoansHistory from "@/components/clients/LoansHistory";
-
-const items = (client: Client) => [
-  {
-    label: `التفاصيل الوظيفية`,
-    key: "1",
-    children: <JopDetails client={client} />,
-  },
-  {
-    label: `المعلومات الشخصية`,
-    key: "2",
-    children: <PersonalInfo client={client} />,
-  },
-  {
-    label: `ملاحظات`,
-    key: "3",
-    children: <ClientNotes client={client} />,
-  },
-  {
-    label: "الاشتراكات الشهرية",
-    key: "4",
-    children: (
-      <SubscriptionHistory client_id={client.id} rank_fee={client.rank_fee} />
-    ),
-  },
-  {
-    label: `الأقساط`,
-    key: "5",
-    children: (
-      <InstallmentsHistory
-        client_id={client.id}
-        subscription_fee={client.subscription_fee}
-        prepaid={client.prepaid}
-      />
-    ),
-  },
-  {
-    label: `القروض`,
-    key: "6",
-    children: <LoansHistory client_id={client.id} />,
-  },
-];
+import { usePermission } from "@/providers/PermissionProvider";
+import { TabsProps } from "antd/lib";
 
 const ClientProfilePage: React.FC = () => {
+  const { can } = usePermission();
   const navigate = useNavigate();
   const notification = useNotification();
   const { client_id } = useParams();
@@ -114,6 +76,65 @@ const ClientProfilePage: React.FC = () => {
       method: "DELETE",
       data: {},
     });
+  };
+
+  const items = () => {
+    const tabItems: TabsProps["items"] = [];
+
+    if (can("clients.view"))
+      tabItems.push(
+        ...[
+          {
+            label: `التفاصيل الوظيفية`,
+            key: "1",
+            children: <JopDetails client={client!} />,
+          },
+          {
+            label: `المعلومات الشخصية`,
+            key: "2",
+            children: <PersonalInfo client={client!} />,
+          },
+          {
+            label: `ملاحظات`,
+            key: "3",
+            children: <ClientNotes client={client!} />,
+          },
+        ]
+      );
+
+    if (can("subscriptions.view"))
+      tabItems.push({
+        label: "الاشتراكات الشهرية",
+        key: "4",
+        children: (
+          <SubscriptionHistory
+            client_id={client!.id}
+            rank_fee={client!.rank_fee}
+          />
+        ),
+      });
+
+    if (can("installments.view"))
+      tabItems.push({
+        label: `الأقساط`,
+        key: "5",
+        children: (
+          <InstallmentsHistory
+            client_id={client!.id}
+            subscription_fee={client!.subscription_fee}
+            prepaid={client!.prepaid}
+          />
+        ),
+      });
+
+    if (can("loans.view"))
+      tabItems.push({
+        label: `القروض`,
+        key: "6",
+        children: <LoansHistory client_id={client!.id} />,
+      });
+
+    return tabItems;
   };
 
   useEffect(() => {
@@ -214,13 +235,15 @@ const ClientProfilePage: React.FC = () => {
           {/* Status */}
           {isActive !== null && (
             <div className="flex items-center gap-2">
-              <Switch
-                checked={isActive!}
-                onChange={toggleStatus}
-                checkedChildren="بالخدمة"
-                unCheckedChildren="متقاعد"
-                loading={switching}
-              />
+              {can("clients.edit") && (
+                <Switch
+                  checked={isActive!}
+                  onChange={toggleStatus}
+                  checkedChildren="بالخدمة"
+                  unCheckedChildren="متقاعد"
+                  loading={switching}
+                />
+              )}
             </div>
           )}
         </div>
@@ -233,7 +256,7 @@ const ClientProfilePage: React.FC = () => {
         )}
         className="mt-4"
         direction="rtl"
-        items={items(client!)}
+        items={items()}
       />
 
       <div className="flex justify-between mt-2 flex-wrap gap-2">
@@ -253,46 +276,53 @@ const ClientProfilePage: React.FC = () => {
 
         {/* Action Button */}
         <div className="btn-wrapper flex md:justify-end mt-4 flex-wrap gap-4">
-          <Button
-            type="primary"
-            icon={<EditOutlined />}
-            onClick={() => {
-              navigate(`/clients/edit/${client_id}`);
-            }}
-          >
-            تعديل البيانات
-          </Button>
-          <Popconfirm
-            title="هل أنت متأكد من حذف المعاملات المالية لهذا العضو؟"
-            onConfirm={handleDeleteFinancialRecords}
-            okText="نعم"
-            cancelText="لا"
-          >
+          {can("clients.edit") && (
             <Button
-              className="enabled:bg-orange-500 enabled:border-orange-500 enabled:shadow-[0_2px_0_rgba(0,58,58,0.31)]
-      enabled:hover:border-orange-400 enabled:hover:bg-orange-400 enabled:text-white"
-              icon={<DeleteOutlined />}
-              loading={deletingFinancialRecords}
+              type="primary"
+              icon={<EditOutlined />}
+              onClick={() => {
+                navigate(`/clients/edit/${client_id}`);
+              }}
             >
-              حذف المعاملات المالية
+              تعديل البيانات
             </Button>
-          </Popconfirm>
+          )}
 
-          <Popconfirm
-            title="هل أنت متأكد من حذف هذا العضو؟"
-            onConfirm={handleDelete}
-            okText="نعم"
-            cancelText="لا"
-          >
-            <Button
-              className="enabled:bg-red-500 enabled:border-red-500 enabled:shadow-[0_2px_0_rgba(0,58,58,0.31)]
-            enabled:hover:border-red-400 enabled:hover:bg-red-400 enabled:text-white"
-              icon={<DeleteOutlined />}
-              loading={deleting}
+          {can("incomes.delete") && (
+            <Popconfirm
+              title="هل أنت متأكد من حذف المعاملات المالية لهذا العضو؟"
+              onConfirm={handleDeleteFinancialRecords}
+              okText="نعم"
+              cancelText="لا"
             >
-              حذف العضو
-            </Button>
-          </Popconfirm>
+              <Button
+                className="enabled:bg-orange-500 enabled:border-orange-500 enabled:shadow-[0_2px_0_rgba(0,58,58,0.31)]
+              enabled:hover:border-orange-400 enabled:hover:bg-orange-400 enabled:text-white"
+                icon={<DeleteOutlined />}
+                loading={deletingFinancialRecords}
+              >
+                حذف المعاملات المالية
+              </Button>
+            </Popconfirm>
+          )}
+
+          {can("clients.delete") && (
+            <Popconfirm
+              title="هل أنت متأكد من حذف هذا العضو؟"
+              onConfirm={handleDelete}
+              okText="نعم"
+              cancelText="لا"
+            >
+              <Button
+                className="enabled:bg-red-500 enabled:border-red-500 enabled:shadow-[0_2px_0_rgba(0,58,58,0.31)]
+            enabled:hover:border-red-400 enabled:hover:bg-red-400 enabled:text-white"
+                icon={<DeleteOutlined />}
+                loading={deleting}
+              >
+                حذف العضو
+              </Button>
+            </Popconfirm>
+          )}
         </div>
       </div>
     </>
