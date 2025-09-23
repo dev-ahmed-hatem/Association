@@ -32,7 +32,7 @@ const PermissionProvider: React.FC<{ children: ReactNode }> = ({
     permissions.includes(permission) || user?.role === "مدير";
 
   const hasModulePermission = (mod: string) =>
-    permissions.some((perm) => perm.startsWith(perm)) || user?.role === "مدير";
+    permissions.some((perm) => perm.startsWith(mod)) || user?.role === "مدير";
 
   useEffect(() => {
     if (permissionsList) dispatch(setPermissions(permissionsList));
