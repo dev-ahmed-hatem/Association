@@ -13,8 +13,10 @@ import { Loan } from "@/types/loan";
 import { useLazyGetLoansQuery } from "@/app/api/endpoints/loans";
 import ErrorPage from "@/pages/Error";
 import { tablePaginationConfig } from "@/utils/antd";
+import { usePermission } from "@/providers/PermissionProvider";
 
 const LoansList: React.FC = () => {
+  const { can, hasModulePermission } = usePermission();
   const isLoans = useMatch("/financials/loans");
   const [search, setSearch] = useState("");
   const navigate = useNavigate();
@@ -110,37 +112,50 @@ const LoansList: React.FC = () => {
   if (isLoading) return <Loading />;
   if (isError) return <ErrorPage />;
 
+  if (!hasModulePermission("loans"))
+    return (
+      <ErrorPage
+        title="ليس لديك صلاحية للوصول إلى هذه الصفحة"
+        subtitle="يرجى التواصل مع مدير النظام للحصول على الصلاحيات اللازمة."
+        reload={false}
+      />
+    );
+
   return (
     <>
       <h1 className="mb-6 text-2xl md:text-3xl font-bold">القروض</h1>
 
       <div className="flex justify-end flex-wrap gap-2 mb-4">
-        <Link
-          to="add"
-          className="h-10 px-6 flex items-center text-white gap-2 rounded-lg
+        {can("loans.add") && (
+          <Link
+            to="add"
+            className="h-10 px-6 flex items-center text-white gap-2 rounded-lg
          bg-gradient-to-l from-green-800 to-green-600 
         hover:from-green-700 hover:to-green-500 shadow-[0_2px_0_rgba(0,58,58,0.31)]
          transition-all duration-200"
-        >
-          <PlusOutlined />
-          إضافة قرض
-        </Link>
+          >
+            <PlusOutlined />
+            إضافة قرض
+          </Link>
+        )}
       </div>
 
       <div className="flex justify-between flex-wrap gap-2">
-        <Input.Search
-          placeholder="ابحث عن عضو..."
-          onSearch={(value) => setSearch(value)}
-          className="mb-4 w-full max-w-md h-10"
-          defaultValue={search}
-          allowClear={true}
-          onClear={() => setSearch("")}
-        />
+        {can("loans.view") && (
+          <Input.Search
+            placeholder="ابحث عن عضو..."
+            onSearch={(value) => setSearch(value)}
+            className="mb-4 w-full max-w-md h-10"
+            defaultValue={search}
+            allowClear={true}
+            onClear={() => setSearch("")}
+          />
+        )}
       </div>
 
       {isFetching && <Loading />}
 
-      {!isFetching && (
+      {can("loans.view") && !isFetching && (
         <Table
           dataSource={loans?.data}
           columns={columns}

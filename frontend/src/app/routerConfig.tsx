@@ -9,7 +9,7 @@ import FinancialEdit from "@/pages/financials/FinancialEdit";
 import ProjectProfilePage from "@/pages/projects/ProjectProfilePage";
 import ProjectForm from "@/pages/projects/ProjectForm";
 import ProjectEdit from "@/pages/projects/ProjectEdit";
-import LoanForm from "@/pages/financials/LoansForm";
+import LoanForm from "@/pages/financials/loans/LoansForm";
 import LoanProfilePage from "@/pages/financials/loans/LoanProfilePage";
 
 const alterRoute = function (

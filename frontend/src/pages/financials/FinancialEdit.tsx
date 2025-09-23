@@ -4,12 +4,14 @@ import FinancialForm from "./FinancialForm";
 import { axiosBaseQueryError } from "@/app/api/axiosBaseQuery";
 import ErrorPage from "../Error";
 import { useGetFinancialRecordQuery } from "@/app/api/endpoints/financial_records";
+import { usePermission } from "@/providers/PermissionProvider";
 
 const FinancialEdit = ({
   financialType,
 }: {
   financialType: "income" | "expense";
 }) => {
+  const { can } = usePermission();
   const { record_id } = useParams();
   if (!record_id) return <ErrorPage />;
 
@@ -31,6 +33,19 @@ const FinancialEdit = ({
       <ErrorPage subtitle={error_title} reload={error_title === undefined} />
     );
   }
+
+  if (
+    (financialType === "income" && !can("incomes.edit")) ||
+    (financialType === "expense" && !can("expenses.edit"))
+  )
+    return (
+      <ErrorPage
+        title="ليس لديك صلاحية للوصول إلى هذه الصفحة"
+        subtitle="يرجى التواصل مع مدير النظام للحصول على الصلاحيات اللازمة."
+        reload={false}
+      />
+    );
+
   return <FinancialForm initialValues={record} financialType={financialType} />;
 };
 

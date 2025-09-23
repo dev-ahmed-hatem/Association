@@ -21,23 +21,22 @@ import { handleServerErrors } from "@/utils/handleForm";
 import { useLoanMutation } from "@/app/api/endpoints/loans";
 import { Loan } from "@/types/loan";
 import { useGetClientsQuery } from "@/app/api/endpoints/clients";
-import { PaginatedResponse } from "@/types/paginatedResponse";
-import { Client } from "@/types/client";
+import { usePermission } from "@/providers/PermissionProvider";
+import ErrorPage from "@/pages/Error";
 
 const { TextArea } = Input;
 
 type LoanFormProps = {
-  onSubmit?: (values: Loan) => void;
   initialValues?: Partial<Loan> & { editable?: boolean };
 };
 
-const LoanForm = ({ onSubmit, initialValues }: LoanFormProps) => {
+const LoanForm = ({ initialValues }: LoanFormProps) => {
+  const { can } = usePermission();
   const [form] = Form.useForm();
   const notification = useNotification();
   const navigate = useNavigate();
 
   const [search, setSearch] = useState("");
-  const [clients, setClients] = useState<Client[]>([]);
 
   const [amount, setAmount] = useState<number>(initialValues?.amount ?? 0);
   const [repaymentsCount, setRepaymentsCount] = useState<number>(
@@ -122,6 +121,15 @@ const LoanForm = ({ onSubmit, initialValues }: LoanFormProps) => {
 
   const repaymentAmount =
     repaymentsCount > 0 ? (amount / repaymentsCount).toFixed(2) : "0.00";
+
+  if (!can("loans.add"))
+    return (
+      <ErrorPage
+        title="ليس لديك صلاحية للوصول إلى هذه الصفحة"
+        subtitle="يرجى التواصل مع مدير النظام للحصول على الصلاحيات اللازمة."
+        reload={false}
+      />
+    );
 
   return (
     <>

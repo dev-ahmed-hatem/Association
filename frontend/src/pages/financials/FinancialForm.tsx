@@ -30,6 +30,7 @@ import { axiosBaseQueryError } from "@/app/api/axiosBaseQuery";
 import { handleServerErrors } from "@/utils/handleForm";
 import { useNotification } from "@/providers/NotificationProvider";
 import { useNavigate } from "react-router";
+import { usePermission } from "@/providers/PermissionProvider";
 
 const { Option } = Select;
 
@@ -44,6 +45,7 @@ const FinancialForm = ({
   initialValues,
   financialType,
 }: FinancialFormProps) => {
+  const { can } = usePermission();
   const [form] = Form.useForm();
   const notification = useNotification();
   const navigate = useNavigate();
@@ -140,6 +142,18 @@ const FinancialForm = ({
       <ErrorPage
         title="لا يمكن تعديل العملية"
         subtitle="هذه العملية تم إنشاؤها بواسطة النظام ، وبالتالي لا يمكن تعديلها."
+        reload={false}
+      />
+    );
+
+  if (
+    (financialType === "income" && !can("incomes.add")) ||
+    (financialType === "expense" && !can("expenses.add"))
+  )
+    return (
+      <ErrorPage
+        title="ليس لديك صلاحية للوصول إلى هذه الصفحة"
+        subtitle="يرجى التواصل مع مدير النظام للحصول على الصلاحيات اللازمة."
         reload={false}
       />
     );

@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { Card, Avatar, Tabs, Button, Popconfirm } from "antd";
-import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
+import { DeleteOutlined } from "@ant-design/icons";
 import { useParams, useNavigate } from "react-router";
 import Loading from "@/components/Loading";
 import { useNotification } from "@/providers/NotificationProvider";
@@ -11,21 +11,10 @@ import ErrorPage from "@/pages/Error";
 import LoanStatusBadge from "@/components/financials/loans/LoanStatusBadge";
 import LoanDetails from "@/components/financials/loans/LoanDetails";
 import LoanRepayments from "@/components/financials/loans/LoanRepayments";
-
-const items = (loan: Loan) => [
-  {
-    label: "تفاصيل القرض",
-    key: "1",
-    children: <LoanDetails loan={loan} />,
-  },
-  {
-    label: "الأقساط / السداد",
-    key: "2",
-    children: <LoanRepayments loan_id={loan.id.toString()} />,
-  },
-];
+import { usePermission } from "@/providers/PermissionProvider";
 
 const LoanProfilePage: React.FC = () => {
+  const { can } = usePermission();
   const { loan_id } = useParams();
   const navigate = useNavigate();
   const notification = useNotification();
@@ -46,6 +35,23 @@ const LoanProfilePage: React.FC = () => {
       isSuccess: deleted,
     },
   ] = useLoanMutation();
+
+  const items = (loan: Loan) => [
+    {
+      label: "تفاصيل القرض",
+      key: "1",
+      children: <LoanDetails loan={loan} />,
+    },
+    ...(can("loans.viewRepayments")
+      ? [
+          {
+            label: "الأقساط / السداد",
+            key: "2",
+            children: <LoanRepayments loan_id={loan.id.toString()} />,
+          },
+        ]
+      : []),
+  ];
 
   useEffect(() => {
     if (deleteIsError) {
@@ -84,6 +90,15 @@ const LoanProfilePage: React.FC = () => {
     );
   }
 
+  if (!can("loans.view"))
+    return (
+      <ErrorPage
+        title="ليس لديك صلاحية للوصول إلى هذه الصفحة"
+        subtitle="يرجى التواصل مع مدير النظام للحصول على الصلاحيات اللازمة."
+        reload={false}
+      />
+    );
+
   return (
     <>
       {/* Loan Header */}
@@ -112,22 +127,24 @@ const LoanProfilePage: React.FC = () => {
         <div className="flex gap-1 flex-col text-sm"></div>
 
         <div className="btn-wrapper flex md:justify-end mt-4 flex-wrap gap-4">
-          <Popconfirm
-            title="سيتم حذف القرض بجميع السجلات المالية الخاصة به؟"
-            onConfirm={handleDelete}
-            okText="نعم"
-            cancelText="لا"
-          >
-            <Button
-              className="enabled:bg-red-500 enabled:border-red-500 enabled:shadow-[0_2px_0_rgba(0,58,58,0.31)]
-            enabled:hover:border-red-400 enabled:hover:bg-red-400 enabled:text-white"
-              danger
-              icon={<DeleteOutlined />}
-              loading={deleting}
+          {can("loans.delete") && (
+            <Popconfirm
+              title="سيتم حذف القرض بجميع السجلات المالية الخاصة به؟"
+              onConfirm={handleDelete}
+              okText="نعم"
+              cancelText="لا"
             >
-              حذف القرض
-            </Button>
-          </Popconfirm>
+              <Button
+                className="enabled:bg-red-500 enabled:border-red-500 enabled:shadow-[0_2px_0_rgba(0,58,58,0.31)]
+            enabled:hover:border-red-400 enabled:hover:bg-red-400 enabled:text-white"
+                danger
+                icon={<DeleteOutlined />}
+                loading={deleting}
+              >
+                حذف القرض
+              </Button>
+            </Popconfirm>
+          )}
         </div>
       </div>
     </>

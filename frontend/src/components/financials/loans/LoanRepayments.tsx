@@ -20,8 +20,10 @@ import {
   useRepaymentMutation,
 } from "@/app/api/endpoints/repayments";
 import { Repayment } from "@/types/repayment";
+import { usePermission } from "@/providers/PermissionProvider";
 
 const LoanRepaymentHistory = ({ loan_id }: { loan_id: string }) => {
+  const { can } = usePermission();
   const notification = useNotification();
   const [message, setMessage] = useState<string | null>(null);
 
@@ -144,47 +146,55 @@ const LoanRepaymentHistory = ({ loan_id }: { loan_id: string }) => {
       render: (_, record) =>
         record.status === "مدفوع" ? (
           <Space>
-            <Link to={`/financials/incomes/${record.financial_record}/`}>
-              <Button
-                type="primary"
-                size="middle"
-                icon={<EyeOutlined />}
-                title="عرض"
-                disabled={isLoading}
-              />
-            </Link>
+            {can("incomes.view") && (
+              <Link to={`/financials/incomes/${record.financial_record}/`}>
+                <Button
+                  type="primary"
+                  size="middle"
+                  icon={<EyeOutlined />}
+                  title="عرض"
+                  disabled={isLoading}
+                />
+              </Link>
+            )}
 
-            <Popconfirm
-              title="تأكيد الإلغاء"
-              description="هل أنت متأكد أنك تريد إلغاء هذه الدفعة؟"
-              okText="نعم"
-              cancelText="إلغاء"
-              onConfirm={() => handleDelete(record.id.toString())}
-            >
-              <Button
-                danger
-                icon={<DeleteOutlined />}
-                size="middle"
-                className="hover:bg-red-600 hover:border-red-600 hover:text-white"
-                title="إلغاء"
-                disabled={isLoading}
-              />
-            </Popconfirm>
+            {can("loans.deleteRepayment") && (
+              <Popconfirm
+                title="تأكيد الإلغاء"
+                description="هل أنت متأكد أنك تريد إلغاء هذه الدفعة؟"
+                okText="نعم"
+                cancelText="إلغاء"
+                onConfirm={() => handleDelete(record.id.toString())}
+              >
+                <Button
+                  danger
+                  icon={<DeleteOutlined />}
+                  size="middle"
+                  className="hover:bg-red-600 hover:border-red-600 hover:text-white"
+                  title="إلغاء"
+                  disabled={isLoading}
+                />
+              </Popconfirm>
+            )}
           </Space>
         ) : (
-          <Popconfirm
-            title="تأكيد الدفع"
-            description="تأكيد الدفع بتاريخ اليوم؟"
-            okText="تأكيد"
-            cancelText="إلغاء"
-            placement="top"
-            onConfirm={() => markAsPaid(record)}
-            disabled={isLoading}
-          >
-            <Button type="primary" loading={isLoading}>
-              تسجيل كمدفوع
-            </Button>
-          </Popconfirm>
+          <>
+            {can("loans.addRepayment") && (
+              <Popconfirm
+                title="تأكيد الدفع"
+                description="تأكيد الدفع بتاريخ اليوم؟"
+                okText="تأكيد"
+                cancelText="إلغاء"
+                placement="top"
+                onConfirm={() => markAsPaid(record)}
+                disabled={isLoading}
+              >
+                <Button type="primary" loading={isLoading}>
+                  تسجيل كمدفوع
+                </Button>
+              </Popconfirm>
+            )}
+          </>
         ),
     },
   ];

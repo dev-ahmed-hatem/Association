@@ -8,7 +8,7 @@ modules_perms = {
     "expenses": ["view", "add", "edit", "delete"],
     "subscriptions": ["view", "add", "delete"],
     "installments": ["view", "add", "delete"],
-    "loans": ["view", "add", "delete"],
+    "loans": ["view", "add", "delete", "viewRepayments", "addRepayment", "deleteRepayment"],
     "settings": [
         "workEntities",
         "bankAccounts",

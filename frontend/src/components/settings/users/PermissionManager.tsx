@@ -51,6 +51,9 @@ const modules_perms: Record<string, { label: string; value: string }[]> = {
     { label: "عرض", value: "view" },
     { label: "إضافة", value: "add" },
     { label: "حذف", value: "delete" },
+    { label: "عرض الأقساط", value: "viewRepayments" },
+    { label: "إضافة", value: "addRepayment" },
+    { label: "حذف قسط", value: "deleteRepayment" },
   ],
   settings: [
     { label: "جهات العمل", value: "workEntities" },
