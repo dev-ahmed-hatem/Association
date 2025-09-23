@@ -18,6 +18,7 @@ import ErrorPage from "../Error";
 import { PaginatedResponse } from "@/types/paginatedResponse";
 import { useGetTransactionTypesQuery } from "@/app/api/endpoints/transaction_types";
 import { SortOrder } from "antd/lib/table/interface";
+import { usePermission } from "@/providers/PermissionProvider";
 
 type Props = {
   financialType: "income" | "expense";
@@ -33,6 +34,7 @@ type ControlsType = {
 } | null;
 
 const FinancialRecords: React.FC<Props> = ({ financialType }) => {
+  const { can, hasModulePermission } = usePermission();
   const isFinancials = useMatch(`/financials/${financialType}s`);
   const [selectedDate, setSelectedDate] = useState<string>(
     dayjs().format("YYYY-MM-DD")
@@ -151,72 +153,93 @@ const FinancialRecords: React.FC<Props> = ({ financialType }) => {
 
   if (isLoading || typesLoading) return <Loading />;
   if (isError || typesIsError) return <ErrorPage />;
+  if (
+    (financialType === "income" && !hasModulePermission("incomes")) ||
+    (financialType === "expense" && !hasModulePermission("expenses"))
+  )
+    return (
+      <ErrorPage
+        title="ليس لديك صلاحية للوصول إلى هذه الصفحة"
+        subtitle="يرجى التواصل مع مدير النظام للحصول على الصلاحيات اللازمة."
+        reload={false}
+      />
+    );
   return (
     <>
       <h1 className="mb-6 text-2xl md:text-3xl font-bold">{pageTitle}</h1>
 
       <div className="flex justify-end flex-wrap gap-2 mb-4">
-        <Link
-          to={"add"}
-          className="h-10 px-6 flex items-center text-white gap-2 rounded-lg
+        {((financialType === "income" && can("incomes.add")) ||
+          (financialType === "expense" && can("expenses.add"))) && (
+          <Link
+            to={"add"}
+            className="h-10 px-6 flex items-center text-white gap-2 rounded-lg
          bg-gradient-to-l from-green-800 to-green-600 
         hover:from-green-700 hover:to-green-500 shadow-[0_2px_0_rgba(0,58,58,0.31)]
          transition-all duration-200"
-        >
-          <PlusOutlined />
-          {addButtonLabel}
-        </Link>
+          >
+            <PlusOutlined />
+            {addButtonLabel}
+          </Link>
+        )}
       </div>
       <div className="flex justify-between flex-wrap gap-2">
-        <DatePicker
-          onChange={(date) => setSelectedDate(date?.format("YYYY-MM-DD") || "")}
-          value={dayjs(selectedDate)}
-          format="YYYY-MM-DD"
-          className="mb-4 h-10 w-full max-w-sm"
-          placeholder="اختر التاريخ"
-          suffixIcon={<CalendarOutlined />}
-          allowClear={false}
-        />
+        {((financialType === "income" && can("incomes.view")) ||
+          (financialType === "expense" && can("expenses.view"))) && (
+          <DatePicker
+            onChange={(date) =>
+              setSelectedDate(date?.format("YYYY-MM-DD") || "")
+            }
+            value={dayjs(selectedDate)}
+            format="YYYY-MM-DD"
+            className="mb-4 h-10 w-full max-w-sm"
+            placeholder="اختر التاريخ"
+            suffixIcon={<CalendarOutlined />}
+            allowClear={false}
+          />
+        )}
       </div>
 
       {isFetching && <Loading />}
 
-      {!isFetching && (
-        <Table
-          dataSource={records?.data}
-          columns={columns}
-          rowKey="id"
-          pagination={tablePaginationConfig({
-            total: records?.count,
-            current: records?.page,
-            showQuickJumper: true,
-            pageSize,
-            onChange(page, pageSize) {
-              setPage(page);
-              setPageSize(pageSize);
-            },
-          })}
-          onChange={(_, filters, sorter: any) => {
-            setControls({
-              ...(sorter.column?.key && { sort_by: sorter.column.key }),
-              ...(sorter.order && { order: sorter.order }),
-              filters: Object.fromEntries(
-                Object.entries(filters).map(([filter, values]) => [
-                  filter,
-                  (values as string[])?.join(),
-                ])
-              ),
-            });
-          }}
-          bordered
-          scroll={{ x: "max-content" }}
-          className="clickable-table minsk-header"
-          onRow={(record) => ({
-            onClick: () =>
-              navigate(`/financials/${financialType}s/${record.id}`),
-          })}
-        />
-      )}
+      {!isFetching &&
+        ((financialType === "income" && can("incomes.view")) ||
+          (financialType === "expense" && can("expenses.view"))) && (
+          <Table
+            dataSource={records?.data}
+            columns={columns}
+            rowKey="id"
+            pagination={tablePaginationConfig({
+              total: records?.count,
+              current: records?.page,
+              showQuickJumper: true,
+              pageSize,
+              onChange(page, pageSize) {
+                setPage(page);
+                setPageSize(pageSize);
+              },
+            })}
+            onChange={(_, filters, sorter: any) => {
+              setControls({
+                ...(sorter.column?.key && { sort_by: sorter.column.key }),
+                ...(sorter.order && { order: sorter.order }),
+                filters: Object.fromEntries(
+                  Object.entries(filters).map(([filter, values]) => [
+                    filter,
+                    (values as string[])?.join(),
+                  ])
+                ),
+              });
+            }}
+            bordered
+            scroll={{ x: "max-content" }}
+            className="clickable-table minsk-header"
+            onRow={(record) => ({
+              onClick: () =>
+                navigate(`/financials/${financialType}s/${record.id}`),
+            })}
+          />
+        )}
     </>
   );
 };
