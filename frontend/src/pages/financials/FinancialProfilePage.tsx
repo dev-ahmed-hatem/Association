@@ -16,6 +16,7 @@ import Loading from "@/components/Loading";
 import { axiosBaseQueryError } from "@/app/api/axiosBaseQuery";
 import ErrorPage from "../Error";
 import { useNotification } from "@/providers/NotificationProvider";
+import { usePermission } from "@/providers/PermissionProvider";
 
 const items = (record: FinancialRecord) => [
   {
@@ -26,6 +27,7 @@ const items = (record: FinancialRecord) => [
 ];
 
 const FinancialProfilePage: React.FC = () => {
+  const { can } = usePermission();
   const { record_id } = useParams();
   const navigate = useNavigate();
   const notification = useNotification();
@@ -76,6 +78,18 @@ const FinancialProfilePage: React.FC = () => {
 
     return (
       <ErrorPage subtitle={error_title} reload={error_title === undefined} />
+    );
+  }
+  if (
+    (record?.transaction_type.type === "إيراد" && !can("incomes.view")) ||
+    (record?.transaction_type.type === "مصروف" && !can("expenses.view"))
+  ) {
+    return (
+      <ErrorPage
+        title="ليس لديك صلاحية للوصول إلى هذه الصفحة"
+        subtitle="يرجى التواصل مع مدير النظام للحصول على الصلاحيات اللازمة."
+        reload={false}
+      />
     );
   }
   return (
@@ -150,34 +164,44 @@ const FinancialProfilePage: React.FC = () => {
           </span>
         ) : (
           <div className="btn-wrapper flex md:justify-end mt-4 flex-wrap gap-4">
-            <Button
-              type="primary"
-              icon={<EditOutlined />}
-              onClick={() => {
-                navigate(
-                  `/financials/${
-                    TransactionKindEnglish[record!.transaction_type.type]
-                  }s/edit/${record?.id}`
-                );
-              }}
-            >
-              تعديل العملية
-            </Button>
-            <Popconfirm
-              title="هل أنت متأكد من حذف هذه العملية؟"
-              onConfirm={handleDelete}
-              okText="نعم"
-              cancelText="لا"
-            >
+            {((record?.transaction_type.type === "إيراد" &&
+              can("incomes.edit")) ||
+              (record?.transaction_type.type === "مصروف" &&
+                can("expenses.edit"))) && (
               <Button
-                className="enabled:bg-red-500 enabled:border-red-500 enabled:shadow-[0_2px_0_rgba(0,58,58,0.31)]
-                  enabled:hover:border-red-400 enabled:hover:bg-red-400 enabled:text-white"
-                icon={<DeleteOutlined />}
-                loading={deleting}
+                type="primary"
+                icon={<EditOutlined />}
+                onClick={() => {
+                  navigate(
+                    `/financials/${
+                      TransactionKindEnglish[record!.transaction_type.type]
+                    }s/edit/${record?.id}`
+                  );
+                }}
               >
-                حذف العملية
+                تعديل العملية
               </Button>
-            </Popconfirm>
+            )}
+            {((record?.transaction_type.type === "إيراد" &&
+              can("incomes.delete")) ||
+              (record?.transaction_type.type === "مصروف" &&
+                can("expenses.delete"))) && (
+              <Popconfirm
+                title="هل أنت متأكد من حذف هذه العملية؟"
+                onConfirm={handleDelete}
+                okText="نعم"
+                cancelText="لا"
+              >
+                <Button
+                  className="enabled:bg-red-500 enabled:border-red-500 enabled:shadow-[0_2px_0_rgba(0,58,58,0.31)]
+                  enabled:hover:border-red-400 enabled:hover:bg-red-400 enabled:text-white"
+                  icon={<DeleteOutlined />}
+                  loading={deleting}
+                >
+                  حذف العملية
+                </Button>
+              </Popconfirm>
+            )}
           </div>
         )}
       </div>
