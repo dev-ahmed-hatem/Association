@@ -7,6 +7,8 @@ import {
   Row,
   Statistic,
   Typography,
+  Form,
+  DatePicker,
 } from "antd";
 import { CalendarOutlined, BankOutlined } from "@ant-design/icons";
 import {
@@ -24,6 +26,8 @@ import {
 import { dayjs } from "@/utils/locale";
 import { useGetFinancialsStatsQuery } from "@/app/api/endpoints/financials_stats";
 import Loading from "../Loading";
+import { useState } from "react";
+import { Dayjs } from "dayjs";
 
 const { Title } = Typography;
 
@@ -37,6 +41,10 @@ const cardStyle = {
 };
 
 const FinancialOverview = () => {
+  const [form] = Form.useForm();
+  const [fromDate, setFromDate] = useState<Dayjs | null>(null);
+  const [toDate, setToDate] = useState<Dayjs | null>(null);
+
   const { data, isFetching, isError, refetch } = useGetFinancialsStatsQuery();
 
   if (isFetching) return <Loading />;

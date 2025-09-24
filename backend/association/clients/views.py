@@ -223,6 +223,11 @@ def get_home_financial_stats(request):
         status=Installment.Status.UNPAID
     ).count()
 
+    # Loans (current month)
+    loans_sum = Loan.objects.filter(
+        issued_date__month=current_month, issued_date__year=current_year
+    ).aggregate(total=Sum("amount"))["total"] or 0
+
     # ---------- Last 6 months ----------
     today = now.date()
     start_date = (today - relativedelta(months=6)).replace(day=1)
@@ -268,6 +273,7 @@ def get_home_financial_stats(request):
                 "net": incomes - expenses,
                 "subscriptions": subscriptions_sum,
                 "installments": installments_sum,
+                "loans": loans_sum
             },
             "last_6_monthly_totals": monthly_totals,
             "subscriptions_count": subscriptions_count,

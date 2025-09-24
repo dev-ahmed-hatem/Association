@@ -49,13 +49,6 @@ type ProgressData = {
   unpaidPercent: number;
 };
 
-const loansData = [
-  { month: "يناير", قروض: 2400 },
-  { month: "فبراير", قروض: 1398 },
-  { month: "مارس", قروض: 2000 },
-  { month: "أبريل", قروض: 2780 },
-];
-
 const COLORS = ["#00C49F", "#FF8042"];
 
 const FinancialStatistics: React.FC = () => {
@@ -218,7 +211,7 @@ const FinancialStatistics: React.FC = () => {
           <Card className="bg-gradient-to-br from-purple-500 to-purple-700 text-white">
             <Statistic
               title={<span className="text-white">القروض</span>}
-              value={30000}
+              value={homeFinancialStats?.month_totals.loans}
               prefix={<BankOutlined />}
               suffix="ج.م"
               valueStyle={{ color: "#fff" }}

@@ -85,6 +85,7 @@ export type HomeFinancialStats = {
     net: number;
     subscriptions: number;
     installments: number;
+    loans: number;
   };
   last_6_monthly_totals: {
     month: string;
