@@ -1,9 +1,11 @@
+from dateutil.relativedelta import relativedelta
+from django.conf import settings
 from django.db import models
 from django.db.models import RestrictedError
 from django.utils.translation import gettext_lazy as _
 
 from users.models import User
-from datetime import date
+from datetime import date, datetime
 
 
 class WorkEntity(models.Model):
@@ -187,6 +189,23 @@ class Client(models.Model):
 
     def get_seniority(self):
         return f"{self.graduation_year}/{self.class_rank}"
+
+    def get_subscriptions_status(self):
+        """
+        returns number of due months and paid subscriptions
+        """
+        subscription_date = self.subscription_date
+        today = datetime.today().astimezone(settings.CAIRO_TZ).date().replace(day=subscription_date.day)
+
+        if (subscription_date > today
+                or (subscription_date.year == today.year and subscription_date.month == today.month)):
+            return 0, 0
+
+        delta = relativedelta(today, subscription_date)
+        delta_months = delta.months + delta.years * 12
+        paid_subscriptions_count = self.subscriptions.count()
+
+        return delta_months, paid_subscriptions_count
 
     def __str__(self):
         return f"{self.get_rank_display()} {self.name} - {self.membership_number}"

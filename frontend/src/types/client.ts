@@ -93,11 +93,11 @@ export type HomeFinancialStats = {
     total_expenses: number;
   }[];
   subscriptions_count: number;
-  active_clients: number;
+  unpaid_subscriptions: number;
   installments_count: number;
   unpaid_installments: number;
 
-  last_6_month_subs_ins: {
+  till_now_subs_inst: {
     total_paid_subscriptions: number;
     total_paid_installments: number;
     total_unpaid_subscriptions: number;

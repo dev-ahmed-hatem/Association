@@ -7,7 +7,6 @@ from rest_framework.exceptions import ValidationError
 from .models import Client, WorkEntity
 from financials.models import RankFee, TransactionType, FinancialRecord, Installment, BankAccount
 from dateutil.relativedelta import relativedelta
-from datetime import date
 
 
 class WorkEntitySerializer(serializers.ModelSerializer):
@@ -37,17 +36,11 @@ class ClientListSerializer(serializers.ModelSerializer):
         return obj.get_seniority()
 
     def get_dues(self, obj: Client):
-        start_date = obj.subscription_date + relativedelta(months=1)
-        today = date.today()
-        current_year_subscriptions_count = today.month - obj.subscription_date.month \
-            if today.year == obj.subscription_date.year \
-            else 12
-        paid_count = obj.subscriptions.filter(
-            date__range=[start_date, today]
-        ).count()
-        unpaid_subscriptions = max(current_year_subscriptions_count - paid_count, 0)
+        due_months, paid_subscriptions = obj.get_subscriptions_status()
+        print(due_months, paid_subscriptions)
         unpaid_installments = obj.installments.filter(status=Installment.Status.UNPAID).count()
-        return {"unpaid_subscriptions": unpaid_subscriptions, "unpaid_installments": unpaid_installments}
+        return {"unpaid_subscriptions": max(due_months - paid_subscriptions, 0),
+                "unpaid_installments": unpaid_installments}
 
 
 class ClientReadSerializer(serializers.ModelSerializer):
@@ -79,6 +72,9 @@ class ClientReadSerializer(serializers.ModelSerializer):
         if obj.prepaid:
             return {"amount": str(obj.prepaid.amount), "financial_record": obj.prepaid.id}
         return None
+
+    def get_unpaid_subscriptions(self, obj: Client):
+        return obj.get_subscriptions_status()
 
 
 class ClientWriteSerializer(serializers.ModelSerializer):

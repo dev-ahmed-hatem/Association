@@ -72,9 +72,7 @@ const FinancialStatistics: React.FC = () => {
           { name: "مدفوع", value: homeFinancialStats.subscriptions_count },
           {
             name: "متأخر",
-            value:
-              homeFinancialStats.active_clients -
-              homeFinancialStats.subscriptions_count,
+            value: homeFinancialStats.unpaid_subscriptions,
           },
         ],
         installments: [
@@ -91,7 +89,7 @@ const FinancialStatistics: React.FC = () => {
         total_paid_subscriptions: subs_paid,
         total_unpaid_installments: ins_unpaid,
         total_unpaid_subscriptions: subs_unpaid,
-      } = homeFinancialStats.last_6_month_subs_ins;
+      } = homeFinancialStats.till_now_subs_inst;
       setPercent({
         subscriptions: {
           paid: subs_paid,

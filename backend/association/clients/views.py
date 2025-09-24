@@ -1,5 +1,8 @@
+import calendar
+
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
+from django.db.models.fields import IntegerField
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.decorators import action, api_view
 from rest_framework.response import Response
@@ -10,10 +13,10 @@ from .models import Client, WorkEntity, RankChoices
 from .serializers import WorkEntitySerializer, ClientListSerializer, ClientReadSerializer, ClientWriteSerializer, \
     ClientSelectSerializer
 from django.utils.translation import gettext_lazy as _
-from django.db.models import RestrictedError, Count, Sum, Value, CharField, Q
+from django.db.models import RestrictedError, Count, Sum, Value, CharField, Q, ExpressionWrapper, F, Case, When
 from django.db.models.functions import TruncMonth, ExtractYear, ExtractMonth, Concat
 
-from datetime import datetime
+from datetime import datetime, date
 
 
 class WorkEntityViewSet(ModelViewSet):
@@ -201,10 +204,14 @@ def get_home_financial_stats(request):
 
     # Subscriptions (current month)
     current_month_subs = Subscription.objects.filter(
-        date__month=current_month, date__year=current_year
+        date__month=current_month, date__year=current_year, client__is_active=True
     )
     subscriptions_sum = current_month_subs.aggregate(total=Sum("amount"))["total"] or 0
     subscriptions_count = current_month_subs.count()
+
+    cutoff = date(current_year, current_month, 1)
+    unpaid_subscriptions = max(Client.objects.filter(is_active=True,
+                                                     subscription_date__lt=cutoff).count() - subscriptions_count, 0)
 
     # Installments (current month)
     current_month_installments = Installment.objects.filter(
@@ -249,16 +256,31 @@ def get_home_financial_stats(request):
         .order_by("month")
     )
 
-    active_clients = Client.objects.filter(is_active=True).count()
-
-    # Subscriptions last 6 months
-    subs_last_6m = Subscription.objects.filter(date__gte=start_date).count()
-    months_in_range = 6
-    total_unpaid_subscriptions = (active_clients * months_in_range) - subs_last_6m
+    subscription_stats = (Client.objects.filter(is_active=True)
+    .annotate(
+        start_year=ExtractYear("subscription_date"),
+        start_month=ExtractMonth("subscription_date"),
+    ).annotate(
+        due_months=ExpressionWrapper(
+            (current_year - F("start_year")) * 12 + (current_month - F("start_month")),
+            output_field=IntegerField(),
+        ),
+        paid=Count("subscriptions"),
+    ).annotate(
+        unpaid=ExpressionWrapper(
+            F("due_months") - F("paid"),
+            output_field=IntegerField(),
+        )
+    )).aggregate(total_paid=Sum("paid"), total_unpaid=Sum(
+        Case(
+            When(unpaid__gt=0, then=F("unpaid")),
+            default=Value(0),
+            output_field=IntegerField(),
+        )
+    ))
 
     # Installments last 6 months (total unpaid like subscriptions)
-    inst_last_6m = Installment.objects.filter(due_date__gte=start_date,
-                                              due_date__lt=end_date, ).aggregate(
+    inst_till_now = Installment.objects.filter(due_date__lt=end_date).aggregate(
         paid=Count("id", filter=Q(status=Installment.Status.PAID)),
         unpaid=Count("id", filter=Q(status=Installment.Status.UNPAID)),
     )
@@ -277,14 +299,14 @@ def get_home_financial_stats(request):
             },
             "last_6_monthly_totals": monthly_totals,
             "subscriptions_count": subscriptions_count,
-            "active_clients": active_clients,
+            "unpaid_subscriptions": unpaid_subscriptions,
             "installments_count": installments_count,
             "unpaid_installments": unpaid_installments,
-            "last_6_month_subs_ins": {
-                "total_paid_subscriptions": subs_last_6m,
-                "total_paid_installments": inst_last_6m["paid"] or 0,
-                "total_unpaid_subscriptions": total_unpaid_subscriptions,
-                "total_unpaid_installments": inst_last_6m["unpaid"] or 0,
+            "till_now_subs_inst": {
+                "total_paid_subscriptions": subscription_stats["total_paid"],
+                "total_paid_installments": inst_till_now["paid"] or 0,
+                "total_unpaid_subscriptions": subscription_stats["total_unpaid"],
+                "total_unpaid_installments": inst_till_now["unpaid"] or 0,
             },
             "loans_data": loans_data,
         },
