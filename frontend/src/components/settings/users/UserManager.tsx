@@ -15,6 +15,7 @@ import { User } from "@/types/user";
 import UserForm from "./UserForm";
 import { handleServerErrors } from "@/utils/handleForm";
 import PermissionManager from "./PermissionManager";
+import { useAppSelector } from "@/app/redux/hooks";
 
 const UserManager = () => {
   const notification = useNotification();
@@ -23,6 +24,7 @@ const UserManager = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [message, setMessage] = useState<string>("");
   const [form] = Form.useForm();
+  const user = useAppSelector((state) => state.auth.user);
 
   const {
     data: users,
@@ -111,16 +113,18 @@ const UserManager = () => {
               <PermissionManager user_id={record.id} />
             </>
           )}
-          <Button
-            icon={<LockOutlined />}
-            onClick={() => {
-              setEditingUser(record);
-              setIsModalOpen(true);
-              setChangePassword(true);
-            }}
-          >
-            تغيير كلمة المرور
-          </Button>
+          {(record.id === user!.id || record.role === "مشرف") && (
+            <Button
+              icon={<LockOutlined />}
+              onClick={() => {
+                setEditingUser(record);
+                setIsModalOpen(true);
+                setChangePassword(true);
+              }}
+            >
+              تغيير كلمة المرور
+            </Button>
+          )}
         </div>
       ),
     },

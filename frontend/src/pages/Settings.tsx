@@ -3,6 +3,7 @@ import ClientSettingsTab from "@/components/settings/clients/ClientsSettingsTab"
 import FinancialsSettingsTab from "@/components/settings/financials/FinancialsSettingsTab";
 import UserSettingsTab from "@/components/settings/users/UserSettingsTab";
 import { useAppSelector } from "@/app/redux/hooks";
+import AccountSettingsTab from "@/components/settings/account/AccountSettingsTab";
 
 const SettingsPage = () => {
   const user = useAppSelector((state) => state.auth.user);
@@ -17,6 +18,11 @@ const SettingsPage = () => {
         direction="rtl"
         defaultActiveKey="clients"
         items={[
+          {
+            key: "account",
+            label: "الحساب",
+            children: <AccountSettingsTab />,
+          },
           {
             key: "clients",
             label: "الأعضاء",

@@ -2,6 +2,7 @@ import api from "../apiSlice";
 import queryString from "query-string";
 import { QueryParams } from "@/types/query_param";
 import { User } from "@/types/user";
+import { ChangePasswordFields } from "@/components/settings/account/ChangePassword";
 
 export const usersEndpoints = api.injectEndpoints({
   endpoints: (builder) => ({
@@ -66,6 +67,13 @@ export const usersEndpoints = api.injectEndpoints({
         { type: "PermissionsList", id: arg.user_id },
       ],
     }),
+    changePassword: builder.mutation<void, ChangePasswordFields>({
+      query: (data) => ({
+        url: "/users/change-password/",
+        method: "PATCH",
+        data,
+      }),
+    }),
   }),
 });
 
@@ -74,4 +82,5 @@ export const {
   useUserMutation,
   useGetPermissionsListQuery,
   useSetPermissionsMutation,
+  useChangePasswordMutation,
 } = usersEndpoints;
