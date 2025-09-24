@@ -1,6 +1,7 @@
 from rest_framework.decorators import action, api_view, permission_classes
 from django.db.models import RestrictedError, Sum, Q, F, Value, DecimalField
 from django.db.models.functions import Coalesce
+from django.utils.dateparse import parse_date
 from rest_framework.viewsets import ModelViewSet
 
 from association.rest_framework_utils.custom_pagination import CustomPageNumberPagination
@@ -12,7 +13,6 @@ from rest_framework.response import Response
 from rest_framework import status, permissions
 from django.utils.translation import gettext_lazy as _
 from datetime import datetime, date
-from django.conf import settings
 from .models import BankAccount, TransactionType, FinancialRecord, Subscription, RankFee, Installment, Loan, Repayment
 from uuid import uuid4
 
@@ -267,47 +267,118 @@ class RepaymentViewSet(ModelViewSet):
 
 @api_view(["GET"])
 def get_financials_stats(request):
-    current_month = datetime.now().astimezone(settings.CAIRO_TZ).month
-    current_year = datetime.now().astimezone(settings.CAIRO_TZ).year
+    from_date = request.query_params.get("from")
+    to_date = request.query_params.get("to")
 
-    month_incomes = FinancialRecord.objects.filter(date__month=current_month, date__year=current_year,
-                                                   transaction_type__type=TransactionType.Type.INCOME).aggregate(
-        Sum('amount'))["amount__sum"] or 0
-    month_expenses = FinancialRecord.objects.filter(date__month=current_month, date__year=current_year,
-                                                    transaction_type__type=TransactionType.Type.EXPENSE).aggregate(
-        Sum('amount'))["amount__sum"] or 0
+    if not from_date or not to_date:
+        return Response(
+            {"detail": "Both 'from' and 'to' dates are required."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
 
-    accounts_incomes = BankAccount.objects.annotate(value=Coalesce(Sum("financialrecord__amount", filter=Q(
-        financialrecord__date__month=current_month, financialrecord__date__year=current_year,
-        financialrecord__transaction_type__type=TransactionType.Type.INCOME)), Value(0),
-                                                                   output_field=DecimalField())).values("name", "value")
+    try:
+        from_date = parse_date(from_date)
+        to_date = parse_date(to_date)
+    except Exception:
+        return Response(
+            {"detail": "Invalid date format. Use YYYY-MM-DD."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
 
-    accounts_expenses = BankAccount.objects.annotate(value=Coalesce(Sum("financialrecord__amount", filter=Q(
-        financialrecord__date__month=current_month, financialrecord__date__year=current_year,
-        financialrecord__transaction_type__type=TransactionType.Type.EXPENSE)), Value(0),
-                                                                    output_field=DecimalField())).values("name",
-                                                                                                         "value")
+    # ensure valid range
+    if from_date > to_date:
+        return Response(
+            {"detail": "'from' date cannot be later than 'to' date."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
 
-    incomes_stats = FinancialRecord.objects.filter(date__month=current_month, date__year=current_year,
-                                                   transaction_type__type=TransactionType.Type.INCOME).values(
-        name=F("transaction_type__name"), type=F("transaction_type__type")).annotate(value=Sum("amount")).order_by(
-        "-value")[:4]
+    # incomes & expenses totals
+    month_incomes = (
+            FinancialRecord.objects.filter(
+                date__range=[from_date, to_date],
+                transaction_type__type=TransactionType.Type.INCOME,
+            ).aggregate(Sum("amount"))["amount__sum"]
+            or 0
+    )
+    month_expenses = (
+            FinancialRecord.objects.filter(
+                date__range=[from_date, to_date],
+                transaction_type__type=TransactionType.Type.EXPENSE,
+            ).aggregate(Sum("amount"))["amount__sum"]
+            or 0
+    )
 
-    expenses_stats = FinancialRecord.objects.filter(date__month=current_month, date__year=current_year,
-                                                    transaction_type__type=TransactionType.Type.EXPENSE).values(
-        name=F("transaction_type__name"), type=F("transaction_type__type")).annotate(value=Sum("amount")).order_by(
-        "-value")[:4]
+    # accounts incomes
+    accounts_incomes = (
+        BankAccount.objects.annotate(
+            value=Coalesce(
+                Sum(
+                    "financialrecord__amount",
+                    filter=Q(
+                        financialrecord__date__range=[from_date, to_date],
+                        financialrecord__transaction_type__type=TransactionType.Type.INCOME,
+                    ),
+                ),
+                Value(0),
+                output_field=DecimalField(),
+            )
+        )
+        .values("name", "value")
+    )
 
-    return Response({
-        "accounts_incomes": accounts_incomes,
-        "accounts_expenses": accounts_expenses,
-        "transaction_stats": list(incomes_stats) + list(expenses_stats),
-        "month_totals": {
-            "incomes": month_incomes,
-            "expenses": month_expenses,
-            "net": month_incomes - month_expenses,
-        }
-    }, status=status.HTTP_200_OK)
+    # accounts expenses
+    accounts_expenses = (
+        BankAccount.objects.annotate(
+            value=Coalesce(
+                Sum(
+                    "financialrecord__amount",
+                    filter=Q(
+                        financialrecord__date__range=[from_date, to_date],
+                        financialrecord__transaction_type__type=TransactionType.Type.EXPENSE,
+                    ),
+                ),
+                Value(0),
+                output_field=DecimalField(),
+            )
+        )
+        .values("name", "value")
+    )
+
+    # income stats grouped by transaction type
+    incomes_stats = (
+        FinancialRecord.objects.filter(
+            date__range=[from_date, to_date],
+            transaction_type__type=TransactionType.Type.INCOME,
+        )
+        .values(name=F("transaction_type__name"), type=F("transaction_type__type"))
+        .annotate(value=Sum("amount"))
+        .order_by("-value")[:4]
+    )
+
+    # expense stats grouped by transaction type
+    expenses_stats = (
+        FinancialRecord.objects.filter(
+            date__range=[from_date, to_date],
+            transaction_type__type=TransactionType.Type.EXPENSE,
+        )
+        .values(name=F("transaction_type__name"), type=F("transaction_type__type"))
+        .annotate(value=Sum("amount"))
+        .order_by("-value")[:4]
+    )
+
+    return Response(
+        {
+            "accounts_incomes": accounts_incomes,
+            "accounts_expenses": accounts_expenses,
+            "transaction_stats": list(incomes_stats) + list(expenses_stats),
+            "month_totals": {
+                "incomes": month_incomes,
+                "expenses": month_expenses,
+                "net": month_incomes - month_expenses,
+            },
+        },
+        status=status.HTTP_200_OK,
+    )
 
 
 @api_view(["GET"])

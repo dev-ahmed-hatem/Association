@@ -99,7 +99,7 @@ const ClientStats: React.FC = () => {
         {/* Subscription Growth */}
         <Card className="shadow-lg rounded-2xl w-full md:w-[46%]">
           <Title level={4} className="text-center mb-4">
-            إيرادات الاشتراكات
+            إيرادات الاشتراكات (ج.م)
           </Title>
           <ResponsiveContainer width="100%" height={250}>
             <LineChart data={homeStats!.month_totals}>

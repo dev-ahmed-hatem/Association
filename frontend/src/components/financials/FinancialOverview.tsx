@@ -42,10 +42,13 @@ const cardStyle = {
 
 const FinancialOverview = () => {
   const [form] = Form.useForm();
-  const [fromDate, setFromDate] = useState<Dayjs | null>(null);
-  const [toDate, setToDate] = useState<Dayjs | null>(null);
+  const [fromDate, setFromDate] = useState<Dayjs>(dayjs().startOf("month"));
+  const [toDate, setToDate] = useState<Dayjs>(dayjs().endOf("month"));
 
-  const { data, isFetching, isError, refetch } = useGetFinancialsStatsQuery();
+  const { data, isFetching, isError, refetch } = useGetFinancialsStatsQuery({
+    from: fromDate.format("YYYY-MM-DD"),
+    to: toDate.format("YYYY-MM-DD"),
+  });
 
   if (isFetching) return <Loading />;
   if (isError)
@@ -64,18 +67,73 @@ const FinancialOverview = () => {
   return (
     <div className="p-6">
       {/* Month Totals */}
+      {/* Date Range Selector */}
       <div className="mb-10 text-center">
         <Title level={3} className="!text-2xl !font-bold !mb-0 text-gray-800">
-          إجماليات الشهر ({dayjs().month() + 1} - {dayjs().year()})
+          إجمالي الإيرادات والمصروفات
         </Title>
-        <p className="text-gray-500 mt-1">إجمالي الإيرادات والمصروفات</p>
+        <p className="text-gray-500 mt-1 text-lg">خلال الفترة الزمنية</p>
+
+        <Form
+          form={form}
+          layout="inline"
+          className="mt-6 justify-center flex-wrap gap-4"
+          initialValues={{
+            from: dayjs().startOf("month"),
+            to: dayjs().endOf("month"),
+          }}
+        >
+          <Form.Item
+            name="from"
+            label="من"
+            rules={[{ required: true, message: "يرجى اختيار تاريخ البداية" }]}
+          >
+            <DatePicker
+              value={fromDate}
+              onChange={(date) => setFromDate(date)}
+              format="YYYY-MM-DD"
+              placeholder="اختر تاريخ البداية"
+              className="w-44"
+            />
+          </Form.Item>
+
+          <Form.Item
+            name="to"
+            label="إلى"
+            dependencies={["from"]}
+            rules={[
+              { required: true, message: "يرجى اختيار تاريخ النهاية" },
+              ({ getFieldValue }) => ({
+                validator(_, value) {
+                  if (!value || !getFieldValue("from")) {
+                    return Promise.resolve();
+                  }
+                  if (value.isBefore(getFieldValue("from"))) {
+                    return Promise.reject(
+                      new Error("تاريخ النهاية يجب أن يكون بعد تاريخ البداية")
+                    );
+                  }
+                  return Promise.resolve();
+                },
+              }),
+            ]}
+          >
+            <DatePicker
+              value={toDate}
+              onChange={(date) => setToDate(date)}
+              format="YYYY-MM-DD"
+              placeholder="اختر تاريخ النهاية"
+              className="w-44"
+            />
+          </Form.Item>
+        </Form>
       </div>
 
       <Row gutter={[16, 16]} className="mb-10">
         <Col xs={24} md={12} lg={8}>
           <Card style={cardStyle}>
             <Statistic
-              title="إيرادات الشهر"
+              title="إجمالي الإيرادات"
               value={data?.month_totals.incomes}
               prefix={<CalendarOutlined />}
               suffix="ج.م"
@@ -87,7 +145,7 @@ const FinancialOverview = () => {
         <Col xs={24} md={12} lg={8}>
           <Card style={cardStyle}>
             <Statistic
-              title="مصروفات الشهر"
+              title="إجمالي المصروفات"
               value={data?.month_totals.expenses}
               prefix={<CalendarOutlined />}
               suffix="ج.م"
