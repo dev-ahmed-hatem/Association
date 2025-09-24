@@ -274,12 +274,17 @@ const FinancialStatistics: React.FC = () => {
         <Col xs={24} md={12}>
           <Card title="القروض عبر الشهور" className="shadow-lg">
             <ResponsiveContainer width="100%" height={250}>
-              <BarChart data={loansData}>
+              <BarChart
+                data={homeFinancialStats?.loans_data.map((month) => ({
+                  month: dayjs(month.month, "YYYY-MM-DD").format("MMMM"),
+                  القيمة: month.value,
+                }))}
+              >
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="month" />
                 <YAxis />
                 <Tooltip />
-                <Bar dataKey="قروض" fill="#9333ea" />
+                <Bar dataKey="القيمة" fill="#9333ea" />
               </BarChart>
             </ResponsiveContainer>
           </Card>

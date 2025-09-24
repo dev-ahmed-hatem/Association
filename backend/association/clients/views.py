@@ -258,6 +258,8 @@ def get_home_financial_stats(request):
         unpaid=Count("id", filter=Q(status=Installment.Status.UNPAID)),
     )
 
+    loans_data = Loan.objects.annotate(month=TruncMonth("issued_date")).values("month").annotate(value=Sum("amount"))
+
     return Response(
         {
             "month_totals": {
@@ -277,7 +279,8 @@ def get_home_financial_stats(request):
                 "total_paid_installments": inst_last_6m["paid"] or 0,
                 "total_unpaid_subscriptions": total_unpaid_subscriptions,
                 "total_unpaid_installments": inst_last_6m["unpaid"] or 0,
-            }
+            },
+            "loans_data": loans_data,
         },
         status=status.HTTP_200_OK,
     )

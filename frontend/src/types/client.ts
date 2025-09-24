@@ -102,4 +102,8 @@ export type HomeFinancialStats = {
     total_unpaid_subscriptions: number;
     total_unpaid_installments: number;
   };
+  loans_data: {
+    month: string;
+    value: number;
+  }[];
 };
