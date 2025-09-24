@@ -340,10 +340,13 @@ def get_month_subscriptions(request):
     year = request.query_params.get("year")
     search = request.query_params.get("search")
 
+    cutoff = date(int(year), int(month), 1)
+
     if not month or not year:
         return Response({"detail": _("يجب تحديد الشهر والسنة")}, status=status.HTTP_400_BAD_REQUEST)
 
-    clients_qs = Client.objects.filter(is_active=True).only("id", "name", "rank", "membership_number")
+    clients_qs = Client.objects.filter(is_active=True, subscription_date__lt=cutoff).only("id", "name", "rank",
+                                                                                          "membership_number")
 
     if search:
         clients_qs = clients_qs.filter(name__icontains=search)
