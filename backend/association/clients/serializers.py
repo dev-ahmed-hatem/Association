@@ -37,12 +37,15 @@ class ClientListSerializer(serializers.ModelSerializer):
         return obj.get_seniority()
 
     def get_dues(self, obj: Client):
+        start_date = obj.subscription_date + relativedelta(months=1)
         today = date.today()
-        expected_count = 12
+        current_year_subscriptions_count = today.month - obj.subscription_date.month \
+            if today.year == obj.subscription_date.year \
+            else 12
         paid_count = obj.subscriptions.filter(
-            date__year=today.year
+            date__range=[start_date, today]
         ).count()
-        unpaid_subscriptions = max(expected_count - paid_count, 0)
+        unpaid_subscriptions = max(current_year_subscriptions_count - paid_count, 0)
         unpaid_installments = obj.installments.filter(status=Installment.Status.UNPAID).count()
         return {"unpaid_subscriptions": unpaid_subscriptions, "unpaid_installments": unpaid_installments}
 
