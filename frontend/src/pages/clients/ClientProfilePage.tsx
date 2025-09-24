@@ -109,6 +109,7 @@ const ClientProfilePage: React.FC = () => {
         children: (
           <SubscriptionHistory
             client_id={client!.id}
+            subscription_date={client!.subscription_date}
             rank_fee={client!.rank_fee}
           />
         ),

@@ -25,13 +25,16 @@ import { usePermission } from "@/providers/PermissionProvider";
 
 const SubscriptionHistory = ({
   client_id,
+  subscription_date,
   rank_fee,
 }: {
   client_id: string;
+  subscription_date: string;
   rank_fee: number;
 }) => {
   const { can } = usePermission();
   const [selectedYear, setSelectedYear] = useState<Dayjs>(dayjs());
+  const subscriptionDateObj = dayjs(subscription_date, "YYYY-MM-DD");
   const notification = useNotification();
   const [message, setMessage] = useState<string | null>(null);
 
@@ -53,10 +56,17 @@ const SubscriptionHistory = ({
   const getYearSalaryData = (): SubscriptionDisplay[] => {
     let yearData: SubscriptionDisplay[] = [];
 
-    const monthCount =
+    const monthsStart =
+      selectedYear.year() < subscriptionDateObj.year()
+        ? 100 // any large number to invalidate the loop condition
+        : selectedYear.year() === subscriptionDateObj.year()
+        ? subscriptionDateObj.add(1, "month").month()
+        : 0;
+
+    const monthsCount =
       dayjs().year() === selectedYear.year() ? selectedYear.month() + 1 : 12;
 
-    for (let i = 0; i < monthCount; i++) {
+    for (let i = monthsStart; i < monthsCount; i++) {
       const month = selectedYear.startOf("year").add(i, "month");
 
       const paidMonth = paid?.[i + 1];
@@ -281,7 +291,10 @@ const SubscriptionHistory = ({
           format="[السنة ]YYYY"
           placeholder="اختر السنة"
           className="w-full md:w-60"
-          disabledDate={(date) => date.year() > dayjs().year()}
+          disabledDate={(date) =>
+            date.year() > dayjs().year() ||
+            date.year() < subscriptionDateObj.year()
+          }
           disabled={isFetching}
           allowClear={false}
         />
