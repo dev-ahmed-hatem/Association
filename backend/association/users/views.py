@@ -8,10 +8,6 @@ from django.utils.translation import gettext_lazy as _
 from .serializers import UserSerializer
 from .models import User, Permission
 
-# for getting models permissions
-from django.apps import apps
-from django.contrib.contenttypes.models import ContentType
-
 
 class UserViewSet(ModelViewSet):
     queryset = User.objects.all()

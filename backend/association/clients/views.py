@@ -1,5 +1,3 @@
-import calendar
-
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.db.models.fields import IntegerField
