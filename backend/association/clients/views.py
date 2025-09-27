@@ -47,7 +47,7 @@ class ClientViewSet(ModelViewSet):
         sort_by = self.request.query_params.get('sort_by', None)
         order = self.request.query_params.get('order', None)
 
-        if search is not None:
+        if search not in (None, ""):
             queryset = queryset.filter(**{search_type: search})
 
         if status_filters == "active":
