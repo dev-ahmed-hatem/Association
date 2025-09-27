@@ -279,10 +279,8 @@ const ClientsList = () => {
         )}
       </div>
 
-      {isFetching && <Loading />}
-
       {/* Table */}
-      {can("clients.view") && !isFetching && clients && (
+      {can("clients.view") && clients && (
         <Table
           dataSource={clients?.data}
           columns={columns}
@@ -290,6 +288,7 @@ const ClientsList = () => {
             onClick: () => navigate(`client-profile/${record.id}`),
           })}
           rowKey="id"
+          loading={isFetching}
           pagination={tablePaginationConfig({
             total: clients?.count,
             current: clients?.page,
