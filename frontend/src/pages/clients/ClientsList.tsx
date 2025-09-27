@@ -36,6 +36,8 @@ const ClientsList = () => {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
   const [controls, setControls] = useState<ControlsType>({
+    sort_by: "membership_number",
+    order: "ascend",
     filters: { name: "active" },
   });
   const [searchType, setSearchType] = useState<
