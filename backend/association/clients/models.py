@@ -99,8 +99,7 @@ class Client(models.Model):
         blank=True,
         verbose_name=_("جهة العمل")
     )
-    membership_number = models.CharField(
-        max_length=20,
+    membership_number = models.IntegerField(
         unique=True,
         verbose_name=_("رقم العضوية"),
         error_messages={

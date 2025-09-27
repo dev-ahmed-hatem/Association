@@ -37,7 +37,6 @@ class ClientListSerializer(serializers.ModelSerializer):
 
     def get_dues(self, obj: Client):
         due_months, paid_subscriptions = obj.get_subscriptions_status()
-        print(due_months, paid_subscriptions)
         unpaid_installments = obj.installments.filter(status=Installment.Status.UNPAID).count()
         return {"unpaid_subscriptions": max(due_months - paid_subscriptions, 0),
                 "unpaid_installments": unpaid_installments}
