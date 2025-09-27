@@ -111,6 +111,16 @@ const ClientsList = () => {
       defaultFilteredValue: controls?.filters?.name?.split(",") ?? ["active"],
     },
     {
+      title: "تاريخ الاشتراك",
+      dataIndex: "subscription_date",
+      key: "subscription_date",
+      sorter: true,
+      sortOrder:
+        controls?.sort_by === "subscription_date"
+          ? controls?.order ?? null
+          : null,
+    },
+    {
       title: "الرتبة",
       dataIndex: "rank",
       key: "rank",

@@ -30,7 +30,8 @@ class ClientListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Client
-        fields = ["id", "name", "membership_number", "rank", "seniority", "work_entity", "is_active", "dues"]
+        fields = ["id", "name", "membership_number", "rank", "seniority", "work_entity", "is_active", "dues",
+                  "subscription_date"]
 
     def get_seniority(self, obj: Client):
         return obj.get_seniority()
