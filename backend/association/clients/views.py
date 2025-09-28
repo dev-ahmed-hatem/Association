@@ -48,7 +48,12 @@ class ClientViewSet(ModelViewSet):
         order = self.request.query_params.get('order', None)
 
         if search not in (None, ""):
-            queryset = queryset.filter(**{search_type: search})
+            try:
+                if search_type == "membership_number" and not search.isdigit():
+                    raise ValueError("membership_number must be an integer")
+                queryset = queryset.filter(**{search_type: search})
+            except ValueError:
+                pass
 
         if status_filters == "active":
             queryset = queryset.filter(is_active=True)
