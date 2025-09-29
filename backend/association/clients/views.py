@@ -93,7 +93,7 @@ class ClientViewSet(ModelViewSet):
             data = ClientReadSerializer(client, context={"request": self.request}).data
             return Response(data)
         except Exception:
-            return Response({'detail': _('عميل غير موجود')}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'detail': _('عضو غير موجود')}, status=status.HTTP_404_NOT_FOUND)
 
     @action(detail=True, methods=['post'])
     def switch_active(self, request, pk=None):

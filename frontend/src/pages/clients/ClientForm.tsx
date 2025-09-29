@@ -363,13 +363,15 @@ const ClientForm = ({
                 label="جهة العمل"
                 rules={[{ required: true, message: "يرجى إدخال جهة العمل" }]}
               >
-                <Select placeholder="اختر الجهة">
-                  {workentites?.map((entity) => (
-                    <Option value={entity.id} key={entity.id}>
-                      {entity.name}
-                    </Option>
-                  ))}
-                </Select>
+                <Select
+                  placeholder="اختر الجهة"
+                  showSearch
+                  options={workentites?.map((entity) => ({
+                    value: entity.id,
+                    label: entity.name,
+                  }))}
+                  optionLabelProp="label"
+                />
               </Form.Item>
             </Col>
           </Row>

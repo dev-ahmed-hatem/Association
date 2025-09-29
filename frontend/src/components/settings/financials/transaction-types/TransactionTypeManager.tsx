@@ -61,11 +61,11 @@ const TransactionTypeManager = () => {
   };
 
   const columns = [
-    {
-      title: "",
-      dataIndex: "id",
-      key: "id",
-    },
+    // {
+    //   title: "",
+    //   dataIndex: "id",
+    //   key: "id",
+    // },
     {
       title: "اسم المعاملة",
       dataIndex: "name",

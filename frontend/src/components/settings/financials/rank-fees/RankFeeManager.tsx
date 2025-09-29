@@ -41,11 +41,11 @@ const RankFeeManager = () => {
   };
 
   const columns = [
-    {
-      title: "",
-      dataIndex: "id",
-      key: "id",
-    },
+    // {
+    //   title: "",
+    //   dataIndex: "id",
+    //   key: "id",
+    // },
     {
       title: "الرتبة",
       dataIndex: "rank",
