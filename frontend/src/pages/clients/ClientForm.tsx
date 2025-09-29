@@ -370,7 +370,7 @@ const ClientForm = ({
                     value: entity.id,
                     label: entity.name,
                   }))}
-                  optionLabelProp="label"
+                  optionFilterProp="label"
                 />
               </Form.Item>
             </Col>
