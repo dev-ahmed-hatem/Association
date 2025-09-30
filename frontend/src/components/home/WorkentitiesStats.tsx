@@ -51,35 +51,40 @@ const WorkEntityCards: React.FC<Props> = ({ entities }) => {
       >
         توزيع الأعضاء حسب جهة العمل
       </Title>
-      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-6 grid-cols-2 sm:grid-cols-3 lg:grid-cols-5">
         {entities.map((entity, index) => (
           <Card
             key={entity.id}
-            className={`text-white rounded-xl shadow-xl hover:shadow-lg transition-all duration-300`}
+            className={`relative overflow-hidden text-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300
+            ${GRADIENTS[index % GRADIENTS.length]}`}
             styles={{
               body: {
-                padding: "1rem",
+                padding: "1.5rem",
                 display: "flex",
-                justifyContent: "space-between",
+                flexDirection: "column",
+                justifyContent: "center",
                 alignItems: "center",
+                textAlign: "center",
               },
             }}
-            style={{ background: "transparent" }}
           >
-            <div
-              className={`flex items-center justify-center w-16 h-16 rounded-full bg-white bg-opacity-20 text-2xl`}
-            >
+            {/* Icon */}
+            <div className="flex items-center justify-center w-16 h-16 rounded-full bg-white/20 text-3xl mb-4">
               {ICONS[index % ICONS.length]}
             </div>
-            <div className="text-right flex-1 ms-2">
-              <div className="text-2xl font-bold">{entity.count}</div>
-              <div className="text-sm opacity-80">{entity.name}</div>
+
+            {/* Text */}
+            <div className="flex flex-col items-center">
+              <div className="text-2xl font-extrabold">{entity.count}</div>
+              <div className="text-sm opacity-90 mt-1">{entity.name}</div>
             </div>
-            <div
-              className={`absolute inset-0 -z-10 rounded-xl ${
+
+            {/* Gradient Background */}
+            {/* <div
+              className={`absolute inset-0 -z-10 rounded-2xl ${
                 GRADIENTS[index % GRADIENTS.length]
               }`}
-            />
+            /> */}
           </Card>
         ))}
       </div>
