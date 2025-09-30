@@ -53,20 +53,23 @@ const ClientsList = () => {
 
   const columns: ColumnsType<Client> = [
     {
-      title: "#",
+      title: "م",
       key: "index",
       render: (_: any, __: any, index: number) =>
         (page ? (page - 1) * pageSize : 0) + index + 1,
     },
     {
-      title: "رقم العضوية",
-      dataIndex: "membership_number",
-      key: "membership_number",
-      sorter: true,
-      sortOrder:
-        controls?.sort_by === "membership_number"
-          ? controls?.order ?? null
-          : null,
+      title: "الرتبة",
+      dataIndex: "rank",
+      key: "rank",
+      filters: rankValues.map((filter) => ({ value: filter, text: filter })),
+
+      render: (rank: Rank) => (
+        <Tag className="text-base" color={rankColors[rank]}>
+          {rank}
+        </Tag>
+      ),
+      defaultFilteredValue: controls?.filters?.rank?.split(","),
     },
     {
       title: "اسم العضو",
@@ -113,27 +116,14 @@ const ClientsList = () => {
       defaultFilteredValue: controls?.filters?.name?.split(",") ?? ["active"],
     },
     {
-      title: "تاريخ الاشتراك",
-      dataIndex: "subscription_date",
-      key: "subscription_date",
+      title: "رقم العضوية",
+      dataIndex: "membership_number",
+      key: "membership_number",
       sorter: true,
       sortOrder:
-        controls?.sort_by === "subscription_date"
+        controls?.sort_by === "membership_number"
           ? controls?.order ?? null
           : null,
-    },
-    {
-      title: "الرتبة",
-      dataIndex: "rank",
-      key: "rank",
-      filters: rankValues.map((filter) => ({ value: filter, text: filter })),
-
-      render: (rank: Rank) => (
-        <Tag className="text-base" color={rankColors[rank]}>
-          {rank}
-        </Tag>
-      ),
-      defaultFilteredValue: controls?.filters?.rank?.split(","),
     },
     {
       title: "رقم الأقدمية",
@@ -144,6 +134,16 @@ const ClientsList = () => {
         (_, i) => 1980 + i
       ).map((year) => ({ value: year, text: year })),
       defaultFilteredValue: controls?.filters?.seniority?.split(","),
+    },
+    {
+      title: "تاريخ الاشتراك",
+      dataIndex: "subscription_date",
+      key: "subscription_date",
+      sorter: true,
+      sortOrder:
+        controls?.sort_by === "subscription_date"
+          ? controls?.order ?? null
+          : null,
     },
     {
       title: "جهة العمل",

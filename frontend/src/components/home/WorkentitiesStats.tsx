@@ -51,7 +51,7 @@ const WorkEntityCards: React.FC<Props> = ({ entities }) => {
       >
         توزيع الأعضاء حسب جهة العمل
       </Title>
-      <div className="grid gap-6 grid-cols-2 sm:grid-cols-3 lg:grid-cols-5">
+      <div className="grid gap-6 grid-cols-2 sm:grid-cols-3 lg:grid-cols-6">
         {entities.map((entity, index) => (
           <Card
             key={entity.id}
