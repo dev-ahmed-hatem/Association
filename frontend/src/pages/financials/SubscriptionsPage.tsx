@@ -9,6 +9,7 @@ import {
   Popconfirm,
   Space,
   Avatar,
+  Radio,
 } from "antd";
 import { EyeOutlined, DeleteOutlined } from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
@@ -39,6 +40,9 @@ const SubscriptionsPage = () => {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+  const [searchType, setSearchType] = useState<
+    "name__icontains" | "membership_number" | "phone_number"
+  >("name__icontains");
   const notification = useNotification();
 
   const { data, isFetching, isError, isSuccess } =
@@ -48,6 +52,7 @@ const SubscriptionsPage = () => {
       search,
       page,
       page_size: pageSize,
+      search_type: searchType,
     });
   const [
     handleSubscription,
@@ -277,7 +282,8 @@ const SubscriptionsPage = () => {
         />
       </div>
 
-      <div>
+      <div className="flex flex-col w-full max-w-md">
+        {/* Search Input */}
         <Input.Search
           placeholder="ابحث عن عضو..."
           onSearch={onSearch}
@@ -286,6 +292,21 @@ const SubscriptionsPage = () => {
           allowClear={true}
           onClear={() => setSearch("")}
         />
+
+        {/* Radio Group for Search Type */}
+        <div className="flex flex-wrap gap-3 items-center">
+          <span>بحث ب:</span>
+          <Radio.Group
+            value={searchType}
+            onChange={(e) => setSearchType(e.target.value)}
+            className="mt-2 flex"
+            defaultValue={"name__icontains"}
+          >
+            <Radio.Button value="name__icontains">الاسم</Radio.Button>
+            <Radio.Button value="membership_number">رقم العضوية</Radio.Button>
+            <Radio.Button value="phone_number">رقم الموبايل</Radio.Button>
+          </Radio.Group>
+        </div>
       </div>
 
       {isFetching && <Loading />}

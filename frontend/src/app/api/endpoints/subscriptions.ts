@@ -27,6 +27,7 @@ export const subscriptionsEndpoints = api.injectEndpoints({
         search: string;
         page: number;
         page_size: number;
+        search_type: string;
       }
     >({
       query: (params) => ({

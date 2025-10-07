@@ -410,6 +410,7 @@ def get_month_subscriptions(request):
     month = request.query_params.get("month")
     year = request.query_params.get("year")
     search = request.query_params.get("search")
+    search_type = request.query_params.get('search_type', "name__icontains")
 
     cutoff = date(int(year), int(month), 1)
 
@@ -419,8 +420,13 @@ def get_month_subscriptions(request):
     clients_qs = Client.objects.filter(is_active=True, subscription_date__lt=cutoff).only("id", "name", "rank",
                                                                                           "membership_number")
 
-    if search:
-        clients_qs = clients_qs.filter(name__icontains=search)
+    if search not in (None, ""):
+        try:
+            if search_type == "membership_number" and not search.isdigit():
+                raise ValueError("membership_number must be an integer")
+            clients_qs = clients_qs.filter(**{search_type: search})
+        except ValueError:
+            pass
 
     clients = list(clients_qs.values("id", "name", "rank", "membership_number"))
 
