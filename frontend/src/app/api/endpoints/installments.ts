@@ -19,6 +19,7 @@ export const installmentsEndpoints = api.injectEndpoints({
         search: string;
         page: number;
         page_size: number;
+        search_type: string;
       }
     >({
       query: (params) => ({

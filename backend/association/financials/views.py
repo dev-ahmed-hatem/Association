@@ -481,12 +481,23 @@ def get_month_installments(request):
     month = request.query_params.get("month")
     year = request.query_params.get("year")
     search = request.query_params.get("search", "")
+    search_type = request.query_params.get('search_type', "name__icontains")
 
     if not month or not year:
         return Response({"detail": _("يجب تحديد الشهر والسنة")}, status=status.HTTP_400_BAD_REQUEST)
 
+    clients_qs = Client.objects.all()
+
+    if search not in (None, ""):
+        try:
+            if search_type == "membership_number" and not search.isdigit():
+                raise ValueError("membership_number must be an integer")
+            clients_qs = clients_qs.filter(**{search_type: search})
+        except ValueError:
+            pass
+
     installments = Installment.objects.filter(
-        due_date__month=month, due_date__year=year, client__name__icontains=search
+        due_date__month=month, due_date__year=year, client__in=clients_qs
     ).select_related("client")
 
     results = [{
