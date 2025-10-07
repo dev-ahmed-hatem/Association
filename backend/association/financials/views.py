@@ -185,12 +185,22 @@ class LoanViewSet(ModelViewSet):
         order = self.request.query_params.get('order', None)
 
         client_id = self.request.query_params.get("client_id", None)
-        client_name = self.request.query_params.get("client_name", None)
+        search = self.request.query_params.get("search")
+        search_type = self.request.query_params.get('search_type', "name__icontains")
 
         if client_id is not None:
             queryset = queryset.filter(client_id=client_id)
-        if client_name:
-            queryset = queryset.filter(client__name__icontains=client_name)
+
+        clients_qs = Client.objects.all()
+
+        if search not in (None, ""):
+            try:
+                if search_type == "membership_number" and not search.isdigit():
+                    raise ValueError("membership_number must be an integer")
+                clients_qs = clients_qs.filter(**{search_type: search})
+                queryset = queryset.filter(client__in=clients_qs)
+            except ValueError:
+                pass
 
         if sort_by is not None:
             queryset = queryset.order_by(f"{order}{sort_by}")

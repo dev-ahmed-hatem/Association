@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Table, Statistic, Input } from "antd";
+import { Table, Statistic, Input, Radio } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 import { Link, Outlet, useMatch, useNavigate } from "react-router";
@@ -27,6 +27,9 @@ const LoansList: React.FC = () => {
     sort_by?: string;
     order?: SortOrder;
   }>();
+  const [searchType, setSearchType] = useState<
+    "name__icontains" | "membership_number" | "phone_number"
+  >("name__icontains");
 
   const [getLoans, { data: loansData, isLoading, isFetching, isError }] =
     useLazyGetLoansQuery();
@@ -97,12 +100,13 @@ const LoansList: React.FC = () => {
   useEffect(() => {
     if (isLoans) {
       getLoans({
-        client_name: search,
+        search: search,
         no_pagination: false,
         page,
         page_size: pageSize,
         sort_by: controls?.sort_by,
         order: controls?.order === "descend" ? "-" : "",
+        search_type: searchType,
       });
     }
   }, [page, pageSize, controls, search]);
@@ -140,16 +144,36 @@ const LoansList: React.FC = () => {
         )}
       </div>
 
-      <div className="flex justify-between flex-wrap gap-2">
+      <div className="flex justify-between flex-wrap gap-2 mb-4">
         {can("loans.view") && (
-          <Input.Search
-            placeholder="ابحث عن عضو..."
-            onSearch={(value) => setSearch(value)}
-            className="mb-4 w-full max-w-md h-10"
-            defaultValue={search}
-            allowClear={true}
-            onClear={() => setSearch("")}
-          />
+          <div className="flex flex-col w-full max-w-md">
+            {/* Search Input */}
+            <Input.Search
+              placeholder="ابحث عن عضو..."
+              onSearch={(value) => setSearch(value)}
+              className="mb-2 w-full max-w-md h-10"
+              defaultValue={search}
+              allowClear={true}
+              onClear={() => setSearch("")}
+            />
+
+            {/* Radio Group for Search Type */}
+            <div className="flex flex-wrap gap-3 items-center">
+              <span>بحث ب:</span>
+              <Radio.Group
+                value={searchType}
+                onChange={(e) => setSearchType(e.target.value)}
+                className="mt-2 flex"
+                defaultValue={"name__icontains"}
+              >
+                <Radio.Button value="name__icontains">الاسم</Radio.Button>
+                <Radio.Button value="membership_number">
+                  رقم العضوية
+                </Radio.Button>
+                <Radio.Button value="phone_number">رقم الموبايل</Radio.Button>
+              </Radio.Group>
+            </div>
+          </div>
         )}
       </div>
 
