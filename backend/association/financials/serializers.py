@@ -171,7 +171,11 @@ class LoanSerializer(serializers.ModelSerializer):
         return obj.is_completed
 
     def get_client(self, obj: Loan):
-        return {"id": obj.client.id, "name": obj.client.name, "membership_number": obj.client.membership_number}
+        return {"id": obj.client.id,
+                "name": obj.client.name,
+                "membership_number": obj.client.membership_number,
+                "rank": obj.client.rank
+                }
 
 
 class RepaymentSerializer(serializers.ModelSerializer):

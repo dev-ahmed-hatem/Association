@@ -1,7 +1,8 @@
-import { Descriptions } from "antd";
+import { Descriptions, Tag } from "antd";
 import { Loan } from "@/types/loan";
 import LoanStatusBadge from "./LoanStatusBadge";
 import { Link } from "react-router";
+import { rankColors } from "@/types/client";
 
 const LoanDetails = ({ loan }: { loan: Loan }) => {
   return (
@@ -16,6 +17,11 @@ const LoanDetails = ({ loan }: { loan: Loan }) => {
       </Descriptions.Item>
       <Descriptions.Item label="رقم العضوية">
         {loan.client.membership_number}
+      </Descriptions.Item>
+      <Descriptions.Item label="الرتبة">
+        <Tag className="text-lg" color={rankColors[loan.client.rank]}>
+          {loan.client.rank}
+        </Tag>
       </Descriptions.Item>
       <Descriptions.Item label="المبلغ">
         <Link to={`/financials/incomes/${loan.financial_record}`}>
