@@ -41,6 +41,7 @@ type ClientFormValues = Omit<
   birth_date: Dayjs;
   hire_date: Dayjs;
   subscription_date: Dayjs;
+  payment_start_date?: Dayjs;
 };
 
 const ClientForm = ({
@@ -89,6 +90,9 @@ const ClientForm = ({
       birth_date: values.birth_date.format("YYYY-MM-DD"),
       subscription_date: values.subscription_date.format("YYYY-MM-DD"),
       payment_date: dayjs().format("YYYY-MM-DD"),
+      payment_start_date: values.payment_start_date
+        ? values.payment_start_date?.format("YYYY-MM-DD")
+        : null,
     };
 
     addClient({
@@ -574,25 +578,51 @@ const ClientForm = ({
 
                 {/* Remaining Amount & Installments */}
                 {remaining > 0 && (
-                  <Row gutter={16} className="flex items-center">
-                    <Col xs={24} md={12}>
-                      <div className="flex items-center ps-4 bg-yellow-50 border border-yellow-300 rounded h-[34px]">
-                        المبلغ المتبقي:{" "}
-                        <strong className="ms-2">{remaining}</strong>
-                      </div>
-                    </Col>
-                    <Col xs={24} md={12}>
-                      <Form.Item
-                        name="installments_count"
-                        label="عدد الأقساط"
-                        rules={[
-                          { required: true, message: "يرجى إدخال عدد الأقساط" },
-                        ]}
-                      >
-                        <InputNumber min={1} className="w-full" />
-                      </Form.Item>
-                    </Col>
-                  </Row>
+                  <>
+                    <Row gutter={16} className="flex items-center">
+                      <Col xs={24} md={12}>
+                        <div className="flex items-center ps-4 bg-yellow-50 border border-yellow-300 rounded h-[34px]">
+                          المبلغ المتبقي:{" "}
+                          <strong className="ms-2">{remaining}</strong>
+                        </div>
+                      </Col>
+                      <Col xs={24} md={12}>
+                        <Form.Item
+                          name="installments_count"
+                          label="عدد الأقساط"
+                          rules={[
+                            {
+                              required: true,
+                              message: "يرجى إدخال عدد الأقساط",
+                            },
+                          ]}
+                        >
+                          <InputNumber min={1} className="w-full" />
+                        </Form.Item>
+                      </Col>
+                    </Row>
+                    <Row gutter={16} className="flex items-center">
+                      <Col xs={24} md={12}>
+                        <Form.Item
+                          name="payment_start_date"
+                          label="تاريخ بداية السداد"
+                          rules={[
+                            {
+                              required: true,
+                              message: "يرجى اختيار تاريخ بداية السداد",
+                            },
+                          ]}
+                        >
+                          <DatePicker
+                            picker="month"
+                            format="YYYY-MM"
+                            className="w-full"
+                            placeholder="اختر الشهر"
+                          />
+                        </Form.Item>
+                      </Col>
+                    </Row>
+                  </>
                 )}
 
                 <Row gutter={16}>

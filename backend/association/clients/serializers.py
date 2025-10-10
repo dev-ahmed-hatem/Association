@@ -114,6 +114,16 @@ class ClientWriteSerializer(serializers.ModelSerializer):
         },
         write_only=True
     )
+    payment_start_date = serializers.DateField(
+        required=False,
+        format="%Y-%m-%d",
+        input_formats=["%Y-%m-%d"],
+        error_messages={
+            "required": "يرجى إدخال تاريخ الدفع",
+            "invalid": "يرجى إدخال تاريخ صالح بالصيغة YYYY-MM-DD",
+        },
+        write_only=True
+    )
     payment_notes = serializers.CharField(
         required=False,
         allow_blank=True,
@@ -182,6 +192,7 @@ class ClientWriteSerializer(serializers.ModelSerializer):
         bank_account = validated_data.pop("bank_account", None)
         receipt_number = validated_data.pop("receipt_number", None)
         payment_date = validated_data.pop("payment_date", None)
+        payment_start_date = validated_data.pop("payment_start_date", None)
         payment_notes = validated_data.pop("payment_notes", None)
 
         # create initial client instance
@@ -200,10 +211,10 @@ class ClientWriteSerializer(serializers.ModelSerializer):
                                                                              system_related=True)
                 remaining = subscription_fee - prepaid
                 installment_amount = remaining / installments_count
-                base_date = payment_date.replace(day=1)
+                payment_start_date = payment_start_date.replace(day=1)
 
                 for i in range(installments_count):
-                    due_date = base_date + relativedelta(months=i + 1)
+                    due_date = payment_start_date + relativedelta(months=i)
                     Installment.objects.create(
                         amount=installment_amount,
                         client=client,
