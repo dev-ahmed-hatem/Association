@@ -57,7 +57,7 @@ const LoansList: React.FC = () => {
       key: "client",
       render: (_, record) => (
         <Link
-          to={`/clients/client-profile/${record.client}/`}
+          to={`/clients/client-profile/${record.client.id}/`}
           className={`name text-base font-bold hover:underline hover:text-minsk`}
         >
           {record.client.name}

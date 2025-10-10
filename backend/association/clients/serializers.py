@@ -5,7 +5,7 @@ from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
 from .models import Client, WorkEntity
-from financials.models import RankFee, TransactionType, FinancialRecord, Installment, BankAccount
+from financials.models import RankFee, TransactionType, FinancialRecord, Installment, BankAccount, Repayment
 from dateutil.relativedelta import relativedelta
 
 
@@ -39,8 +39,11 @@ class ClientListSerializer(serializers.ModelSerializer):
     def get_dues(self, obj: Client):
         due_months, paid_subscriptions = obj.get_subscriptions_status()
         unpaid_installments = obj.installments.filter(status=Installment.Status.UNPAID).count()
+        unpaid_repayments = Repayment.objects.filter(status=Repayment.Status.UNPAID, loan__client=obj).count()
         return {"unpaid_subscriptions": max(due_months - paid_subscriptions, 0),
-                "unpaid_installments": unpaid_installments}
+                "unpaid_installments": unpaid_installments,
+                "unpaid_repayments": unpaid_repayments
+                }
 
 
 class ClientReadSerializer(serializers.ModelSerializer):

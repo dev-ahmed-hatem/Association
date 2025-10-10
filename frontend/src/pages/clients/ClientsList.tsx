@@ -27,6 +27,7 @@ type ControlsType = {
 const assignmentLabels: Record<string, string> = {
   unpaid_subscriptions: "اشتراكات",
   unpaid_installments: "أقساط",
+  unpaid_repayments: "سداد قروض",
 };
 
 const ClientsList = () => {
@@ -181,7 +182,13 @@ const ClientsList = () => {
                   count={count}
                   style={{
                     backgroundColor:
-                      key === "unpaid_subscriptions" ? "#f5222d" : "#fa8c16",
+                      key === "unpaid_subscriptions"
+                        ? "#f5222d" // red
+                        : key === "unpaid_installments"
+                        ? "#fa8c16" // orange
+                        : key === "unpaid_repayments"
+                        ? "#722ed1" // purple
+                        : "#1890ff", // fallback blue
                   }}
                 ></Badge>
                 <span className="px-2 py-1 rounded bg-gray-100">

@@ -55,6 +55,7 @@ export interface Client {
   dues?: {
     unpaid_subscriptions: number;
     unpaid_installments: number;
+    unpaid_repayments: number;
   };
 }
 
