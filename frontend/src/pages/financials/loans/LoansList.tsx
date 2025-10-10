@@ -60,7 +60,7 @@ const LoansList: React.FC = () => {
           to={`/clients/client-profile/${record.client}/`}
           className={`name text-base font-bold hover:underline hover:text-minsk`}
         >
-          {record.client_name}
+          {record.client.name}
         </Link>
       ),
     },

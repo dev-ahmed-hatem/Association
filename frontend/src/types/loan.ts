@@ -1,7 +1,10 @@
 export type Loan = {
   id: number;
-  client: string;
-  client_name: string;
+  client: {
+    name: string;
+    id: number;
+    membership_number: number;
+  };
   amount: number;
   issued_date: string;
   notes?: string | null;

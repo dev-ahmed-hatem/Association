@@ -8,11 +8,14 @@ const LoanDetails = ({ loan }: { loan: Loan }) => {
     <Descriptions bordered column={1}>
       <Descriptions.Item label="العميل">
         <Link
-          to={`/clients/client-profile/${loan.client}/`}
+          to={`/clients/client-profile/${loan.client.id}/`}
           className={`name text-base font-bold hover:underline hover:text-minsk`}
         >
-          {loan.client_name}
+          {loan.client.name}
         </Link>
+      </Descriptions.Item>
+      <Descriptions.Item label="رقم العضوية">
+        {loan.client.membership_number}
       </Descriptions.Item>
       <Descriptions.Item label="المبلغ">
         <Link to={`/financials/incomes/${loan.financial_record}`}>

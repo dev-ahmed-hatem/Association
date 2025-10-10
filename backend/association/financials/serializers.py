@@ -115,7 +115,7 @@ class InstallmentSerializer(serializers.ModelSerializer):
 class LoanSerializer(serializers.ModelSerializer):
     repayments_count = serializers.IntegerField(write_only=True, required=True)
     payment_date = serializers.DateField(write_only=True, required=True)
-    client_name = serializers.StringRelatedField(read_only=True, source="client.name")
+    client = serializers.SerializerMethodField(read_only=True)
     repayments = serializers.SerializerMethodField(read_only=True)
     is_completed = serializers.SerializerMethodField(read_only=True)
 
@@ -169,6 +169,9 @@ class LoanSerializer(serializers.ModelSerializer):
 
     def get_is_completed(self, obj: Loan):
         return obj.is_completed
+
+    def get_client(self, obj: Loan):
+        return {"id": obj.client.id, "name": obj.client.name, "membership_number": obj.client.membership_number}
 
 
 class RepaymentSerializer(serializers.ModelSerializer):

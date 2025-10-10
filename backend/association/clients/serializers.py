@@ -80,7 +80,7 @@ class ClientReadSerializer(serializers.ModelSerializer):
 class ClientWriteSerializer(serializers.ModelSerializer):
     payment_method = serializers.ChoiceField(
         choices=FinancialRecord.PaymentMethod.choices,
-        required=True,
+        required=False,
         error_messages={"required": "يرجى اختيار نظام الدفع"},
         write_only=True
     )
@@ -123,7 +123,7 @@ class ClientWriteSerializer(serializers.ModelSerializer):
     prepaid = serializers.DecimalField(
         max_digits=12,
         decimal_places=2,
-        required=True,
+        required=False,
         error_messages={
             "invalid": "يرجى إدخال قيمة صالحة",
         },
@@ -145,7 +145,7 @@ class ClientWriteSerializer(serializers.ModelSerializer):
         prepaid = data.get("prepaid", 0)
         remaining = subscription_fee - prepaid
 
-        if is_create:
+        if is_create and subscription_fee > 0:
             if data["payment_method"] in ["إيداع بنكي", "تحويل بنكي", "شيك"]:
                 if not data.get("bank_account"):
                     raise serializers.ValidationError({"bank_account": "يرجى إدخال البنك"})
@@ -176,9 +176,9 @@ class ClientWriteSerializer(serializers.ModelSerializer):
         user = self.context['request'].user
 
         subscription_fee = validated_data.get("subscription_fee")
-        prepaid = validated_data.pop("prepaid")
+        prepaid = validated_data.pop("prepaid", None)
         installments_count = validated_data.pop("installments_count", None)
-        payment_method = validated_data.pop("payment_method")
+        payment_method = validated_data.pop("payment_method", None)
         bank_account = validated_data.pop("bank_account", None)
         receipt_number = validated_data.pop("receipt_number", None)
         payment_date = validated_data.pop("payment_date", None)
@@ -187,54 +187,55 @@ class ClientWriteSerializer(serializers.ModelSerializer):
         # create initial client instance
         client = super().create({**validated_data, "created_by": user})
 
-        if subscription_fee == prepaid:
-            transaction_name = "رسوم عضوية"
-            transaction_type, __ = TransactionType.objects.get_or_create(name=transaction_name,
-                                                                         type=TransactionType.Type.INCOME,
-                                                                         system_related=True)
-        else:
-            transaction_name = "مقدم عضوية"
-            transaction_type, __ = TransactionType.objects.get_or_create(name=transaction_name,
-                                                                         type=TransactionType.Type.INCOME,
-                                                                         system_related=True)
-            remaining = subscription_fee - prepaid
-            installment_amount = remaining / installments_count
-            base_date = payment_date.replace(day=1)
+        if subscription_fee > 0:
+            if subscription_fee == prepaid:
+                transaction_name = "رسوم عضوية"
+                transaction_type, __ = TransactionType.objects.get_or_create(name=transaction_name,
+                                                                             type=TransactionType.Type.INCOME,
+                                                                             system_related=True)
+            else:
+                transaction_name = "مقدم عضوية"
+                transaction_type, __ = TransactionType.objects.get_or_create(name=transaction_name,
+                                                                             type=TransactionType.Type.INCOME,
+                                                                             system_related=True)
+                remaining = subscription_fee - prepaid
+                installment_amount = remaining / installments_count
+                base_date = payment_date.replace(day=1)
 
-            for i in range(installments_count):
-                due_date = base_date + relativedelta(months=i + 1)
-                Installment.objects.create(
-                    amount=installment_amount,
-                    client=client,
-                    installment_number=i + 1,
-                    due_date=due_date,
-                )
+                for i in range(installments_count):
+                    due_date = base_date + relativedelta(months=i + 1)
+                    Installment.objects.create(
+                        amount=installment_amount,
+                        client=client,
+                        installment_number=i + 1,
+                        due_date=due_date,
+                    )
 
-        bank_account_obj = None
-        if payment_method in ["إيداع بنكي", "شيك", "تحويل بنكي"]:
-            if not bank_account:
-                raise ValidationError({"bank_account": [_("يجب اختيار حساب بنكي عند الدفع البنكي/الشيك")]})
-            try:
-                bank_account_obj = BankAccount.objects.get(id=bank_account)
-            except BankAccount.DoesNotExist:
-                raise ValidationError({"bank_account": [_("الحساب البنكي غير موجود")]})
+            bank_account_obj = None
+            if payment_method in ["إيداع بنكي", "شيك", "تحويل بنكي"]:
+                if not bank_account:
+                    raise ValidationError({"bank_account": [_("يجب اختيار حساب بنكي عند الدفع البنكي/الشيك")]})
+                try:
+                    bank_account_obj = BankAccount.objects.get(id=bank_account)
+                except BankAccount.DoesNotExist:
+                    raise ValidationError({"bank_account": [_("الحساب البنكي غير موجود")]})
 
-            if not receipt_number:
-                raise ValidationError({"receipt_number": [_("يجب إدخال رقم الإيصال/الشيك")]})
+                if not receipt_number:
+                    raise ValidationError({"receipt_number": [_("يجب إدخال رقم الإيصال/الشيك")]})
 
-        financial_record = FinancialRecord.objects.create(
-            amount=prepaid,
-            transaction_type=transaction_type,
-            date=payment_date,
-            payment_method=payment_method,
-            bank_account=bank_account_obj,
-            receipt_number=receipt_number,
-            notes=payment_notes,
-            created_by=user,
-        )
+            financial_record = FinancialRecord.objects.create(
+                amount=prepaid,
+                transaction_type=transaction_type,
+                date=payment_date,
+                payment_method=payment_method,
+                bank_account=bank_account_obj,
+                receipt_number=receipt_number,
+                notes=payment_notes,
+                created_by=user,
+            )
 
-        client.prepaid = financial_record
-        client.save()
+            client.prepaid = financial_record
+            client.save()
 
         return client
 
