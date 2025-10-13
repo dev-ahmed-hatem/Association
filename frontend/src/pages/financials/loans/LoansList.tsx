@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Table, Statistic, Input, Radio } from "antd";
+import { Table, Statistic, Input, Radio, Space, Avatar, Tag } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 import { Link, Outlet, useMatch, useNavigate } from "react-router";
@@ -14,6 +14,8 @@ import { useLazyGetLoansQuery } from "@/app/api/endpoints/loans";
 import ErrorPage from "@/pages/Error";
 import { tablePaginationConfig } from "@/utils/antd";
 import { usePermission } from "@/providers/PermissionProvider";
+import { rankColors } from "@/types/client";
+import { getInitials } from "@/utils";
 
 const LoansList: React.FC = () => {
   const { can, hasModulePermission } = usePermission();
@@ -53,15 +55,30 @@ const LoansList: React.FC = () => {
     },
     {
       title: "العضو",
-      dataIndex: "client",
-      key: "client",
-      render: (_, record) => (
-        <Link
-          to={`/clients/client-profile/${record.client_data.id}/`}
-          className={`name text-base font-bold hover:underline hover:text-minsk`}
-        >
-          {record.client_data.name}
-        </Link>
+      dataIndex: "client_data",
+      key: "client_data",
+      render: (client: Loan["client_data"]) => (
+        <Space>
+          {
+            <Avatar className="bg-gradient-to-br from-[#2c2e83] to-[#494c9a] text-white font-semibold">
+              {getInitials(client.name)}
+            </Avatar>
+          }
+          <span className="flex flex-col">
+            <Link
+              to={`/clients/client-profile/${client.id}/`}
+              className={`name text-base font-bold hover:underline hover:text-minsk`}
+            >
+              {client.name}
+            </Link>
+            <div className="id text-xs text-gray-400">
+              <span>{client.membership_number}#</span>{" "}
+              <Tag className="text-sm m-2" color={rankColors[client.rank]}>
+                {client.rank}
+              </Tag>
+            </div>
+          </span>
+        </Space>
       ),
     },
     {
