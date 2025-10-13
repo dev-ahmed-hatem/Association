@@ -22,7 +22,13 @@ import {
 import { Repayment } from "@/types/repayment";
 import { usePermission } from "@/providers/PermissionProvider";
 
-const LoanRepaymentHistory = ({ loan_id }: { loan_id: string }) => {
+const LoanRepaymentHistory = ({
+  loan_id,
+  is_active,
+}: {
+  loan_id: string;
+  is_active: boolean;
+}) => {
   const { can } = usePermission();
   const notification = useNotification();
   const [message, setMessage] = useState<string | null>(null);
@@ -180,19 +186,25 @@ const LoanRepaymentHistory = ({ loan_id }: { loan_id: string }) => {
         ) : (
           <>
             {can("loans.addRepayment") && (
-              <Popconfirm
-                title="تأكيد الدفع"
-                description="تأكيد الدفع بتاريخ اليوم؟"
-                okText="تأكيد"
-                cancelText="إلغاء"
-                placement="top"
-                onConfirm={() => markAsPaid(record)}
-                disabled={isLoading}
-              >
-                <Button type="primary" loading={isLoading}>
-                  تسجيل كمدفوع
-                </Button>
-              </Popconfirm>
+              <>
+                {is_active ? (
+                  <Popconfirm
+                    title="تأكيد الدفع"
+                    description="تأكيد الدفع بتاريخ اليوم؟"
+                    okText="تأكيد"
+                    cancelText="إلغاء"
+                    placement="top"
+                    onConfirm={() => markAsPaid(record)}
+                    disabled={isLoading}
+                  >
+                    <Button type="primary" loading={isLoading}>
+                      تسجيل كمدفوع
+                    </Button>
+                  </Popconfirm>
+                ) : (
+                  <Tag color="red">عضو متقاعد</Tag>
+                )}
+              </>
             )}
           </>
         ),

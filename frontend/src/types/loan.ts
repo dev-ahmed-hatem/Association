@@ -7,6 +7,7 @@ export type Loan = {
     id: number;
     membership_number: number;
     rank: Rank;
+    is_active: boolean;
   };
   client: string;
   amount: number;

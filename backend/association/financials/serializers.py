@@ -174,7 +174,8 @@ class LoanSerializer(serializers.ModelSerializer):
         return {"id": obj.client.id,
                 "name": obj.client.name,
                 "membership_number": obj.client.membership_number,
-                "rank": obj.client.rank
+                "rank": obj.client.rank,
+                "is_active": obj.client.is_active,
                 }
 
 

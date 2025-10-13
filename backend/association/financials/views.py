@@ -503,7 +503,7 @@ def get_month_installments(request):
     if not month or not year:
         return Response({"detail": _("يجب تحديد الشهر والسنة")}, status=status.HTTP_400_BAD_REQUEST)
 
-    clients_qs = Client.objects.all()
+    clients_qs = Client.objects.filter(is_active=True)
 
     if search not in (None, ""):
         try:

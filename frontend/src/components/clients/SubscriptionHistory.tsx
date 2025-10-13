@@ -26,10 +26,12 @@ import { usePermission } from "@/providers/PermissionProvider";
 const SubscriptionHistory = ({
   client_id,
   subscription_date,
+  is_active,
   rank_fee,
 }: {
   client_id: string;
   subscription_date: string;
+  is_active: boolean;
   rank_fee: number;
 }) => {
   const { can } = usePermission();
@@ -71,26 +73,26 @@ const SubscriptionHistory = ({
 
       const paidMonth = paid?.[i + 1];
 
-      yearData.push(
-        paidMonth
-          ? {
-              id: paidMonth.id,
-              date: paidMonth.date,
-              status: "مدفوع",
-              notes: paidMonth.notes,
-              paid_at: paidMonth.paid_at,
-              amount: paidMonth.amount,
-              financial_record: paidMonth.financial_record,
-            }
-          : {
-              id: i.toString(),
-              date: month,
-              status: "غير مدفوع",
-              notes: "",
-              paid_at: "",
-              amount: rank_fee,
-            }
-      );
+      if (paidMonth) {
+        yearData.push({
+          id: paidMonth.id,
+          date: paidMonth.date,
+          status: "مدفوع",
+          notes: paidMonth.notes,
+          paid_at: paidMonth.paid_at,
+          amount: paidMonth.amount,
+          financial_record: paidMonth.financial_record,
+        });
+      } else if (is_active) {
+        yearData.push({
+          id: i.toString(),
+          date: month,
+          status: "غير مدفوع",
+          notes: "",
+          paid_at: "",
+          amount: rank_fee,
+        });
+      }
     }
     return yearData;
   };

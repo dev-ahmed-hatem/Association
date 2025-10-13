@@ -47,7 +47,7 @@ const LoanProfilePage: React.FC = () => {
           {
             label: "الأقساط / السداد",
             key: "2",
-            children: <LoanRepayments loan_id={loan.id.toString()} />,
+            children: <LoanRepayments loan_id={loan.id.toString()} is_active={loan.client_data.is_active} />,
           },
         ]
       : []),
