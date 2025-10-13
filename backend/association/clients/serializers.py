@@ -119,6 +119,7 @@ class ClientWriteSerializer(serializers.ModelSerializer):
     )
     payment_start_date = serializers.DateField(
         required=False,
+        allow_null=True,
         format="%Y-%m-%d",
         input_formats=["%Y-%m-%d"],
         error_messages={

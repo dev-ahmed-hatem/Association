@@ -120,14 +120,16 @@ const ClientForm = ({
         });
       }
 
-      notification.error({ message: "خطأ في إضافة العضو!" });
+      notification.error({
+        message: `خطأ في ${initialValues ? "تعديل بيانات" : "إضافة"} العضو!`,
+      });
     }
   }, [isError]);
 
   useEffect(() => {
     if (isSuccess) {
       notification.success({
-        message: `تم ${initialValues ? "تحديث بيانات" : "إضافة"} العضو`,
+        message: `تم ${initialValues ? "تعديل بيانات" : "إضافة"} العضو`,
       });
       navigate(
         `/clients/client-profile/${
@@ -693,7 +695,7 @@ const ClientForm = ({
             className="min-w-28"
             loading={isLoading}
           >
-            {initialValues ? "تحديث البيانات" : "إضافة"}
+            {initialValues ? "تعديل البيانات" : "إضافة"}
           </Button>
         </Form.Item>
       </Form>
