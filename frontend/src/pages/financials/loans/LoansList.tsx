@@ -57,10 +57,10 @@ const LoansList: React.FC = () => {
       key: "client",
       render: (_, record) => (
         <Link
-          to={`/clients/client-profile/${record.client.id}/`}
+          to={`/clients/client-profile/${record.client_data.id}/`}
           className={`name text-base font-bold hover:underline hover:text-minsk`}
         >
-          {record.client.name}
+          {record.client_data.name}
         </Link>
       ),
     },

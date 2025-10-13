@@ -9,18 +9,18 @@ const LoanDetails = ({ loan }: { loan: Loan }) => {
     <Descriptions bordered column={1}>
       <Descriptions.Item label="العميل">
         <Link
-          to={`/clients/client-profile/${loan.client.id}/`}
+          to={`/clients/client-profile/${loan.client_data.id}/`}
           className={`name text-base font-bold hover:underline hover:text-minsk`}
         >
-          {loan.client.name}
+          {loan.client_data.name}
         </Link>
       </Descriptions.Item>
       <Descriptions.Item label="رقم العضوية">
-        {loan.client.membership_number}
+        {loan.client_data.membership_number}
       </Descriptions.Item>
       <Descriptions.Item label="الرتبة">
-        <Tag className="text-lg" color={rankColors[loan.client.rank]}>
-          {loan.client.rank}
+        <Tag className="text-lg" color={rankColors[loan.client_data.rank]}>
+          {loan.client_data.rank}
         </Tag>
       </Descriptions.Item>
       <Descriptions.Item label="المبلغ">
