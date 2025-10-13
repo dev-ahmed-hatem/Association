@@ -160,8 +160,8 @@ const ClientsList = () => {
       title: "مستحقات",
       dataIndex: "dues",
       key: "dues",
-      render: (dues: Client["dues"]) => {
-        if (!dues) {
+      render: (dues: Client["dues"], record) => {
+        if (!dues || !record.is_active) {
           return <span>-</span>;
         }
 
