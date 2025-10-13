@@ -20,6 +20,8 @@ import { useGetTransactionTypesQuery } from "@/app/api/endpoints/transaction_typ
 import { SortOrder } from "antd/lib/table/interface";
 import { usePermission } from "@/providers/PermissionProvider";
 
+const { RangePicker } = DatePicker;
+
 type Props = {
   financialType: "income" | "expense";
 };
@@ -36,9 +38,10 @@ type ControlsType = {
 const FinancialRecords: React.FC<Props> = ({ financialType }) => {
   const { can, hasModulePermission } = usePermission();
   const isFinancials = useMatch(`/financials/${financialType}s`);
-  const [selectedDate, setSelectedDate] = useState<string>(
+  const [fromDate, setFromDate] = useState<string>(
     dayjs().format("YYYY-MM-DD")
   );
+  const [toDate, setToDate] = useState<string>(dayjs().format("YYYY-MM-DD"));
   const pageTitle = financialType === "income" ? "الإيرادات" : "المصروفات";
   const addButtonLabel =
     financialType === "income" ? "إضافة إيراد" : "إضافة مصروف";
@@ -140,14 +143,15 @@ const FinancialRecords: React.FC<Props> = ({ financialType }) => {
         type: TransactionKindArabic[financialType],
         page,
         page_size: pageSize,
-        date: selectedDate,
+        from: fromDate,
+        to: toDate,
         sort_by: controls?.sort_by,
         order: controls?.order === "descend" ? "-" : "",
         payment_methods: controls?.filters.payment_method,
         transaction_types: controls?.filters.transaction_type,
       });
     }
-  }, [page, pageSize, selectedDate, financialType, controls]);
+  }, [page, pageSize, fromDate, toDate, financialType, controls]);
 
   if (!isFinancials) return <Outlet />;
 
@@ -183,19 +187,25 @@ const FinancialRecords: React.FC<Props> = ({ financialType }) => {
           </Link>
         )}
       </div>
+
       <div className="flex justify-between flex-wrap gap-2">
         {((financialType === "income" && can("incomes.view")) ||
           (financialType === "expense" && can("expenses.view"))) && (
-          <DatePicker
-            onChange={(date) =>
-              setSelectedDate(date?.format("YYYY-MM-DD") || "")
+          <RangePicker
+            value={
+              fromDate && toDate
+                ? [dayjs(fromDate), dayjs(toDate)]
+                : [null, null]
             }
-            value={dayjs(selectedDate)}
+            onChange={(dates) => {
+              setFromDate(dates?.[0]?.format("YYYY-MM-DD") || "");
+              setToDate(dates?.[1]?.format("YYYY-MM-DD") || "");
+            }}
             format="YYYY-MM-DD"
             className="mb-4 h-10 w-full max-w-sm"
-            placeholder="اختر التاريخ"
             suffixIcon={<CalendarOutlined />}
-            allowClear={false}
+            placeholder={["من تاريخ", "إلى تاريخ"]}
+            allowClear
           />
         )}
       </div>

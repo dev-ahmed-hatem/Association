@@ -62,12 +62,19 @@ class FinancialRecordViewSet(ModelViewSet):
 
         type = self.request.query_params.get("type", None)
         date_str = self.request.query_params.get("date", None)
+        from_date = self.request.query_params.get("from", None)
+        to_date = self.request.query_params.get("to", None)
         payment_methods = self.request.query_params.get('payment_methods', [])
         transaction_types = self.request.query_params.get('transaction_types', [])
 
         if date_str is not None:
             date = datetime.strptime(date_str, "%Y-%m-%d").date()
             queryset = queryset.filter(date=date)
+
+        if from_date is not None and to_date is not None:
+            from_date = datetime.strptime(from_date, "%Y-%m-%d").date()
+            to_date = datetime.strptime(to_date, "%Y-%m-%d").date()
+            queryset = queryset.filter(date__gte=from_date, date__lte=to_date)
 
         if type is not None:
             queryset = queryset.filter(transaction_type__type=type)
