@@ -469,7 +469,6 @@ def get_month_subscriptions(request):
                 "paid_at": sub.paid_at,
                 "date": sub.date,
                 "notes": sub.notes,
-                "financial_record": sub.financial_record.id
             })
         else:
             results.append({

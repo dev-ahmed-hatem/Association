@@ -176,17 +176,6 @@ class FinancialRecord(models.Model):
 
 
 class Subscription(models.Model):
-    financial_record = models.OneToOneField(
-        FinancialRecord,
-        on_delete=models.CASCADE,
-        related_name="subscription",
-        verbose_name=_("المعاملة المالية"),
-        error_messages={
-            "null": _("يجب ربط الاشتراك بمعاملة مالية"),
-            "blank": _("يجب تحديد المعاملة المالية"),
-        },
-    )
-
     client = models.ForeignKey(
         "clients.Client",
         on_delete=models.RESTRICT,
@@ -236,11 +225,6 @@ class Subscription(models.Model):
 
     def __str__(self):
         return f"{self.amount} - ({self.date})"
-
-    def delete(self, using=None, keep_parents=False):
-        if self.financial_record:
-            self.financial_record.delete()
-        return super().delete(using, keep_parents)
 
 
 class Installment(models.Model):

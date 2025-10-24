@@ -42,12 +42,6 @@ class FinancialRecordReadSerializer(serializers.ModelSerializer):
     def get_transaction_type_name(self, obj: FinancialRecord):
         if getattr(obj, "project_transaction", None):
             return obj.project_transaction.project.name
-        if getattr(obj, "subscription", None):
-            return obj.subscription.client.name
-        if getattr(obj, "installment", None):
-            return obj.installment.client.name
-        if getattr(obj, "repayment", None):
-            return obj.repayment.loan.client.name
 
 
 class FinancialRecordWriteSerializer(serializers.ModelSerializer):
@@ -74,7 +68,6 @@ class SubscriptionWriteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Subscription
         fields = '__all__'
-        read_only_fields = ["financial_record", ]
 
         validators = [
             UniqueTogetherValidator(
@@ -86,21 +79,6 @@ class SubscriptionWriteSerializer(serializers.ModelSerializer):
 
     def validate_date(self, value):
         return value.replace(day=1)
-
-    def create(self, validated_data):
-        transaction_type, _ = TransactionType.objects.get_or_create(name="رسوم اشتراكات",
-                                                                    type=TransactionType.Type.INCOME,
-                                                                    system_related=True)
-        financial_record = FinancialRecord.objects.create(
-            amount=validated_data["amount"],
-            transaction_type=transaction_type,
-            date=validated_data["paid_at"],
-            payment_method="اشتراك شهري",
-            notes=validated_data.get("notes"),
-            created_by=self.context["request"].user,
-        )
-
-        return super().create({**validated_data, "financial_record": financial_record})
 
 
 class InstallmentSerializer(serializers.ModelSerializer):
