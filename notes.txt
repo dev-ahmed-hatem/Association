@@ -1,2 +1,4 @@
-إيداع بنكي -> مصروف بنكي
-حذف العضو
+wrong dues @ client list
+isolate financial records from (subscription - instalalments - loans repayments)
+filter paid and unpaid in financials subscriptions/installments page
+add current balance inquery feature
