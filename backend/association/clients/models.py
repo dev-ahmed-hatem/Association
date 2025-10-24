@@ -193,7 +193,7 @@ class Client(models.Model):
         """
         returns number of due months and paid subscriptions
         """
-        subscription_date = self.subscription_date
+        subscription_date = self.subscription_date.replace(day=1)
         today = datetime.today().astimezone(settings.CAIRO_TZ).date().replace(day=1)
 
         if (subscription_date > today

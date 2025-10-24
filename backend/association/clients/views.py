@@ -118,12 +118,9 @@ class ClientViewSet(ModelViewSet):
     def delete_financial_records(self, request, pk=None):
         try:
             client = Client.objects.get(id=pk)
-            for i in Installment.objects.filter(client=client):
-                i.delete()
-            for s in Subscription.objects.filter(client=client):
-                s.delete()
-            for l in Loan.objects.filter(client=client):
-                l.delete()
+            Installment.objects.filter(client=client).delete()
+            Subscription.objects.filter(client=client).delete()
+            Loan.objects.filter(client=client).delete()
 
             if client.prepaid:
                 client.prepaid.delete()

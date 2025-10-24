@@ -232,15 +232,6 @@ class Installment(models.Model):
         PAID = "مدفوع", _("مدفوع")
         UNPAID = "غير مدفوع", _("غير مدفوع")
 
-    financial_record = models.OneToOneField(
-        "financials.FinancialRecord",
-        on_delete=models.SET_NULL,
-        related_name="installment",
-        verbose_name=_("المعاملة المالية"),
-        blank=True,
-        null=True,
-    )
-
     client = models.ForeignKey(
         "clients.Client",
         on_delete=models.RESTRICT,
@@ -316,24 +307,8 @@ class Installment(models.Model):
                 {"paid_at": _("لا يمكن إدخال تاريخ الدفع إذا كان القسط غير مدفوع")}
             )
 
-    def delete(self, using=None, keep_parents=False):
-        if self.financial_record:
-            self.financial_record.delete()
-        return super().delete(using, keep_parents)
-
 
 class Loan(models.Model):
-    financial_record = models.OneToOneField(
-        "financials.FinancialRecord",
-        on_delete=models.CASCADE,
-        related_name="loan",
-        verbose_name=_("المعاملة المالية"),
-        error_messages={
-            "null": _("يجب ربط القرض بمعاملة مالية"),
-            "blank": _("يجب تحديد المعاملة المالية"),
-        },
-    )
-
     client = models.ForeignKey(
         "clients.Client",
         on_delete=models.RESTRICT,
@@ -375,11 +350,6 @@ class Loan(models.Model):
     def __str__(self):
         return f"قرض {self.client} - {self.amount} ({self.issued_date})"
 
-    def delete(self, using=None, keep_parents=False):
-        if self.financial_record:
-            self.financial_record.delete()
-        return super().delete(using, keep_parents)
-
     @property
     def is_completed(self):
         return not self.repayments.filter(status=Repayment.Status.UNPAID).exists()
@@ -389,15 +359,6 @@ class Repayment(models.Model):
     class Status(models.TextChoices):
         PAID = "مدفوع", _("مدفوع")
         UNPAID = "غير مدفوع", _("غير مدفوع")
-
-    financial_record = models.OneToOneField(
-        "financials.FinancialRecord",
-        on_delete=models.SET_NULL,
-        related_name="repayment",
-        verbose_name=_("المعاملة المالية"),
-        blank=True,
-        null=True,
-    )
 
     loan = models.ForeignKey(
         "financials.Loan",
@@ -473,8 +434,3 @@ class Repayment(models.Model):
             raise ValidationError(
                 {"paid_at": _("لا يمكن إدخال تاريخ الدفع إذا كان السداد غير مدفوع")}
             )
-
-    def delete(self, using=None, keep_parents=False):
-        if self.financial_record:
-            self.financial_record.delete()
-        return super().delete(using, keep_parents)

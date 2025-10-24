@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Table, Input, Avatar, Space, Radio, Tag, Tooltip, Badge } from "antd";
 import { PlusOutlined, UserOutlined } from "@ant-design/icons";
 import { Link, useNavigate } from "react-router";
@@ -226,6 +226,10 @@ const ClientsList = () => {
     entities: controls?.filters.work_entity,
   });
   const clients = rawClients as PaginatedResponse<Client> | undefined;
+
+  useEffect(() => {
+    setPage(1);
+  }, [search]);
 
   if (isLoading || fetchingEntities) return <Loading />;
   if (isError || entitiesError) return <ErrorPage />;

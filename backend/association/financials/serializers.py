@@ -83,7 +83,6 @@ class SubscriptionWriteSerializer(serializers.ModelSerializer):
 
 class InstallmentSerializer(serializers.ModelSerializer):
     due_date = serializers.DateField(format="%Y-%m")
-    notes = serializers.StringRelatedField(source="financial_record.notes", read_only=True)
 
     class Meta:
         model = Installment
@@ -100,7 +99,6 @@ class LoanSerializer(serializers.ModelSerializer):
     class Meta:
         model = Loan
         fields = '__all__'
-        read_only_fields = ["financial_record"]
 
     def create(self, validated_data):
         user = self.context['request'].user
@@ -108,22 +106,8 @@ class LoanSerializer(serializers.ModelSerializer):
         repayments_count = validated_data.pop("repayments_count")
         payment_date = validated_data.pop("payment_date")
 
-        transaction_type, __ = TransactionType.objects.get_or_create(
-            name="صرف قرض",
-            type=TransactionType.Type.EXPENSE,
-            system_related=True,
-        )
-        financial_record = FinancialRecord.objects.create(
-            amount=validated_data["amount"],
-            transaction_type=transaction_type,
-            date=validated_data["issued_date"],
-            payment_method="صرف قرض",
-            created_by=user,
-            notes=validated_data.get("notes"),
-        )
-
         # create the loan instance
-        loan = super().create({**validated_data, "financial_record": financial_record})
+        loan = super().create({**validated_data})
 
         # Calculate repayment amount
         repayment_amount = loan.amount / repayments_count

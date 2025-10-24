@@ -146,21 +146,10 @@ class InstallmentViewSet(ModelViewSet):
             installment = Installment.objects.get(id=pk)
             data = request.data
 
-            transaction_type, __ = TransactionType.objects.get_or_create(name="رسوم أقساط",
-                                                                         type=TransactionType.Type.INCOME,
-                                                                         system_related=True)
-            financial_record = FinancialRecord.objects.create(
-                amount=data["amount"],
-                transaction_type=transaction_type,
-                date=data["paid_at"],
-                payment_method="قسط عضوية",
-                notes=data.get("notes"),
-                created_by=request.user,
-            )
-            installment.financial_record = financial_record
             installment.status = Installment.Status.PAID
             installment.amount = data["amount"]
             installment.paid_at = data["paid_at"]
+            installment.notes = data["notes"]
             installment.save()
 
             return Response({"detail": _("تم تسجيل دفع القسط بنجاح")}, status=status.HTTP_200_OK)
@@ -173,10 +162,10 @@ class InstallmentViewSet(ModelViewSet):
             installment = Installment.objects.get(id=pk)
             installment.status = Installment.Status.UNPAID
             installment.paid_at = None
+            installment.notes = None
             installment.save()
-            if installment.financial_record:
-                installment.financial_record.delete()
             return Response({"detail": _("تم إلفاء دفع القسط بنجاح")}, status=status.HTTP_200_OK)
+
         except Exception:
             return Response({'detail': _('كود قسط غير موجود')}, status=status.HTTP_404_NOT_FOUND)
 
@@ -239,25 +228,10 @@ class RepaymentViewSet(ModelViewSet):
             repayment = Repayment.objects.get(id=pk)
             data = request.data
 
-            transaction_type, __ = TransactionType.objects.get_or_create(
-                name="سداد قرض",
-                type=TransactionType.Type.INCOME,
-                system_related=True,
-            )
-
-            financial_record = FinancialRecord.objects.create(
-                amount=data["amount"],
-                transaction_type=transaction_type,
-                date=data["paid_at"],
-                payment_method="سداد قرض",
-                notes=data.get("notes"),
-                created_by=request.user,
-            )
-
-            repayment.financial_record = financial_record
             repayment.status = Repayment.Status.PAID
             repayment.amount = data["amount"]
             repayment.paid_at = data["paid_at"]
+            repayment.notes = data["notes"]
             repayment.save()
 
             return Response({"detail": _("تم تسجيل دفع السداد بنجاح")}, status=status.HTTP_200_OK)
@@ -271,6 +245,7 @@ class RepaymentViewSet(ModelViewSet):
             repayment = Repayment.objects.get(id=pk)
             repayment.status = Repayment.Status.UNPAID
             repayment.paid_at = None
+            repayment.notes = None
             repayment.save()
 
             if repayment.financial_record:
