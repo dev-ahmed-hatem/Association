@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { Table, DatePicker, Statistic, Tag } from "antd";
+import { Form, Table, DatePicker, Statistic, Tag } from "antd";
 import { PlusOutlined, CalendarOutlined } from "@ant-design/icons";
-import dayjs from "dayjs";
+import dayjs, { Dayjs } from "dayjs";
 import { Link, Outlet, useMatch, useNavigate } from "react-router";
 import {
   expensePaymentMethods,
@@ -37,11 +37,10 @@ type ControlsType = {
 
 const FinancialRecords: React.FC<Props> = ({ financialType }) => {
   const { can, hasModulePermission } = usePermission();
+  const [form] = Form.useForm();
   const isFinancials = useMatch(`/financials/${financialType}s`);
-  const [fromDate, setFromDate] = useState<string>(
-    dayjs().format("YYYY-MM-DD")
-  );
-  const [toDate, setToDate] = useState<string>(dayjs().format("YYYY-MM-DD"));
+  const [fromDate, setFromDate] = useState<Dayjs>(dayjs());
+  const [toDate, setToDate] = useState<Dayjs>(dayjs());
   const pageTitle = financialType === "income" ? "الإيرادات" : "المصروفات";
   const addButtonLabel =
     financialType === "income" ? "إضافة إيراد" : "إضافة مصروف";
@@ -143,8 +142,8 @@ const FinancialRecords: React.FC<Props> = ({ financialType }) => {
         type: TransactionKindArabic[financialType],
         page,
         page_size: pageSize,
-        from: fromDate,
-        to: toDate,
+        from: fromDate.format("YYYY-MM-DD"),
+        to: toDate.format("YYYY-MM-DD"),
         sort_by: controls?.sort_by,
         order: controls?.order === "descend" ? "-" : "",
         payment_methods: controls?.filters.payment_method,
@@ -191,22 +190,59 @@ const FinancialRecords: React.FC<Props> = ({ financialType }) => {
       <div className="flex justify-between flex-wrap gap-2">
         {((financialType === "income" && can("incomes.view")) ||
           (financialType === "expense" && can("expenses.view"))) && (
-          <RangePicker
-            value={
-              fromDate && toDate
-                ? [dayjs(fromDate), dayjs(toDate)]
-                : [null, null]
-            }
-            onChange={(dates) => {
-              setFromDate(dates?.[0]?.format("YYYY-MM-DD") || "");
-              setToDate(dates?.[1]?.format("YYYY-MM-DD") || "");
+          <Form
+            form={form}
+            layout="inline"
+            className="mb-6 flex-wrap gap-4"
+            initialValues={{
+              from: fromDate,
+              to: toDate,
             }}
-            format="YYYY-MM-DD"
-            className="mb-4 h-10 w-full max-w-sm"
-            suffixIcon={<CalendarOutlined />}
-            placeholder={["من تاريخ", "إلى تاريخ"]}
-            allowClear
-          />
+          >
+            <Form.Item
+              name="from"
+              label="من"
+              rules={[{ required: true, message: "يرجى اختيار تاريخ البداية" }]}
+            >
+              <DatePicker
+                value={fromDate}
+                onChange={(date) => setFromDate(date)}
+                format="YYYY-MM-DD"
+                placeholder="اختر تاريخ البداية"
+                className="w-44"
+              />
+            </Form.Item>
+
+            <Form.Item
+              name="to"
+              label="إلى"
+              dependencies={["from"]}
+              rules={[
+                { required: true, message: "يرجى اختيار تاريخ النهاية" },
+                ({ getFieldValue }) => ({
+                  validator(_, value) {
+                    if (!value || !getFieldValue("from")) {
+                      return Promise.resolve();
+                    }
+                    if (value.isBefore(getFieldValue("from"))) {
+                      return Promise.reject(
+                        new Error("تاريخ النهاية يجب أن يكون بعد تاريخ البداية")
+                      );
+                    }
+                    return Promise.resolve();
+                  },
+                }),
+              ]}
+            >
+              <DatePicker
+                value={toDate}
+                onChange={(date) => setToDate(date)}
+                format="YYYY-MM-DD"
+                placeholder="اختر تاريخ النهاية"
+                className="w-44"
+              />
+            </Form.Item>
+          </Form>
         )}
       </div>
 
