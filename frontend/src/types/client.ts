@@ -48,9 +48,8 @@ export interface Client {
   seniority: string;
   rank_fee: number;
 
-  financial_record?: number;
   subscription_fee: number;
-  prepaid?: { amount: number; financial_record: number };
+  prepaid?: number;
 
   dues?: {
     unpaid_subscriptions: number;

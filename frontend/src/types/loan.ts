@@ -13,7 +13,6 @@ export type Loan = {
   amount: number;
   issued_date: string;
   notes?: string | null;
-  financial_record: string;
   repayments: {
     total: number;
     unpaid: number;

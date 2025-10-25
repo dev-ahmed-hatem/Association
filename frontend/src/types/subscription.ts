@@ -1,12 +1,10 @@
 import { Rank } from "./client";
-import { FinancialRecord } from "./financial_record";
 import { Dayjs } from "dayjs";
 
 export type SubscriptionStatus = "مدفوع" | "غير مدفوع";
 
 export type Subscription = {
   id: string;
-  financial_record?: FinancialRecord;
   amount: number;
   date: string;
   notes?: string | null;

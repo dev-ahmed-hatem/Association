@@ -24,11 +24,9 @@ const LoanDetails = ({ loan }: { loan: Loan }) => {
         </Tag>
       </Descriptions.Item>
       <Descriptions.Item label="المبلغ">
-        <Link to={`/financials/incomes/${loan.financial_record}`}>
-          <span className="text-xl font-bold text-red-600 hover:text-red-500 cursor-pointer hover:underline">
-            {loan.amount} ج.م
-          </span>
-        </Link>
+        <span className="text-xl font-bold text-red-600 hover:text-red-500 cursor-pointer hover:underline">
+          {loan.amount} ج.م
+        </span>
       </Descriptions.Item>
       <Descriptions.Item label="تاريخ الإصدار">
         {loan.issued_date}

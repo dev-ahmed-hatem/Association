@@ -92,7 +92,7 @@ class ClientViewSet(ModelViewSet):
             client = Client.objects.get(pk=pk)
             data = ClientReadSerializer(client, context={"request": self.request}).data
             return Response(data)
-        except Exception:
+        except Client.DoesNotExist:
             return Response({'detail': _('عضو غير موجود')}, status=status.HTTP_404_NOT_FOUND)
 
     @action(detail=True, methods=['post'])
@@ -122,8 +122,6 @@ class ClientViewSet(ModelViewSet):
             Subscription.objects.filter(client=client).delete()
             Loan.objects.filter(client=client).delete()
 
-            if client.prepaid:
-                client.prepaid.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
 
         except Exception:

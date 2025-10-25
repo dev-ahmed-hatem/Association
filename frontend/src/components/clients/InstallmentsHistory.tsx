@@ -15,7 +15,7 @@ import {
   Card,
   Space,
 } from "antd";
-import { EyeOutlined, DeleteOutlined } from "@ant-design/icons";
+import { DeleteOutlined } from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
 import { useEffect, useState } from "react";
 import Loading from "../Loading";
@@ -153,18 +153,6 @@ const InstallmentsHistory = ({
       render: (_, record) =>
         record.status === "مدفوع" ? (
           <Space>
-            {can("incomes.view") && (
-              <Link to={`/financials/incomes/${record.financial_record}/`}>
-                <Button
-                  type="primary"
-                  size="middle"
-                  icon={<EyeOutlined />}
-                  title="عرض"
-                  disabled={isLoading}
-                />
-              </Link>
-            )}
-
             {can("installments.delete") && (
               <Popconfirm
                 title="تأكيد الحذف"
@@ -266,11 +254,9 @@ const InstallmentsHistory = ({
               المدفوع مقدما:
             </span>
             {prepaid ? (
-              <Link to={`/financials/incomes/${prepaid.financial_record}`}>
-                <span className="text-xl font-bold text-green-600 hover:text-green-500 cursor-pointer hover:underline">
-                  {prepaid.amount.toString()} ج.م
-                </span>
-              </Link>
+              <span className="text-xl font-bold text-green-600">
+                {prepaid.toString()} ج.م
+              </span>
             ) : (
               <span className="text-xl font-bold text-green-600">غير مسجل</span>
             )}

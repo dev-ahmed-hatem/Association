@@ -131,14 +131,12 @@ class Client(models.Model):
         verbose_name=_("ملاحظات"),
     )
 
-    # joining financial fields
-    prepaid = models.ForeignKey(
-        "financials.FinancialRecord",
-        on_delete=models.SET_NULL,
-        related_name="client",
+    prepaid = models.DecimalField(
+        _("المدفوع مقدما (مؤقت)"),
+        max_digits=10,
+        decimal_places=2,
         null=True,
-        blank=True,
-        verbose_name=_("المدفوع مقدما")
+        blank=True
     )
 
     subscription_fee = models.DecimalField(
@@ -168,11 +166,6 @@ class Client(models.Model):
     class Meta:
         verbose_name = _("عميل")
         verbose_name_plural = _("العملاء")
-
-    def delete(self, using=None, keep_parents=False):
-        if self.prepaid:
-            raise RestrictedError(_("لا يمكن حذف العميل لارتباطه بسجلات مالية موجودة"), self.prepaid)
-        super(Client, self).delete(using, keep_parents)
 
     @property
     def age(self):

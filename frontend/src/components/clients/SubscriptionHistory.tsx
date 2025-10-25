@@ -8,7 +8,7 @@ import {
   Input,
   Popconfirm,
 } from "antd";
-import { EyeOutlined, DeleteOutlined } from "@ant-design/icons";
+import { DeleteOutlined } from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
 import dayjs, { Dayjs } from "dayjs";
 import { useEffect, useState } from "react";
@@ -81,7 +81,6 @@ const SubscriptionHistory = ({
           notes: paidMonth.notes,
           paid_at: paidMonth.paid_at,
           amount: paidMonth.amount,
-          financial_record: paidMonth.financial_record,
         });
       } else if (is_active) {
         yearData.push({
@@ -195,18 +194,6 @@ const SubscriptionHistory = ({
       render: (_, record) =>
         record.status === "مدفوع" ? (
           <Space>
-            {can("incomes.view") && (
-              <Link to={`/financials/incomes/${record.financial_record}/`}>
-                <Button
-                  type="primary"
-                  size="middle"
-                  icon={<EyeOutlined />}
-                  title="عرض"
-                  disabled={isLoading}
-                />
-              </Link>
-            )}
-
             {can("subscriptions.delete") && (
               <Popconfirm
                 title="تأكيد الحذف"

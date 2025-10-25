@@ -9,7 +9,6 @@ import {
   Card,
   Alert,
   InputNumber,
-  Spin,
 } from "antd";
 import dayjs, { Dayjs } from "dayjs";
 import { calculateAge, extractBirthdateFromNationalId } from "@/utils";
@@ -23,13 +22,6 @@ import { handleServerErrors } from "@/utils/handleForm";
 import { useEffect, useState } from "react";
 import { useNotification } from "@/providers/NotificationProvider";
 import { useNavigate } from "react-router";
-import {
-  incomePaymentMethods,
-  PaymentMethod,
-  receiptPaymentMethods,
-} from "@/types/financial_record";
-import { LoadingOutlined } from "@ant-design/icons";
-import { useLazyGetBankAccountsQuery } from "@/app/api/endpoints/bank_accounts";
 import { usePermission } from "@/providers/PermissionProvider";
 
 const { Option } = Select;
@@ -62,7 +54,6 @@ const ClientForm = ({
   );
 
   // payment states
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("نقدي");
   const [subscriptionFee, setSubscriptionFee] = useState<number>(0);
   const [paidAmount, setPaidAmount] = useState<number>(0);
 
@@ -78,11 +69,6 @@ const ClientForm = ({
     addClient,
     { data: client, isSuccess, isLoading, isError, error: clientError },
   ] = useClientMutation();
-
-  const [
-    getAccounts,
-    { data: accounts, isFetching: fetchingAccounts, isError: accountsError },
-  ] = useLazyGetBankAccountsQuery();
 
   const handleSubmit = (values: ClientFormValues) => {
     const data = {
@@ -101,14 +87,6 @@ const ClientForm = ({
       url: client_id ? `/clients/clients/${client_id}/` : "/clients/clients/",
     });
   };
-
-  useEffect(() => {
-    if (receiptPaymentMethods.includes(paymentMethod)) {
-      getAccounts({
-        no_pagination: true,
-      });
-    }
-  }, [paymentMethod]);
 
   useEffect(() => {
     if (isError) {
@@ -446,7 +424,7 @@ const ClientForm = ({
               </Col>
 
               <Col xs={24} md={12}>
-                <Form.Item name="paid_amount" label="المدفوع">
+                <Form.Item name="prepaid" label="المدفوع">
                   <InputNumber className="w-full" disabled={true} />
                 </Form.Item>
               </Col>
@@ -472,9 +450,29 @@ const ClientForm = ({
                 </Form.Item>
               </Col>
 
-              {subscriptionFee > 0 && (
+              <Col xs={24} md={12}>
+                <Form.Item
+                  name="prepaid"
+                  label="المدفوع"
+                  rules={[
+                    {
+                      required: true,
+                      message: "يرجى إدخال المبلغ المدفوع",
+                    },
+                  ]}
+                >
+                  <InputNumber
+                    min={0}
+                    max={subscriptionFee}
+                    className="w-full"
+                    onChange={(value) => setPaidAmount(value || 0)}
+                    disabled={subscriptionFee == 0 || !subscriptionFee}
+                  />
+                </Form.Item>
+              </Col>
+
+              {/* {subscriptionFee > 0 && (
                 <>
-                  {/* Payment Method */}
                   <Col xs={24} md={12}>
                     <Form.Item
                       name="payment_method"
@@ -496,13 +494,13 @@ const ClientForm = ({
                     </Form.Item>
                   </Col>
                 </>
-              )}
+              )} */}
             </Row>
 
             {subscriptionFee > 0 && (
               <>
                 {/* Bank Receipt Fields */}
-                {receiptPaymentMethods.includes(paymentMethod) && (
+                {/* {receiptPaymentMethods.includes(paymentMethod) && (
                   <Row gutter={16}>
                     <Col xs={24} md={12}>
                       <Form.Item
@@ -553,30 +551,7 @@ const ClientForm = ({
                       </Form.Item>
                     </Col>
                   </Row>
-                )}
-
-                <Row gutter={16}>
-                  <Col xs={24} md={12}>
-                    <Form.Item
-                      name="prepaid"
-                      label="المدفوع"
-                      rules={[
-                        {
-                          required: true,
-                          message: "يرجى إدخال المبلغ المدفوع",
-                        },
-                      ]}
-                    >
-                      <InputNumber
-                        min={0}
-                        max={subscriptionFee}
-                        className="w-full"
-                        onChange={(value) => setPaidAmount(value || 0)}
-                        disabled={subscriptionFee == 0 || !subscriptionFee}
-                      />
-                    </Form.Item>
-                  </Col>
-                </Row>
+                )} */}
 
                 {/* Remaining Amount & Installments */}
                 {remaining > 0 && (
@@ -627,7 +602,7 @@ const ClientForm = ({
                   </>
                 )}
 
-                <Row gutter={16}>
+                {/* <Row gutter={16}>
                   <Col xs={24}>
                     <Form.Item name="paymenet_notes" label="الملاحظات">
                       <Input.TextArea
@@ -636,7 +611,7 @@ const ClientForm = ({
                       />
                     </Form.Item>
                   </Col>
-                </Row>
+                </Row> */}
               </>
             )}
           </Card>

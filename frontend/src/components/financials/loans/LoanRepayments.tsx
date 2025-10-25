@@ -7,7 +7,7 @@ import {
   Input,
   Popconfirm,
 } from "antd";
-import { EyeOutlined, DeleteOutlined } from "@ant-design/icons";
+import { DeleteOutlined } from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
 import dayjs from "dayjs";
 import { useEffect, useState } from "react";
@@ -152,18 +152,6 @@ const LoanRepaymentHistory = ({
       render: (_, record) =>
         record.status === "مدفوع" ? (
           <Space>
-            {can("incomes.view") && (
-              <Link to={`/financials/incomes/${record.financial_record}/`}>
-                <Button
-                  type="primary"
-                  size="middle"
-                  icon={<EyeOutlined />}
-                  title="عرض"
-                  disabled={isLoading}
-                />
-              </Link>
-            )}
-
             {can("loans.deleteRepayment") && (
               <Popconfirm
                 title="تأكيد الإلغاء"
