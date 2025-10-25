@@ -28,6 +28,7 @@ import { useGetFinancialsStatsQuery } from "@/app/api/endpoints/financials_stats
 import Loading from "../Loading";
 import { useState } from "react";
 import { Dayjs } from "dayjs";
+import BankBalances from "./BankBalances";
 
 const { Title } = Typography;
 
@@ -66,6 +67,7 @@ const FinancialOverview = () => {
     );
   return (
     <div className="p-6">
+      <BankBalances />
       {/* Month Totals */}
       {/* Date Range Selector */}
       <div className="mb-10 text-center">

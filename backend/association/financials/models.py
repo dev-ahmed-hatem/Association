@@ -47,6 +47,13 @@ class BankAccount(models.Model):
         },
     )
 
+    balance = models.DecimalField(
+        max_digits=20,
+        decimal_places=2,
+        default=0,
+        verbose_name=_("الرصيد")
+    )
+
     class Meta:
         verbose_name = _("حساب بنكي")
         verbose_name_plural = _("الحسابات البنكية")
