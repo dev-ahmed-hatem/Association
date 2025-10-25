@@ -402,6 +402,7 @@ def get_month_subscriptions(request):
     month = request.query_params.get("month")
     year = request.query_params.get("year")
     search = request.query_params.get("search")
+    paid_status = request.query_params.get("status", None)
     search_type = request.query_params.get('search_type', "name__icontains")
 
     cutoff = date(int(year), int(month), 1)
@@ -420,6 +421,12 @@ def get_month_subscriptions(request):
         except ValueError:
             pass
 
+    # --- Normalize paid_status ---
+    if paid_status in ("", None):
+        allowed_statuses = {"paid", "unpaid"}
+    else:
+        allowed_statuses = set(paid_status.split(","))
+
     clients = list(clients_qs.values("id", "name", "rank", "membership_number"))
 
     subs = Subscription.objects.filter(
@@ -432,7 +439,7 @@ def get_month_subscriptions(request):
     results = []
     for client in clients:
         sub = subs_map.get(client["id"])
-        if sub:
+        if sub and "paid" in allowed_statuses:
             results.append({
                 "id": sub.id,
                 "client": client["name"],
@@ -445,7 +452,7 @@ def get_month_subscriptions(request):
                 "date": sub.date,
                 "notes": sub.notes,
             })
-        else:
+        elif not sub and "unpaid" in allowed_statuses:
             results.append({
                 "id": str(uuid4()),  # temporary key
                 "client": client["name"],

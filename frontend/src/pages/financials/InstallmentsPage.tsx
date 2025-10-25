@@ -11,7 +11,7 @@ import {
   InputNumber,
   Radio,
 } from "antd";
-import { EyeOutlined, DeleteOutlined } from "@ant-design/icons";
+import { DeleteOutlined } from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
 import dayjs, { Dayjs } from "dayjs";
 import { getInitials, textify } from "@/utils";
@@ -181,18 +181,6 @@ const InstallmentsPage = () => {
       render: (_, record) =>
         record.status === "مدفوع" ? (
           <Space>
-            {can("incomes.view") && (
-              <Link to={`/financials/incomes/${record.financial_record}/`}>
-                <Button
-                  type="primary"
-                  size="middle"
-                  icon={<EyeOutlined />}
-                  title="عرض"
-                  disabled={isLoading}
-                />
-              </Link>
-            )}
-
             {can("installments.delete") && (
               <Popconfirm
                 title="تأكيد الحذف"

@@ -30,6 +30,12 @@ import ErrorPage from "../Error";
 
 const { MonthPicker } = DatePicker;
 
+type ControlsType = {
+  filters: {
+    status: string;
+  };
+} | null;
+
 const SubscriptionsPage = () => {
   const { can, hasModulePermission } = usePermission();
   const [selectedMonth, setSelectedMonth] = useState<Dayjs>(dayjs());
@@ -45,11 +51,14 @@ const SubscriptionsPage = () => {
   >("name__icontains");
   const notification = useNotification();
 
+  const [controls, setControls] = useState<ControlsType>();
+
   const { data, isFetching, isError, isSuccess } =
     useGetMonthSubscriptionsQuery({
       month: (selectedMonth.month() + 1).toString(),
       year: selectedMonth.year().toString(),
       search,
+      status: controls?.filters.status,
       page,
       page_size: pageSize,
       search_type: searchType,
@@ -147,6 +156,11 @@ const SubscriptionsPage = () => {
       render: (value) => (
         <Tag color={value === "مدفوع" ? "green" : "red"}>{value}</Tag>
       ),
+      filters: [
+        { text: "مدفوع", value: "paid" },
+        { text: "غير مدفوع", value: "unpaid" },
+      ],
+      defaultFilteredValue: controls?.filters?.status?.split(","),
     },
     {
       title: "ملاحظات",
@@ -178,18 +192,6 @@ const SubscriptionsPage = () => {
       render: (_, record) =>
         record.status === "مدفوع" ? (
           <Space>
-            {can("incomes.view") && (
-              <Link to={`/financials/incomes/${record.financial_record}/`}>
-                <Button
-                  type="primary"
-                  size="middle"
-                  icon={<EyeOutlined />}
-                  title="عرض"
-                  disabled={isLoading}
-                />
-              </Link>
-            )}
-
             {can("subscriptions.delete") && (
               <Popconfirm
                 title="تأكيد الحذف"
@@ -336,6 +338,16 @@ const SubscriptionsPage = () => {
               setPageSize(pageSize);
             },
           })}
+          onChange={(_, filters, sorter: any) => {
+            setControls({
+              filters: Object.fromEntries(
+                Object.entries(filters).map(([filter, values]) => [
+                  filter,
+                  (values as string[])?.join(),
+                ])
+              ),
+            } as ControlsType);
+          }}
           scroll={{ x: "max-content" }}
           className="minsk-header"
         />
