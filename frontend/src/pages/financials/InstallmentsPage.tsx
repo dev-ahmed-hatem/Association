@@ -30,6 +30,12 @@ import ErrorPage from "../Error";
 
 const { MonthPicker } = DatePicker;
 
+type ControlsType = {
+  filters: {
+    status: string;
+  };
+} | null;
+
 const InstallmentsPage = () => {
   const { can, hasModulePermission } = usePermission();
   const [selectedMonth, setSelectedMonth] = useState<Dayjs>(dayjs());
@@ -45,10 +51,13 @@ const InstallmentsPage = () => {
   >("name__icontains");
   const notification = useNotification();
 
+  const [controls, setControls] = useState<ControlsType>();
+
   const { data, isFetching, isError } = useGetMonthInstallmentsQuery({
     month: (selectedMonth.month() + 1).toString(),
     year: selectedMonth.year().toString(),
     search,
+    status: controls?.filters.status,
     page,
     page_size: pageSize,
     search_type: searchType,
@@ -150,6 +159,11 @@ const InstallmentsPage = () => {
       render: (value) => (
         <Tag color={value === "مدفوع" ? "green" : "red"}>{value}</Tag>
       ),
+      filters: [
+        { text: "مدفوع", value: "مدفوع" },
+        { text: "غير مدفوع", value: "غير مدفوع" },
+      ],
+      defaultFilteredValue: controls?.filters?.status?.split(","),
     },
     {
       title: "ملاحظات",
@@ -327,6 +341,16 @@ const InstallmentsPage = () => {
               setPageSize(pageSize);
             },
           })}
+          onChange={(_, filters, sorter: any) => {
+            setControls({
+              filters: Object.fromEntries(
+                Object.entries(filters).map(([filter, values]) => [
+                  filter,
+                  (values as string[])?.join(),
+                ])
+              ),
+            } as ControlsType);
+          }}
           scroll={{ x: "max-content" }}
           className="minsk-header"
         />

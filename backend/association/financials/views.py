@@ -421,7 +421,7 @@ def get_month_subscriptions(request):
         except ValueError:
             pass
 
-    # --- Normalize paid_status ---
+    # Normalize paid_status
     if paid_status in ("", None):
         allowed_statuses = {"paid", "unpaid"}
     else:
@@ -479,6 +479,7 @@ def get_month_installments(request):
     month = request.query_params.get("month")
     year = request.query_params.get("year")
     search = request.query_params.get("search", "")
+    paid_status = request.query_params.get("status", [])
     search_type = request.query_params.get('search_type', "name__icontains")
 
     if not month or not year:
@@ -497,6 +498,10 @@ def get_month_installments(request):
     installments = Installment.objects.filter(
         due_date__month=month, due_date__year=year, client__in=clients_qs
     ).select_related("client")
+
+    if len(paid_status) > 0:
+        status_filter = paid_status.split(',')
+        installments = installments.filter(status__in=status_filter)
 
     results = [{
         **InstallmentSerializer(instance=ins, context={"request": request}).data,

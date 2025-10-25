@@ -17,6 +17,7 @@ export const installmentsEndpoints = api.injectEndpoints({
         month: string;
         year: string;
         search: string;
+        status?: string;
         page: number;
         page_size: number;
         search_type: string;
