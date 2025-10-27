@@ -156,13 +156,13 @@ const FinancialProfilePage: React.FC = () => {
         </div>
 
         {/* Action Button */}
-        {record?.transaction_type.system_related ? (
+        {/* {record?.transaction_type.system_related ? (
           <span>
             <Tag color="blue" className="text-base px-2">
               تمت الإضافة تلقائيًا
             </Tag>
           </span>
-        ) : (
+        ) : ( */}
           <div className="btn-wrapper flex md:justify-end mt-4 flex-wrap gap-4">
             {((record?.transaction_type.type === "إيراد" &&
               can("incomes.edit")) ||
@@ -203,7 +203,7 @@ const FinancialProfilePage: React.FC = () => {
               </Popconfirm>
             )}
           </div>
-        )}
+        {/* )} */}
       </div>
     </>
   );
