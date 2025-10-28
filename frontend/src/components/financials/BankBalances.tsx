@@ -58,7 +58,7 @@ const BankBalances: React.FC = () => {
                 <div className="mt-2 transition-all duration-700 ease-out hover:translate-y-[-2px]">
                   <p className="text-sm opacity-90 mb-1">الرصيد الحالي</p>
                   <h2 className="text-3xl font-bold tracking-tight">
-                    {bank.balance.toLocaleString()}{" "}
+                    {Number(bank.balance).toLocaleString("en-EG")}{" "}
                     <span className="text-lg font-medium">ج.م</span>
                   </h2>
                 </div>

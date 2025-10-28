@@ -134,6 +134,7 @@ class ClientWriteSerializer(serializers.ModelSerializer):
         error_messages={
             "invalid": "يرجى إدخال قيمة صالحة",
         },
+        allow_null=True
     )
 
     def validate(self, data):
@@ -146,7 +147,7 @@ class ClientWriteSerializer(serializers.ModelSerializer):
         is_create = self.instance is None
 
         subscription_fee = data.get("subscription_fee", 0)
-        prepaid = data.get("prepaid", 0)
+        prepaid = data.get("prepaid", 0) or 0
         remaining = subscription_fee - prepaid
 
         if is_create and subscription_fee > 0:
