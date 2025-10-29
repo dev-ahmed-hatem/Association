@@ -66,6 +66,7 @@ class FinancialRecordViewSet(ModelViewSet):
         to_date = self.request.query_params.get("to", None)
         payment_methods = self.request.query_params.get('payment_methods', [])
         transaction_types = self.request.query_params.get('transaction_types', [])
+        bank_accounts = self.request.query_params.get('bank_accounts', [])
 
         if date_str is not None:
             date = datetime.strptime(date_str, "%Y-%m-%d").date()
@@ -86,6 +87,10 @@ class FinancialRecordViewSet(ModelViewSet):
         if len(transaction_types) > 0:
             transaction_types = transaction_types.split(',')
             queryset = queryset.filter(transaction_type__name__in=transaction_types)
+
+        if len(bank_accounts) > 0:
+            bank_accounts = bank_accounts.split(',')
+            queryset = queryset.filter(bank_account__name__in=bank_accounts)
 
         if sort_by is not None:
             queryset = queryset.order_by(f"{order}{sort_by}")

@@ -19,6 +19,8 @@ import { PaginatedResponse } from "@/types/paginatedResponse";
 import { useGetTransactionTypesQuery } from "@/app/api/endpoints/transaction_types";
 import { SortOrder } from "antd/lib/table/interface";
 import { usePermission } from "@/providers/PermissionProvider";
+import { useGetBankAccountsQuery } from "@/app/api/endpoints/bank_accounts";
+import { BankAccount } from "@/types/bank_account";
 
 const { RangePicker } = DatePicker;
 
@@ -32,6 +34,7 @@ type ControlsType = {
   filters: {
     payment_method?: string;
     transaction_type?: string;
+    bank_account?: string;
   };
 } | null;
 
@@ -58,6 +61,12 @@ const FinancialRecords: React.FC<Props> = ({ financialType }) => {
     no_pagination: true,
     type: TransactionKindArabic[financialType],
   });
+
+  const {
+    data: accounts,
+    isFetching: accountsLoading,
+    isError: accountsError,
+  } = useGetBankAccountsQuery({ no_pagination: true });
 
   const [
     getRecords,
@@ -116,6 +125,17 @@ const FinancialRecords: React.FC<Props> = ({ financialType }) => {
       defaultFilteredValue: controls?.filters?.payment_method?.split(","),
     },
     {
+      title: "البنك",
+      dataIndex: "bank_account",
+      key: "bank_account",
+      render: (text: BankAccount) => (text ? text.name : "-"),
+      filters: accounts?.map((bank) => ({
+        text: bank.name,
+        value: bank.name,
+      })),
+      defaultFilteredValue: controls?.filters?.bank_account?.split(","),
+    },
+    {
       title: "القيمة",
       dataIndex: "amount",
       key: "amount",
@@ -148,14 +168,15 @@ const FinancialRecords: React.FC<Props> = ({ financialType }) => {
         order: controls?.order === "descend" ? "-" : "",
         payment_methods: controls?.filters.payment_method,
         transaction_types: controls?.filters.transaction_type,
+        bank_accounts: controls?.filters.bank_account,
       });
     }
   }, [page, pageSize, fromDate, toDate, financialType, controls]);
 
   if (!isFinancials) return <Outlet />;
 
-  if (isLoading || typesLoading) return <Loading />;
-  if (isError || typesIsError) return <ErrorPage />;
+  if (isLoading || typesLoading || accountsLoading) return <Loading />;
+  if (isError || typesIsError || accountsError) return <ErrorPage />;
   if (
     (financialType === "income" && !hasModulePermission("incomes")) ||
     (financialType === "expense" && !hasModulePermission("expenses"))
