@@ -27,7 +27,7 @@ class RankFeeSerializer(serializers.ModelSerializer):
 
 class FinancialRecordReadSerializer(serializers.ModelSerializer):
     transaction_type = TransactionTypeSerializer()
-    transaction_type_name = serializers.SerializerMethodField()
+    project = serializers.SerializerMethodField()
     bank_account = BankAccountSerializer()
     created_at = serializers.SerializerMethodField()
     created_by = serializers.StringRelatedField(source="created_by.name")
@@ -39,9 +39,9 @@ class FinancialRecordReadSerializer(serializers.ModelSerializer):
     def get_created_at(self, obj: FinancialRecord):
         return obj.created_at.astimezone(settings.CAIRO_TZ).strftime("%Y-%m-%d %I:%M%p")
 
-    def get_transaction_type_name(self, obj: FinancialRecord):
+    def get_project(self, obj: FinancialRecord):
         if getattr(obj, "project_transaction", None):
-            return obj.project_transaction.project.name
+            return {"name":obj.project_transaction.project.name, "id": obj.project_transaction.project.id}
 
 
 class FinancialRecordWriteSerializer(serializers.ModelSerializer):

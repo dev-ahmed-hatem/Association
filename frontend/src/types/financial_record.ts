@@ -49,5 +49,5 @@ export type FinancialRecord = {
   created_at: string;
   created_by: number;
 
-  transaction_type_name?: string;
+  project?: { name: string; id: string };
 };

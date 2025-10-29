@@ -94,7 +94,7 @@ const FinancialRecords: React.FC<Props> = ({ financialType }) => {
       render: (text, record) => (
         <span>
           {record.transaction_type.name}{" "}
-          {record.transaction_type_name && `(${record.transaction_type_name})`}
+          {record.project && `(${record.project.name})`}
         </span>
       ),
       filters: types?.map((type) => ({ text: type.name, value: type.name })),

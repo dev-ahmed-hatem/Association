@@ -7,7 +7,7 @@ import {
   TransactionKindEnglish,
   transactionTypeColors,
 } from "@/types/transaction_type";
-import { useNavigate, useParams } from "react-router";
+import { Link, useNavigate, useParams } from "react-router";
 import {
   useFinancialRecordMutation,
   useGetFinancialRecordQuery,
@@ -106,8 +106,14 @@ const FinancialProfilePage: React.FC = () => {
               <h2 className="text-xl font-bold">
                 {record?.transaction_type.type === "إيراد" ? "إيراد" : "مصروف"}{" "}
                 – {record?.transaction_type.name}{" "}
-                {record?.transaction_type_name &&
-                  `(${record?.transaction_type_name})`}
+                {record?.project && (
+                  <Link
+                    to={`/projects/project-profile/${record.project.id}`}
+                    className="hover:text-blue-500 hover:underline cursor-pointer"
+                  >
+                    {`(${record?.project.name})`}
+                  </Link>
+                )}
               </h2>
               <p className="text-gray-500">
                 بتاريخ <span dir="rtl">{record?.date}</span>
