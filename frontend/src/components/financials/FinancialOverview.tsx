@@ -208,7 +208,7 @@ const FinancialOverview = () => {
 
                     {/* Value */}
                     <span className="text-red-700 font-bold text-sm sm:text-base mt-2 sm:mt-0">
-                      {acc.value} ج.م
+                      {Number(acc.value).toLocaleString()} ج.م
                     </span>
                   </li>
                 ))}
@@ -269,7 +269,7 @@ const FinancialOverview = () => {
 
                     {/* Value */}
                     <span className="text-red-700 font-bold text-sm sm:text-base mt-2 sm:mt-0">
-                      {acc.value} ج.م
+                      {Number(acc.value).toLocaleString()} ج.م
                     </span>
                   </li>
                 ))}
