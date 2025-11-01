@@ -38,5 +38,6 @@ export const tablePaginationConfig: (
   ),
 
   // dynamic params
+  showSizeChanger: true,
   ...params,
 });
