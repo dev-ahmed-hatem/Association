@@ -48,7 +48,7 @@ const ExportClients: FC<ExportClientsProps> = ({
   const [indeterminate, setIndeterminate] = useState(false);
   const [checkAll, setCheckAll] = useState(true);
 
-  const [exportClientsSheet, { isLoading }] = useLazyExportClientsSheetQuery();
+  const [exportClientsSheet, { isFetching }] = useLazyExportClientsSheetQuery();
 
   // Handle individual checkbox selection
   const onChange = (checkedValues: string[]) => {
@@ -133,11 +133,11 @@ const ExportClients: FC<ExportClientsProps> = ({
         okButtonProps={{
           className:
             "bg-gradient-to-l from-green-800 to-green-600 hover:from-green-700 hover:to-green-500 text-white border-none rounded-md shadow-md",
-          loading: isLoading,
+          loading: isFetching,
         }}
         cancelButtonProps={{
           className: "text-gray-600 border-gray-300 hover:text-gray-800",
-          disabled: isLoading,
+          disabled: isFetching,
         }}
         centered
         width={480}
