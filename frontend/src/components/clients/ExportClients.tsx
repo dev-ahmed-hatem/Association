@@ -48,7 +48,7 @@ const ExportClients: FC<ExportClientsProps> = ({
   const [indeterminate, setIndeterminate] = useState(false);
   const [checkAll, setCheckAll] = useState(true);
 
-  const [exportClientsSheet] = useLazyExportClientsSheetQuery();
+  const [exportClientsSheet, { isLoading }] = useLazyExportClientsSheetQuery();
 
   // Handle individual checkbox selection
   const onChange = (checkedValues: string[]) => {
@@ -101,35 +101,7 @@ const ExportClients: FC<ExportClientsProps> = ({
     window.URL.revokeObjectURL(blobUrl);
 
     notification.success({ message: "تم تصدير البيانات بنجاح" });
-
-    // try {
-    //   const params = new URLSearchParams({
-    //     fields: selectedFields.join(","),
-    //   });
-
-    //   const response = await fetch(`${exportUrl}?${params}`, {
-    //     method: "GET",
-    //   });
-
-    //   if (!response.ok) {
-    //     message.error("حدث خطأ أثناء تصدير البيانات");
-    //     return;
-    //   }
-
-    //   const blob = await response.blob();
-    //   const url = window.URL.createObjectURL(blob);
-    //   const link = document.createElement("a");
-    //   link.href = url;
-    //   link.download = "clients_export.xlsx";
-    //   link.click();
-    //   window.URL.revokeObjectURL(url);
-
-    //   message.success("تم تصدير البيانات بنجاح ✅");
-    //   setOpen(false);
-    // } catch (err) {
-    //   console.error(err);
-    //   message.error("تعذر الاتصال بالخادم");
-    // }
+    setOpen(false);
   };
 
   return (
@@ -161,9 +133,11 @@ const ExportClients: FC<ExportClientsProps> = ({
         okButtonProps={{
           className:
             "bg-gradient-to-l from-green-800 to-green-600 hover:from-green-700 hover:to-green-500 text-white border-none rounded-md shadow-md",
+          loading: isLoading,
         }}
         cancelButtonProps={{
           className: "text-gray-600 border-gray-300 hover:text-gray-800",
+          disabled: isLoading,
         }}
         centered
         width={480}
