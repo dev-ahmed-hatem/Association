@@ -15,7 +15,7 @@ fieldLabels = {
   "graduation_year": "سنة التخرج",
   "class_rank": "الترتيب على الدفعة",
   "notes": "ملاحظات",
-  "is_active": "في الخدمة",
+  "is_active": "الحالة",
   "created_at": "تاريخ الإنشاء",
   "created_by": "تم الإنشاء بواسطة",
 };

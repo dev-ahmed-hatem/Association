@@ -92,6 +92,13 @@ export const clientsEndpoints = api.injectEndpoints({
         method: "GET",
       }),
     }),
+    exportClientsSheet: builder.query<Blob, QueryParams | void>({
+      query: (params) => ({
+        url: `/clients/clients/export/?${qs.stringify(params || {})}`,
+        method: "GET",
+        responseType: "blob",
+      }),
+    }),
   }),
   overrideExisting: false,
 });
@@ -104,4 +111,5 @@ export const {
   useDeleteFinancialRecordsMutation,
   useGetHomeStatsQuery,
   useGetHomeFinancialStatsQuery,
+  useLazyExportClientsSheetQuery,
 } = clientsEndpoints;

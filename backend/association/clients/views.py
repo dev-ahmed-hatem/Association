@@ -23,7 +23,6 @@ from django.http import FileResponse
 from .resourses import fieldLabels
 
 
-
 class WorkEntityViewSet(ModelViewSet):
     queryset = WorkEntity.objects.all()
     serializer_class = WorkEntitySerializer
@@ -175,7 +174,11 @@ class ClientViewSet(ModelViewSet):
         # Write rows
         for row_num, item in enumerate(data, start=2):
             for col_num, field in enumerate(fields, start=1):
-                ws.cell(row=row_num, column=col_num, value=str(item.get(field, "")))
+                if field == "is_active":
+                    value = "في الخدمة" if item.get("is_active") else "متقاعد"
+                else:
+                    value = str(item.get(field, "") or "-")
+                ws.cell(row=row_num, column=col_num, value=value)
 
         output = BytesIO()
         wb.save(output)

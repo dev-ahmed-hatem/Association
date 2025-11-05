@@ -14,7 +14,16 @@ const store = configureStore({
   },
   middleware: (getDefaultMiddleware) =>
     // api middleware
-    getDefaultMiddleware().concat(api.middleware),
+    getDefaultMiddleware({
+      // Ignore non-serializable checks for RTK Query actions (excel sheets responses)
+      serializableCheck: {
+        ignoredActions: [
+          "api/executeQuery/fulfilled",
+          "api/executeQuery/rejected",
+          "api/executeQuery/pending",
+        ],
+      },
+    }).concat(api.middleware),
 });
 
 export default store;

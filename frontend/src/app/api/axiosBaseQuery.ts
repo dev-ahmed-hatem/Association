@@ -86,11 +86,13 @@ export const axiosBaseQuery =
       data?: AxiosRequestConfig["data"];
       params?: AxiosRequestConfig["params"];
       headers?: AxiosRequestConfig["headers"];
+      
+      responseType?: AxiosRequestConfig["responseType"]; // used for file responses
     },
     unknown,
     axiosBaseQueryError
   > =>
-  async ({ url, method = "GET", data, params, headers }) => {
+  async ({ url, method = "GET", data, params, headers, responseType }) => {
     try {
       const response = await axiosInstance({
         url,
@@ -98,6 +100,7 @@ export const axiosBaseQuery =
         data,
         params,
         headers,
+        responseType
       });
       return {
         status: response.status,

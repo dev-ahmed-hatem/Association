@@ -3,9 +3,13 @@ import { Modal, Checkbox, message } from "antd";
 import { DownloadOutlined } from "@ant-design/icons";
 import { CheckboxOptionType } from "antd/lib";
 import { ControlsType } from "@/pages/clients/ClientsList";
+import { useNotification } from "@/providers/NotificationProvider";
+import { useLazyExportClientsSheetQuery } from "@/app/api/endpoints/clients";
 
 interface ExportClientsProps {
   controls: ControlsType;
+  search: string;
+  searchType: "name__icontains" | "membership_number" | "phone_number";
 }
 
 const defaultFields: CheckboxOptionType["value"][] = [
@@ -26,18 +30,25 @@ const defaultFields: CheckboxOptionType["value"][] = [
   { label: "سنة التخرج", value: "graduation_year" },
   { label: "الترتيب على الدفعة", value: "class_rank" },
   { label: "ملاحظات", value: "notes" },
-  { label: "في الخدمة", value: "is_active" },
+  { label: "الحالة", value: "is_active" },
   { label: "تاريخ الإنشاء", value: "created_at" },
   { label: "تم الإنشاء بواسطة", value: "created_by" },
 ];
 
-const ExportClients: FC<ExportClientsProps> = ({ controls }) => {
+const ExportClients: FC<ExportClientsProps> = ({
+  controls,
+  search,
+  searchType,
+}) => {
+  const notification = useNotification();
   const [open, setOpen] = useState(false);
   const [selectedFields, setSelectedFields] = useState<string[]>(
     defaultFields.map((f) => f.value)
   );
   const [indeterminate, setIndeterminate] = useState(false);
   const [checkAll, setCheckAll] = useState(true);
+
+  const [exportClientsSheet] = useLazyExportClientsSheetQuery();
 
   // Handle individual checkbox selection
   const onChange = (checkedValues: string[]) => {
@@ -59,38 +70,66 @@ const ExportClients: FC<ExportClientsProps> = ({ controls }) => {
 
   const handleExport = async () => {
     if (selectedFields.length === 0) {
-      message.warning("يرجى اختيار الحقول التي تريد تصديرها");
+      notification.warning({ message: "يرجى اختيار الحقول التي تريد تصديرها" });
       return;
     }
 
-    try {
-      const params = new URLSearchParams({
-        fields: selectedFields.join(","),
-      });
+    const { data, error } = await exportClientsSheet({
+      no_pagination: true,
+      fields: selectedFields.join(),
+      search,
+      search_type: searchType,
+      sort_by: controls?.sort_by,
+      order: controls?.order === "descend" ? "-" : "",
+      status: controls?.filters.name,
+      rank: controls?.filters.rank,
+      graduation_year: controls?.filters.seniority,
+      entities: controls?.filters.work_entity,
+    });
 
-      const response = await fetch(`${exportUrl}?${params}`, {
-        method: "GET",
-      });
-
-      if (!response.ok) {
-        message.error("حدث خطأ أثناء تصدير البيانات");
-        return;
-      }
-
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = "clients_export.xlsx";
-      link.click();
-      window.URL.revokeObjectURL(url);
-
-      message.success("تم تصدير البيانات بنجاح ✅");
-      setOpen(false);
-    } catch (err) {
-      console.error(err);
-      message.error("تعذر الاتصال بالخادم");
+    if (error) {
+      notification.error({ message: "حدث خطأ أثناء تصدير البيانات" });
+      return;
     }
+
+    // Trigger download
+    const blobUrl = window.URL.createObjectURL(data!);
+    const link = document.createElement("a");
+    link.href = blobUrl;
+    link.download = "الأعضاء.xlsx";
+    link.click();
+    window.URL.revokeObjectURL(blobUrl);
+
+    notification.success({ message: "تم تصدير البيانات بنجاح" });
+
+    // try {
+    //   const params = new URLSearchParams({
+    //     fields: selectedFields.join(","),
+    //   });
+
+    //   const response = await fetch(`${exportUrl}?${params}`, {
+    //     method: "GET",
+    //   });
+
+    //   if (!response.ok) {
+    //     message.error("حدث خطأ أثناء تصدير البيانات");
+    //     return;
+    //   }
+
+    //   const blob = await response.blob();
+    //   const url = window.URL.createObjectURL(blob);
+    //   const link = document.createElement("a");
+    //   link.href = url;
+    //   link.download = "clients_export.xlsx";
+    //   link.click();
+    //   window.URL.revokeObjectURL(url);
+
+    //   message.success("تم تصدير البيانات بنجاح ✅");
+    //   setOpen(false);
+    // } catch (err) {
+    //   console.error(err);
+    //   message.error("تعذر الاتصال بالخادم");
+    // }
   };
 
   return (

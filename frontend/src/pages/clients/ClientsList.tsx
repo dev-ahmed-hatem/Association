@@ -295,7 +295,7 @@ const ClientsList = () => {
 
       {clients?.data && clients?.data.length > 0 && (
         <div className="my-4 flex justify-end">
-          <ExportClients controls={controls} />
+          <ExportClients controls={controls}  search={search} searchType={searchType} />
         </div>
       )}
 
