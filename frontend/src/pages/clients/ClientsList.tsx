@@ -12,8 +12,9 @@ import { PaginatedResponse } from "@/types/paginatedResponse";
 import { useGetWorkEntitiesQuery } from "@/app/api/endpoints/workentities";
 import { SortOrder } from "antd/lib/table/interface";
 import { usePermission } from "@/providers/PermissionProvider";
+import ExportClients from "@/components/clients/ExportClients";
 
-type ControlsType = {
+export type ControlsType = {
   sort_by?: string;
   order?: SortOrder;
   filters: {
@@ -291,6 +292,12 @@ const ClientsList = () => {
           </Link>
         )}
       </div>
+
+      {clients?.data && clients?.data.length > 0 && (
+        <div className="my-4 flex justify-end">
+          <ExportClients controls={controls} />
+        </div>
+      )}
 
       {/* Table */}
       {can("clients.view") && clients && (

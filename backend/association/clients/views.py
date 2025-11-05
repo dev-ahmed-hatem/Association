@@ -1,3 +1,4 @@
+import openpyxl
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.db.models.fields import IntegerField
@@ -15,6 +16,12 @@ from django.db.models import RestrictedError, Count, Sum, Value, CharField, Q, E
 from django.db.models.functions import TruncMonth, ExtractYear, ExtractMonth, Concat
 
 from datetime import datetime, date
+
+# for excel file creation
+from io import BytesIO
+from django.http import FileResponse
+from .resourses import fieldLabels
+
 
 
 class WorkEntityViewSet(ModelViewSet):
@@ -135,6 +142,51 @@ class ClientViewSet(ModelViewSet):
                 {"detail": _("لا يمكن حذف العميل لارتباطه بسجلات مالية موجودة")},
                 status=status.HTTP_400_BAD_REQUEST
             )
+
+    @action(detail=False, methods=["get"], url_path="export")
+    def export(self, request):
+        queryset = self.get_queryset()
+        fields = request.query_params.get("fields", None)
+
+        if fields is None:
+            return Response({"detail": "Please select fields to export"}, status=204)
+
+        fields = fields.split(',')
+
+        serializer = ClientReadSerializer(queryset, many=True, context={"request": request})
+
+        wb = openpyxl.Workbook()
+        ws = wb.active
+        ws.title = "الأعضاء"
+
+        ws.sheet_view.rightToLeft = True
+
+        data = serializer.data
+        if not data:
+            return Response({"detail": "No data to export"}, status=204)
+
+        # Write fields
+        for col, field in enumerate(fields, start=1):
+            try:
+                ws.cell(row=1, column=col, value=fieldLabels[field])
+            except KeyError:
+                pass
+
+        # Write rows
+        for row_num, item in enumerate(data, start=2):
+            for col_num, field in enumerate(fields, start=1):
+                ws.cell(row=row_num, column=col_num, value=str(item.get(field, "")))
+
+        output = BytesIO()
+        wb.save(output)
+        output.seek(0)
+
+        return FileResponse(
+            output,
+            as_attachment=True,
+            filename="الأعضاء.xlsx",
+            content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
 
 
 @api_view(["GET"])
