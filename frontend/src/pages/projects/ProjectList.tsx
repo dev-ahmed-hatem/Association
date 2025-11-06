@@ -12,6 +12,7 @@ import { PaginatedResponse } from "@/types/paginatedResponse";
 import { useGetProjectsQuery } from "@/app/api/endpoints/projects";
 import ProjectStatistics from "@/components/projects/ProjectsStatistics";
 import { usePermission } from "@/providers/PermissionProvider";
+import ExportProjects from "@/components/projects/ExportProjects";
 
 type ControlsType = {
   sort_by?: string;
@@ -115,6 +116,7 @@ const ProjectsList: React.FC = () => {
 
   // Search Function
   const onSearch = (value: string) => {
+    setPage(1);
     setSearch(value);
   };
 
@@ -181,6 +183,12 @@ const ProjectsList: React.FC = () => {
       </div>
 
       {isFetching && <Loading />}
+
+      {projects?.data && projects?.data.length > 0 && (
+        <div className="my-4 flex justify-end">
+          <ExportProjects controls={controls} search={search} />
+        </div>
+      )}
 
       {/* Table */}
       {can("projects.view") && !isFetching && projects && (

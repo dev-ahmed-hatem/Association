@@ -3,6 +3,7 @@ from decimal import Decimal
 from io import BytesIO
 
 import openpyxl
+from django.conf import settings
 from django.http import FileResponse
 from rest_framework import viewsets, status
 
@@ -133,7 +134,13 @@ class ProjectViewSet(viewsets.ModelViewSet):
         # Write rows
         for row_num, item in enumerate(queryset, start=2):
             for col_num, field in enumerate(fields, start=1):
-                ws.cell(row=row_num, column=col_num, value=str(getattr(item, field) or "-"))
+                if field == "created_by":
+                    value = item.created_by.name if item.created_by else "-"
+                elif field == "created_at":
+                    value = item.created_at.astimezone(settings.CAIRO_TZ).strftime("%Y-%m-%d %I:%M%p")
+                else:
+                    value = getattr(item, field) or "-"
+                ws.cell(row=row_num, column=col_num, value=value)
 
         output = BytesIO()
         wb.save(output)

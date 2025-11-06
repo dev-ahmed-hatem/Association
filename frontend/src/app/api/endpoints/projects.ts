@@ -72,6 +72,16 @@ export const projectsEndpoints = api.injectEndpoints({
     getProjectsStats: builder.query<ProjectsStats, void>({
       query: () => ({ url: "/projects/get-projects-stats/", method: "GET" }),
     }),
+    exportProjectsSheet: builder.query<
+      Blob,
+      { type: "totals" | "monthly"; params: QueryParams | void }
+    >({
+      query: ({ type, params }) => ({
+        url: `/projects/projects/export_${type}/?${qs.stringify(params || {})}`,
+        method: "GET",
+        responseType: "blob",
+      }),
+    }),
   }),
   overrideExisting: false,
 });
@@ -82,4 +92,5 @@ export const {
   useProjectMutation,
   useSwitchProjectStatusMutation,
   useGetProjectsStatsQuery,
+  useLazyExportProjectsSheetQuery,
 } = projectsEndpoints;

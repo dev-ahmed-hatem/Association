@@ -22,6 +22,10 @@ class ProjectSerializer(serializers.ModelSerializer):
     def get_total_expenses(self, obj: Project):
         return obj.total_expenses
 
+    def create(self, validated_data):
+        user = self.context['request'].user
+        return super().create({**validated_data, "created_by": user})
+
 
 class ProjectTransactionReadSerializer(serializers.ModelSerializer):
     amount = serializers.IntegerField(source="financial_record.amount")
