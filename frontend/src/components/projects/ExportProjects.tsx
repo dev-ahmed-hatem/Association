@@ -65,14 +65,15 @@ const ExportProjects: FC<ExportProjectsProps> = ({ controls, search }) => {
   };
 
   const handleExport = async () => {
+    if (exportType === "monthly") return;
     if (selectedFields.length === 0) {
       notification.warning({ message: "يرجى اختيار الحقول التي تريد تصديرها" });
       return;
     }
-    if (exportType === "monthly" && !monthRange) {
-      notification.warning({ message: "يرجى تحديد فترة الشهور للتصدير" });
-      return;
-    }
+    // if (exportType === "monthly" && !monthRange) {
+    //   notification.warning({ message: "يرجى تحديد فترة الشهور للتصدير" });
+    //   return;
+    // }
     const { data, error } = await exportProjectsSheet({
       type: exportType,
       params: {
