@@ -1,14 +1,19 @@
 from datetime import datetime
+from decimal import Decimal
+from io import BytesIO
 
+import openpyxl
+from django.http import FileResponse
 from rest_framework import viewsets, status
 
 from financials.models import TransactionType
+from .resources import fieldLabels
 from .serializers import ProjectSerializer, ProjectTransactionReadSerializer, ProjectTransactionWriteSerializer
 from rest_framework.response import Response
 from rest_framework.decorators import action, api_view
 from .models import Project, ProjectTransaction
 from django.utils.translation import gettext_lazy as _
-from django.db.models import Sum, RestrictedError
+from django.db.models import Sum, RestrictedError, When, Case, F, DecimalField, ExpressionWrapper
 
 
 class ProjectViewSet(viewsets.ModelViewSet):
@@ -63,6 +68,83 @@ class ProjectViewSet(viewsets.ModelViewSet):
                 {"detail": _("لا يمكن حذف المشروع لارتباطه بسجلات مالية موجودة")},
                 status=status.HTTP_400_BAD_REQUEST
             )
+
+    @action(detail=False, methods=['get'])
+    def export_totals(self, request):
+        queryset = self.get_queryset()
+        fields = request.query_params.get("fields", None)
+
+        if fields is None:
+            return Response({"detail": "Please select fields to export"}, status=204)
+
+        fields = fields.split(',')
+
+        # totals annotation
+        total_income = Sum(
+            Case(
+                When(
+                    transactions__financial_record__transaction_type__type="إيراد",
+                    then=F("transactions__financial_record__amount")
+                ),
+                output_field=DecimalField(),
+                default=Decimal("0"),
+            )
+        )
+        total_expense = Sum(
+            Case(
+                When(
+                    transactions__financial_record__transaction_type__type="مصروف",
+                    then=F("transactions__financial_record__amount")
+                ),
+                output_field=DecimalField(),
+                default=Decimal("0")
+            )
+        )
+
+        if "net_income" in fields:
+            queryset = queryset.annotate(total_income=total_income, total_expense=total_expense).annotate(
+                net_income=ExpressionWrapper(
+                    F("total_income") - F("total_expense"),
+                    output_field=DecimalField()
+                ))
+        else:
+            annotations = {}
+            if "total_income" in fields:
+                annotations["total_income"] = total_income
+            if "total_expense" in fields:
+                annotations["total_expense"] = total_expense
+            queryset = queryset.annotate(
+                **annotations
+            )
+
+        wb = openpyxl.Workbook()
+        ws = wb.active
+        ws.title = "المشاريع"
+
+        ws.sheet_view.rightToLeft = True
+
+        # Write fields
+        for col, field in enumerate(fields, start=1):
+            try:
+                ws.cell(row=1, column=col, value=fieldLabels[field])
+            except KeyError:
+                pass
+
+        # Write rows
+        for row_num, item in enumerate(queryset, start=2):
+            for col_num, field in enumerate(fields, start=1):
+                ws.cell(row=row_num, column=col_num, value=str(getattr(item, field) or "-"))
+
+        output = BytesIO()
+        wb.save(output)
+        output.seek(0)
+
+        return FileResponse(
+            output,
+            as_attachment=True,
+            filename="المشاريع.xlsx",
+            content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
 
 
 class ProjectTransactionViewSet(viewsets.ModelViewSet):
