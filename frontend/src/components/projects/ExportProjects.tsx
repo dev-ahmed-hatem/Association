@@ -99,8 +99,8 @@ const ExportProjects: FC<ExportProjectsProps> = ({ controls, search }) => {
     const blobUrl = window.URL.createObjectURL(data!);
     const link = document.createElement("a");
     link.href = blobUrl;
-    link.download =
-      exportType === "monthly" ? "ملخص_شهري.xlsx" : "المشاريع.xlsx";
+    link.download = "المشاريع.xlsx";
+    // exportType === "monthly" ? "ملخص_شهري.xlsx" : "المشاريع.xlsx";
     link.click();
     window.URL.revokeObjectURL(blobUrl);
     notification.success({ message: "تم تصدير البيانات بنجاح" });
