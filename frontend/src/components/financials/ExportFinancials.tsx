@@ -2,57 +2,50 @@ import { FC, useState } from "react";
 import { Modal, Checkbox } from "antd";
 import { DownloadOutlined } from "@ant-design/icons";
 import { CheckboxOptionType } from "antd/lib";
-import { ControlsType } from "@/pages/clients/ClientsList";
 import { useNotification } from "@/providers/NotificationProvider";
-import { useLazyExportClientsSheetQuery } from "@/app/api/endpoints/clients";
+import { useLazyExportFinancialsSheetQuery } from "@/app/api/endpoints/financial_records";
+import { ControlsType } from "@/pages/financials/FinancialRecords";
+import { TransactionKind } from "@/types/transaction_type";
+// import { useLazyExportFinancialsSheetQuery } from "@/app/api/endpoints/financials"; // 👈 you'll create this endpoint
 
-interface ExportClientsProps {
-  controls: ControlsType;
-  search: string;
-  searchType: "name__icontains" | "membership_number" | "phone_number";
+interface ExportFinancialsProps {
+  controls?: ControlsType;
+  type: TransactionKind;
+  from: string;
+  to: string;
 }
 
-const defaultFields: CheckboxOptionType["value"][] = [
-  // { label: "ID", value: "id" },
-  { label: "الرتبة", value: "rank" },
-  { label: "الاسم", value: "name" },
-  { label: "رقم العضوية", value: "membership_number" },
-  { label: "الأقدمية", value: "seniority" },
-  { label: "تاريخ الاشتراك", value: "subscription_date" },
-  { label: "جهة العمل", value: "work_entity" },
-  { label: "العمر", value: "age" },
-  { label: "الرقم القومي", value: "national_id" },
-  { label: "تاريخ الميلاد", value: "birth_date" },
-  { label: "محل الإقامة", value: "residence" },
-  { label: "رقم الهاتف", value: "phone_number" },
-  { label: "نوع العضوية", value: "membership_type" },
-  { label: "الحالة الاجتماعية", value: "marital_status" },
-  { label: "سنة التخرج", value: "graduation_year" },
-  { label: "الترتيب على الدفعة", value: "class_rank" },
+const defaultFields: CheckboxOptionType[] = [
+  { label: "المبلغ", value: "amount" },
+  { label: "نوع المعاملة", value: "transaction_type" },
+  { label: "التاريخ", value: "date" },
+  { label: "طريقة الدفع", value: "payment_method" },
+  { label: "الحساب البنكي", value: "bank_account" },
+  { label: "رقم الإيصال", value: "receipt_number" },
   { label: "ملاحظات", value: "notes" },
-  { label: "الحالة", value: "is_active" },
   { label: "تاريخ الإنشاء", value: "created_at" },
   { label: "تم الإنشاء بواسطة", value: "created_by" },
 ];
 
-const ExportClients: FC<ExportClientsProps> = ({
+const ExportFinancials: FC<ExportFinancialsProps> = ({
   controls,
-  search,
-  searchType,
+  type,
+  from,
+  to,
 }) => {
   const notification = useNotification();
   const [open, setOpen] = useState(false);
   const [selectedFields, setSelectedFields] = useState<string[]>(
-    defaultFields.map((f) => f.value)
+    defaultFields.map((f) => f.value as string)
   );
   const [indeterminate, setIndeterminate] = useState(false);
   const [checkAll, setCheckAll] = useState(true);
 
-  const [exportClientsSheet, { isFetching }] = useLazyExportClientsSheetQuery();
+  const [exportFinancialsSheet, { isFetching }] =
+    useLazyExportFinancialsSheetQuery();
 
   // Handle individual checkbox selection
   const onChange = (checkedValues: string[]) => {
-    // مهما كنت ابن مين .. متلعبش هناااا
     setSelectedFields(checkedValues);
     setIndeterminate(
       !!checkedValues.length && checkedValues.length < defaultFields.length
@@ -63,7 +56,9 @@ const ExportClients: FC<ExportClientsProps> = ({
   // Handle select all toggle
   const onCheckAllChange = (e: any) => {
     const checked = e.target.checked;
-    setSelectedFields(checked ? defaultFields.map((f) => f.value) : []);
+    setSelectedFields(
+      checked ? defaultFields.map((f) => f.value as string) : []
+    );
     setIndeterminate(false);
     setCheckAll(checked);
   };
@@ -74,17 +69,17 @@ const ExportClients: FC<ExportClientsProps> = ({
       return;
     }
 
-    const { data, error } = await exportClientsSheet({
+    const { data, error } = await exportFinancialsSheet({
       no_pagination: true,
       fields: selectedFields.join(),
-      search,
-      search_type: searchType,
+      type,
+      from,
+      to,
       sort_by: controls?.sort_by,
       order: controls?.order === "descend" ? "-" : "",
-      status: controls?.filters.name,
-      rank: controls?.filters.rank,
-      graduation_year: controls?.filters.seniority,
-      entities: controls?.filters.work_entity,
+      payment_methods: controls?.filters.payment_method,
+      transaction_types: controls?.filters.transaction_type,
+      bank_accounts: controls?.filters.bank_account,
     });
 
     if (error) {
@@ -92,11 +87,10 @@ const ExportClients: FC<ExportClientsProps> = ({
       return;
     }
 
-    // Trigger download
     const blobUrl = window.URL.createObjectURL(data!);
     const link = document.createElement("a");
     link.href = blobUrl;
-    link.download = "الأعضاء.xlsx";
+    link.download = `السجلات_المالية (${type}ات).xlsx`;
     link.click();
     window.URL.revokeObjectURL(blobUrl);
 
@@ -115,7 +109,7 @@ const ExportClients: FC<ExportClientsProps> = ({
           transition-all duration-200"
       >
         <DownloadOutlined />
-        <span>تصدير إلى Excel</span>
+        <span>تصدير السجلات المالية</span>
       </button>
 
       {/* Modal */}
@@ -180,4 +174,4 @@ const ExportClients: FC<ExportClientsProps> = ({
   );
 };
 
-export default ExportClients;
+export default ExportFinancials;

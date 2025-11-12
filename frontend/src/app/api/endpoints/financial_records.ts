@@ -64,6 +64,15 @@ export const financialRecordsEndpoints = api.injectEndpoints({
         }
       },
     }),
+    exportFinancialsSheet: builder.query<Blob, QueryParams | void>({
+      query: (params) => ({
+        url: `/financials/financial-records/export/?${queryString.stringify(
+          params || {}
+        )}`,
+        method: "GET",
+        responseType: "blob",
+      }),
+    }),
   }),
 });
 
@@ -72,4 +81,5 @@ export const {
   useLazyGetFinancialRecordsQuery,
   useGetFinancialRecordQuery,
   useFinancialRecordMutation,
+  useLazyExportFinancialsSheetQuery,
 } = financialRecordsEndpoints;

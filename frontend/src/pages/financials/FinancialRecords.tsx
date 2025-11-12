@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Form, Table, DatePicker, Statistic, Tag } from "antd";
-import { PlusOutlined, CalendarOutlined } from "@ant-design/icons";
+import { PlusOutlined } from "@ant-design/icons";
 import dayjs, { Dayjs } from "dayjs";
 import { Link, Outlet, useMatch, useNavigate } from "react-router";
 import {
@@ -21,14 +21,13 @@ import { SortOrder } from "antd/lib/table/interface";
 import { usePermission } from "@/providers/PermissionProvider";
 import { useGetBankAccountsQuery } from "@/app/api/endpoints/bank_accounts";
 import { BankAccount } from "@/types/bank_account";
-
-const { RangePicker } = DatePicker;
+import ExportFinancials from "@/components/financials/ExportFinancials";
 
 type Props = {
   financialType: "income" | "expense";
 };
 
-type ControlsType = {
+export type ControlsType = {
   sort_by?: string;
   order?: SortOrder;
   filters: {
@@ -268,6 +267,17 @@ const FinancialRecords: React.FC<Props> = ({ financialType }) => {
       </div>
 
       {isFetching && <Loading />}
+
+      {records?.data && records?.data.length > 0 && (
+        <div className="my-4 flex justify-end">
+          <ExportFinancials
+            controls={controls}
+            type={TransactionKindArabic[financialType]}
+            from={fromDate.format("YYYY-MM-DD")}
+            to={toDate.format("YYYY-MM-DD")}
+          />
+        </div>
+      )}
 
       {!isFetching &&
         ((financialType === "income" && can("incomes.view")) ||

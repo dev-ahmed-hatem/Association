@@ -1,3 +1,7 @@
+from io import BytesIO
+
+import openpyxl
+from django.http import FileResponse
 from rest_framework.decorators import action, api_view, permission_classes
 from django.db.models import RestrictedError, Sum, Q, F, Value, DecimalField
 from django.db.models.functions import Coalesce
@@ -6,6 +10,7 @@ from rest_framework.viewsets import ModelViewSet
 
 from association.rest_framework_utils.custom_pagination import CustomPageNumberPagination
 from clients.models import Client
+from .resources import fieldLabels
 from .serializers import BankAccountSerializer, TransactionTypeSerializer, FinancialRecordReadSerializer, \
     FinancialRecordWriteSerializer, RankFeeSerializer, SubscriptionWriteSerializer, SubscriptionReadSerializer, \
     InstallmentSerializer, LoanSerializer, RepaymentSerializer
@@ -119,6 +124,67 @@ class FinancialRecordViewSet(ModelViewSet):
             return Response({**serializer, "editable": not record.transaction_type.system_related})
         except Exception:
             return Response({'detail': _('عملية غير موجودة')}, status=status.HTTP_404_NOT_FOUND)
+
+    @action(detail=False, methods=["get"], url_path="export")
+    def export(self, request):
+        queryset = self.get_queryset()
+        fields = request.query_params.get("fields", None)
+
+        if fields is None:
+            return Response({"detail": "Please select fields to export"}, status=204)
+
+        fields = fields.split(",")
+
+        serializer = FinancialRecordReadSerializer(
+            queryset, many=True, context={"request": request}
+        )
+        data = serializer.data
+
+        if not data:
+            return Response({"detail": "No data to export"}, status=204)
+
+        wb = openpyxl.Workbook()
+        ws = wb.active
+        ws.title = "السجلات المالية"
+        ws.sheet_view.rightToLeft = True
+
+        # Write headers
+        for col, field in enumerate(fields, start=1):
+            try:
+                ws.cell(row=1, column=col, value=fieldLabels[field])
+            except KeyError:
+                ws.cell(row=1, column=col, value=field)
+
+        # Write rows
+        for row_num, item in enumerate(data, start=2):
+            for col_num, field in enumerate(fields, start=1):
+                value = item.get(field, "-") or "-"
+
+                # Translate known fields for better readability
+                if field == "transaction_type":
+                    value = value.get("name", "-")
+                    if item.get("project", None):
+                        value += f" ({item['project']['name']})"
+                elif field == "bank_account":
+                    value = value.get("name", "-")
+                elif field == "amount":
+                    value = float(value) if value not in ("-", None) else 0.0
+                else:
+                    value = str(item.get(field, None) or "-")
+
+                ws.cell(row=row_num, column=col_num, value=value or "-")
+
+        # Save file to memory
+        output = BytesIO()
+        wb.save(output)
+        output.seek(0)
+
+        return FileResponse(
+            output,
+            as_attachment=True,
+            filename="السجلات_المالية.xlsx",
+            content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
 
 
 class SubscriptionViewSet(ModelViewSet):

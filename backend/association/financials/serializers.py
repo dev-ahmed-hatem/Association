@@ -41,7 +41,7 @@ class FinancialRecordReadSerializer(serializers.ModelSerializer):
 
     def get_project(self, obj: FinancialRecord):
         if getattr(obj, "project_transaction", None):
-            return {"name":obj.project_transaction.project.name, "id": obj.project_transaction.project.id}
+            return {"name": obj.project_transaction.project.name, "id": obj.project_transaction.project.id}
 
 
 class FinancialRecordWriteSerializer(serializers.ModelSerializer):
