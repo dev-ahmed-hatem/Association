@@ -14,7 +14,7 @@ import Loading from "../Loading";
 const ProjectStatistics = () => {
   const stats = (stats: ProjectsStats) => [
     {
-      title: "إجمالي المشاريع",
+      title: "إجمالي المشروعات",
       value: stats.total_projects,
       icon: <FaProjectDiagram size={28} />,
       gradient: "from-blue-400 to-blue-600",
@@ -73,9 +73,11 @@ const ProjectStatistics = () => {
         <Card
           key={idx}
           className={`shadow-lg rounded-2xl text-white`}
-          bodyStyle={{
-            padding: "1.5rem",
-            background: `linear-gradient(to right, var(--tw-gradient-stops))`,
+          styles={{
+            body: {
+              padding: "1.5rem",
+              background: `linear-gradient(to right, var(--tw-gradient-stops))`,
+            },
           }}
         >
           <div

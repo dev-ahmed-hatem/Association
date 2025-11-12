@@ -16,6 +16,6 @@ fieldLabels = {
     "class_rank": "الترتيب على الدفعة",
     "notes": "ملاحظات",
     "is_active": "الحالة",
-    "created_at": "تاريخ الإنشاء",
+    "created_at": "وقت الإنشاء",
     "created_by": "تم الإنشاء بواسطة",
-};
+}

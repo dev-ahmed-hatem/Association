@@ -115,7 +115,7 @@ const ExportClients: FC<ExportClientsProps> = ({
           transition-all duration-200"
       >
         <DownloadOutlined />
-        <span>تصدير إلى Excel</span>
+        <span>تصدير الأعضاء</span>
       </button>
 
       {/* Modal */}

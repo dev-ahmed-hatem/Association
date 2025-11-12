@@ -6,6 +6,6 @@ fieldLabels = {
     "bank_account": "الحساب البنكي",
     "receipt_number": "رقم الإيصال",
     "notes": "ملاحظات",
-    "created_at": "تاريخ الإنشاء",
+    "created_at": "وقت الإنشاء",
     "created_by": "تم الإنشاء بواسطة",
 }

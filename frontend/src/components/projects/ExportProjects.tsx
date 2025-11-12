@@ -127,7 +127,7 @@ const ExportProjects: FC<ExportProjectsProps> = ({ controls, search }) => {
           transition-all duration-200"
       >
         <DownloadOutlined />
-        <span>تصدير المشاريع</span>
+        <span>تصدير المشروعات</span>
       </button>
 
       {/* Modal */}
