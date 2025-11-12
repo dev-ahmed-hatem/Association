@@ -65,29 +65,29 @@ const ExportProjects: FC<ExportProjectsProps> = ({ controls, search }) => {
   };
 
   const handleExport = async () => {
-    if (exportType === "monthly") return;
     if (selectedFields.length === 0) {
       notification.warning({ message: "يرجى اختيار الحقول التي تريد تصديرها" });
       return;
     }
-    // if (exportType === "monthly" && !monthRange) {
-    //   notification.warning({ message: "يرجى تحديد فترة الشهور للتصدير" });
-    //   return;
-    // }
+    if (exportType === "monthly" && !monthRange) {
+      notification.warning({ message: "يرجى تحديد فترة الشهور للتصدير" });
+      return;
+    }
+
     const { data, error } = await exportProjectsSheet({
       type: exportType,
       params: {
         no_pagination: true,
         fields: selectedFields.join(),
         search,
-        // start_month:
-        //   exportType === "monthly"
-        //     ? monthRange?.[0].format("YYYY-MM")
-        //     : undefined,
-        // end_month:
-        //   exportType === "monthly"
-        //     ? monthRange?.[1].format("YYYY-MM")
-        //     : undefined,
+        start:
+          exportType === "monthly"
+            ? monthRange?.[0].format("YYYY-MM")
+            : undefined,
+        end:
+          exportType === "monthly"
+            ? monthRange?.[1].format("YYYY-MM")
+            : undefined,
         sort_by: controls?.sort_by,
         order: controls?.order === "descend" ? "-" : "",
       },
@@ -99,8 +99,8 @@ const ExportProjects: FC<ExportProjectsProps> = ({ controls, search }) => {
     const blobUrl = window.URL.createObjectURL(data!);
     const link = document.createElement("a");
     link.href = blobUrl;
-    link.download = "المشاريع.xlsx";
-    // exportType === "monthly" ? "ملخص_شهري.xlsx" : "المشاريع.xlsx";
+    link.download =
+      exportType === "monthly" ? "ملخص_شهري.xlsx" : "المشاريع.xlsx";
     link.click();
     window.URL.revokeObjectURL(blobUrl);
     notification.success({ message: "تم تصدير البيانات بنجاح" });

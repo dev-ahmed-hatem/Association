@@ -3,6 +3,7 @@ from decimal import Decimal
 from io import BytesIO
 
 import openpyxl
+from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.http import FileResponse
 from rest_framework import viewsets, status
@@ -150,6 +151,114 @@ class ProjectViewSet(viewsets.ModelViewSet):
             output,
             as_attachment=True,
             filename="المشاريع.xlsx",
+            content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
+
+    @action(detail=False, methods=['get'])
+    def export_monthly(self, request):
+        queryset = self.get_queryset()
+        fields = request.query_params.get("fields")
+        start_date = request.query_params.get("start")
+        end_date = request.query_params.get("end")
+
+        if not fields:
+            return Response({"detail": "Please select fields to export"}, status=204)
+
+        fields = fields.split(',')
+
+        if not start_date or not end_date:
+            return Response({"detail": "Please provide 'start' and 'end' query params (YYYY-MM)"},
+                            status=400)
+
+        # Parse start and end months
+        start = datetime.strptime(start_date, "%Y-%m")
+        end = datetime.strptime(end_date, "%Y-%m")
+
+        # Create list of months between start and end
+        months = []
+        current = start
+        while current <= end:
+            months.append(current)
+            current += relativedelta(months=1)
+
+        # Define income and expense annotations for a given month
+        def month_annotations(selected_month):
+            next_month = selected_month + relativedelta(months=1)
+            return {
+                'total_income': Sum(
+                    Case(
+                        When(
+                            transactions__financial_record__transaction_type__type="إيراد",
+                            transactions__financial_record__date__gte=selected_month,
+                            transactions__financial_record__date__lt=next_month,
+                            then=F("transactions__financial_record__amount")
+                        ),
+                        default=Decimal("0"),
+                        output_field=DecimalField()
+                    )
+                ),
+                'total_expense': Sum(
+                    Case(
+                        When(
+                            transactions__financial_record__transaction_type__type="مصروف",
+                            transactions__financial_record__date__gte=selected_month,
+                            transactions__financial_record__date__lt=next_month,
+                            then=F("transactions__financial_record__amount")
+                        ),
+                        default=Decimal("0"),
+                        output_field=DecimalField()
+                    )
+                )
+            }
+
+        wb = openpyxl.Workbook()
+        ws = wb.active
+        ws.title = "التقارير الشهرية"
+        ws.sheet_view.rightToLeft = True
+
+        # Prepare header row
+        headers = ["المشروع"]
+        for month in months:
+            month_name = month.strftime("%m-%Y")
+            for f in fields:
+                headers.append(f"{fieldLabels[f]} - {month_name}")
+
+        # Write headers
+        for col_num, header in enumerate(headers, start=1):
+            ws.cell(row=1, column=col_num, value=header)
+
+        # Write project rows
+        for row_num, item in enumerate(queryset, start=2):
+            ws.cell(row=row_num, column=1, value=str(item))  # project name or __str__
+
+            col_offset = 2
+            for month in months:
+                ann = month_annotations(month)
+                totals = queryset.filter(pk=item.pk).aggregate(**ann)
+                income = totals["total_income"] or Decimal("0")
+                expense = totals["total_expense"] or Decimal("0")
+                net_income = income - expense
+
+                for f in fields:
+                    if f == "total_income":
+                        value = income
+                    elif f == "total_expense":
+                        value = expense
+                    elif f == "net_income":
+                        value = net_income
+                    else:
+                        value = "-"
+                    ws.cell(row=row_num, column=col_offset, value=value)
+                    col_offset += 1
+
+        output = BytesIO()
+        wb.save(output)
+        output.seek(0)
+
+        return FileResponse(
+            output,
+            as_attachment=True,
+            filename="التقارير_الشهرية.xlsx",
             content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
 
