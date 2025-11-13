@@ -87,7 +87,7 @@ export default function PrintClientsButton({
                 padding: 0;
               }
               th {
-                background: #f0f0f0 !important;
+                /* background: #f0f0f0 !important; */
                 -webkit-print-color-adjust: exact;
               }
             }
@@ -166,16 +166,11 @@ export default function PrintClientsButton({
             .join("")}
         </tbody>
       </table>
-
-      <script>
-        // window.onload = () => {
-        //   window.print();
-        //   window.onafterprint = () => window.close();
-        // };
-      </script>
     `;
 
-    printWindow.document.close();
+    printWindow.focus();
+    printWindow.print();
+    printWindow.close();
   };
 
   return (
