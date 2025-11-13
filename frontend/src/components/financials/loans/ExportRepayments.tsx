@@ -2,37 +2,29 @@ import { FC } from "react";
 import { Button } from "antd";
 import { DownloadOutlined } from "@ant-design/icons";
 import { useNotification } from "@/providers/NotificationProvider";
-import { useLazyExportClientFinancialsSheetQuery } from "@/app/api/endpoints/clients";
+import { useLazyExportRepaymentsSheetQuery } from "@/app/api/endpoints/loans";
 
-interface ExportClientFinancialsButtonProps {
+interface ExportRepaymentsButtonProps {
   client_name: string;
-  client_id: string;
-  year?: string;
-  type: "subscriptions" | "installments";
+  loan_id: string;
 }
 
-const ExportClientFinancialsButton: FC<ExportClientFinancialsButtonProps> = ({
+const ExportRepaymentsButton: FC<ExportRepaymentsButtonProps> = ({
   client_name,
-  client_id,
-  year = undefined,
-  type,
+  loan_id,
 }) => {
   const notification = useNotification();
   const [exportFinancials, { isFetching }] =
-    useLazyExportClientFinancialsSheetQuery();
+    useLazyExportRepaymentsSheetQuery();
 
   const handleExport = async () => {
     const { data, error } = await exportFinancials({
-      client_id,
-      year,
-      type: type,
+      loan_id,
     });
 
     if (error || !data) {
       notification.error({
-        message: `حدث خطأ أثناء تصدير ${
-          type === "subscriptions" ? "الاشتراكات" : "سجل الأقساط"
-        }`,
+        message: `حدث خطأ أثناء تصدير سجل دفع القرض`,
       });
       return;
     }
@@ -41,17 +33,12 @@ const ExportClientFinancialsButton: FC<ExportClientFinancialsButtonProps> = ({
     const blobUrl = window.URL.createObjectURL(data);
     const link = document.createElement("a");
     link.href = blobUrl;
-    link.download =
-      type === "subscriptions"
-        ? `سجل_اشتراكات_${year}_${client_name.replace(/ /g, "_")}.xlsx`
-        : `سجل_أقساط_${client_name.replace(/ /g, "_")}.xlsx`;
+    link.download = `سجل_دفع_قرض_${client_name.replace(/ /g, "_")}.xlsx`;
     link.click();
     window.URL.revokeObjectURL(blobUrl);
 
     notification.success({
-      message: `تم تصدير ${
-        type === "subscriptions" ? "الاشتراكات" : "سجل الأقساط"
-      } بنجاح`,
+      message: `تم تصدير سجل دفع القرض بنجاح`,
     });
   };
 
@@ -66,9 +53,9 @@ const ExportClientFinancialsButton: FC<ExportClientFinancialsButtonProps> = ({
           hover:to-green-500 shadow-[0_2px_0_rgba(0,58,58,0.31)]
           transition-all duration-200"
     >
-      تصدير {type === "subscriptions" ? "اشتراكات السنة" : "سجل الأقساط"}
+      تصدير سجل دفع القرض
     </Button>
   );
 };
 
-export default ExportClientFinancialsButton;
+export default ExportRepaymentsButton;

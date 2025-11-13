@@ -57,6 +57,19 @@ export const loansEndpoints = api.injectEndpoints({
         }
       },
     }),
+
+    exportRepaymentsSheet: builder.query<
+      Blob,
+      {
+        loan_id: string;
+      }
+    >({
+      query: ({ loan_id }) => ({
+        url: `/financials/loans/${loan_id}/export_repayments/`,
+        method: "GET",
+        responseType: "blob",
+      }),
+    }),
   }),
 });
 
@@ -65,4 +78,5 @@ export const {
   useLazyGetLoansQuery,
   useGetLoanQuery,
   useLoanMutation,
+  useLazyExportRepaymentsSheetQuery,
 } = loansEndpoints;

@@ -9,6 +9,7 @@ from django.utils.dateparse import parse_date
 from rest_framework.viewsets import ModelViewSet
 
 from association.rest_framework_utils.custom_pagination import CustomPageNumberPagination
+from association.utils import clean_excel_name
 from clients.models import Client
 from .resources import fieldLabels
 from .serializers import BankAccountSerializer, TransactionTypeSerializer, FinancialRecordReadSerializer, \
@@ -273,6 +274,54 @@ class LoanViewSet(ModelViewSet):
             queryset = queryset.order_by(f"{order}{sort_by}")
 
         return queryset
+
+    @action(detail=True, methods=["get"])
+    def export_repayments(self, request, pk=None):
+        try:
+            loan = Loan.objects.get(pk=pk)
+        except Loan.DoesNotExist:
+            return Response({"detail": "Loan not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        # 🔹 Query all repayments for the given client and year
+        repayments = (
+            Repayment.objects.filter(loan=loan)
+            .values_list("due_date", "amount", "status", "paid_at", "notes")
+            .order_by("due_date")
+        )
+
+        # 🔹 Create Excel workbook
+        wb = openpyxl.Workbook()
+        ws = wb.active
+        ws.title = clean_excel_name(f"سجل دفع قرض - {loan.client.name}")
+        ws.sheet_view.rightToLeft = True
+
+        # Headers
+        ws.cell(row=1, column=1, value="تاريخ الاستحقاق")
+        ws.cell(row=1, column=2, value="المبلغ")
+        ws.cell(row=1, column=3, value="الحالة")
+        ws.cell(row=1, column=4, value="تاريخ الدفع")
+        ws.cell(row=1, column=5, value="ملاحظات")
+
+        # Data rows
+        for row_num, (due_date, amount, repayment_status, paid_at, notes) in enumerate(repayments, start=2):
+            ws.cell(row=row_num, column=1, value=due_date.strftime("%Y-%m"))
+            ws.cell(row=row_num, column=2, value=amount)
+            ws.cell(row=row_num, column=3, value=repayment_status)
+            ws.cell(row=row_num, column=4, value=paid_at or "-")
+            ws.cell(row=row_num, column=5, value=notes or "-")
+
+        # Save to in-memory buffer
+        output = BytesIO()
+        wb.save(output)
+        output.seek(0)
+
+        # Return as downloadable file
+        return FileResponse(
+            output,
+            as_attachment=True,
+            filename=f"سجل دفع قرض - {loan.client.name}.xlsx",
+            content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        )
 
 
 class RepaymentViewSet(ModelViewSet):

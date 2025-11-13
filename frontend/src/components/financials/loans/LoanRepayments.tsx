@@ -21,11 +21,14 @@ import {
 } from "@/app/api/endpoints/repayments";
 import { Repayment } from "@/types/repayment";
 import { usePermission } from "@/providers/PermissionProvider";
+import ExportRepaymentsButton from "./ExportRepayments";
 
 const LoanRepaymentHistory = ({
+  client_name,
   loan_id,
   is_active,
 }: {
+  client_name: string;
   loan_id: string;
   is_active: boolean;
 }) => {
@@ -238,6 +241,12 @@ const LoanRepaymentHistory = ({
           <p className="text-gray-500 text-sm">يرجى إعادة المحاولة لاحقًا</p>
         </div>
       )}
+
+      <div className="flex justify-end mb-4 w-full">
+        {isSuccess && repaymentsList.length > 0 && (
+          <ExportRepaymentsButton client_name={client_name} loan_id={loan_id} />
+        )}
+      </div>
 
       {isSuccess && repaymentsList && (
         <Table
