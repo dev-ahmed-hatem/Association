@@ -30,13 +30,13 @@ export default function PrintClientsButton({
           <style>
             body {
               font-family: "Cairo", sans-serif;
-              padding: 40px;
+              padding: 20px;
               direction: rtl;
             }
             header {
               display: flex;
               align-items: center;
-              justify-content: space-between;
+              justify-content: center;
               border-bottom: 2px solid #ccc;
               padding: 1rem;
               margin-bottom: 10px;
@@ -77,6 +77,47 @@ export default function PrintClientsButton({
               height: 60px;
               animation: spin 1s linear infinite;
             }
+
+            footer {
+              margin-top: 15px;
+              border-top: 2px solid #ccc;
+              padding: 10px 20px;
+              font-size: 14px;
+              color: #333;
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              gap: 12px;
+              background: #f5f5f5;
+            }
+
+            .footer-logo {
+              display: flex;
+              align-items: center;
+              gap: 12px;
+              color: #1a1a4c;
+              font-weight: 800;
+            }
+
+            .footer-logo img {
+              height: 3rem;
+              width: 3rem;
+              border-radius: 50%;
+              border: 1px solid #1a1a4c;
+            }
+
+            .footer-text h3 {
+              margin: 0;
+              color: #1a1a4c;
+              font-size: 16px;
+            }
+
+            .footer-text p {
+              margin: 0;
+              font-size: 13px;
+              color: #666;
+            }
+
             @keyframes spin {
               0% { transform: rotate(0deg); }
               100% { transform: rotate(360deg); }
@@ -129,11 +170,11 @@ export default function PrintClientsButton({
       <header>
         <div style="display:flex;align-items:center;gap:10px">
           <img src="/logo.jpeg" class="logo" alt="Logo" />
-          <div>
-            <h1>قائمة الأعضاء</h1>
+          <div style="display:flex;flex-direction:column;justify-content:center;gap:4px;padding-top:12px">
+            <h1>جمعية التكافل الاجتماعي</h1>
+            <p style="text-align:center;">قائمة الأعضاء</p>
           </div>
         </div>
-        <div>${new Date().toLocaleDateString("en-CA")}</div>
       </header>
 
       <table>
@@ -166,6 +207,17 @@ export default function PrintClientsButton({
             .join("")}
         </tbody>
       </table>
+
+      <footer>
+        <div class="footer-logo">
+          <img src="/logo.jpeg" alt="Logo" />
+          <h3>جمعية التكافل الاجتماعي</h3>
+        </div>
+        <div class="footer-text">
+          <p>إجمالي النتائج: ${(clients as Client[]).length}</p>
+          <p>تاريخ المستخرج: ${new Date().toLocaleDateString("ar-EG")}</p>
+        </div>
+      </footer>
     `;
 
     printWindow.focus();
