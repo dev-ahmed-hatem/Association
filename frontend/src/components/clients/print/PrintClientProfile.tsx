@@ -115,11 +115,13 @@ export default function PrintClientProfileButton({
       }
 
       .profile-header {
-        background: linear-gradient(to right, var(--secondary), #6a82fb);
+        background: linear-gradient(to left, #1d2f85, #3c4fb0);
         color: white;
         padding: 25px 30px;
         display: flex;
         justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 20px;
         align-items: center;
       }
 
@@ -149,7 +151,7 @@ export default function PrintClientProfileButton({
         font-size: 0.95rem;
       }
 
-      .membership-badge {
+      .badge {
         background: white;
         color: var(--primary);
         padding: 8px 20px;
@@ -160,17 +162,11 @@ export default function PrintClientProfileButton({
         gap: 8px;
       }
 
-      .seniority-badge {
-        background: linear-gradient(to right, #ff9a3c, #ff6b6b);
-        color: white;
-        padding: 8px 20px;
-        border-radius: 30px;
-        font-weight: 600;
+      .badges {
         display: flex;
         align-items: center;
-        gap: 8px;
-        margin-top: 10px;
-        box-shadow: 0 2px 8px rgba(255, 107, 107, 0.3);
+        justify-content: center;
+        gap: 12px;
       }
 
       .profile-content {
@@ -346,13 +342,15 @@ export default function PrintClientProfileButton({
             <p>عضو في جمعية التكافل الاجتماعي</p>
           </div>
         </div>
-        <div class="membership-badge">
-          <i class="far fa-id-card"></i>
-          رقم العضوية: ${client.membership_number ?? "-"}
-        </div>
-        <div class="seniority-badge">
-          <i class="fas fa-star"></i>
-          رقم الأقدمية: ${client.seniority ?? "-"}
+        <div class="badges">
+          <div class="badge">
+            <i class="far fa-id-card"></i>
+            رقم العضوية: ${client.membership_number ?? "-"}
+          </div>
+          <div class="badge">
+            <i class="fas fa-star"></i>
+            رقم الأقدمية: ${client.seniority ?? "-"}
+          </div>
         </div>
       </div>
 
@@ -525,14 +523,12 @@ export default function PrintClientProfileButton({
 
       `);
 
-    // printWindow.focus();
-    // printWindow.onload = () => {
-
-    // }
-    // printWindow.onafterprint = () => {
-    //   setTimeout(() => printWindow.close(), 500);
-    // };
-    // printWindow.print();
+    printWindow.focus();
+    printWindow.onload = () => {};
+    printWindow.onafterprint = () => {
+      setTimeout(() => printWindow.close(), 500);
+    };
+    printWindow.print();
   };
 
   return (
