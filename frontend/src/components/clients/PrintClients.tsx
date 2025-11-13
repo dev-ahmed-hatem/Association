@@ -169,8 +169,12 @@ export default function PrintClientsButton({
     `;
 
     printWindow.focus();
+    printWindow.onafterprint = () => {
+      setTimeout(() => {
+        printWindow.close();
+      }, 500); // Prevent asset flicker in parent
+    };
     printWindow.print();
-    printWindow.close();
   };
 
   return (
