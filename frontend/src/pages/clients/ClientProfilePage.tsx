@@ -123,6 +123,7 @@ const ClientProfilePage: React.FC = () => {
         key: "5",
         children: (
           <InstallmentsHistory
+            client_name={client!.name}
             client_id={client!.id}
             subscription_fee={client!.subscription_fee}
             prepaid={client!.prepaid}

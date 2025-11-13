@@ -9,6 +9,7 @@ from rest_framework.decorators import action, api_view
 from rest_framework.response import Response
 from rest_framework import status
 
+from association.utils import clean_excel_name
 from financials.models import Installment, Subscription, FinancialRecord, TransactionType, Loan
 from .models import Client, WorkEntity, RankChoices
 from .serializers import WorkEntitySerializer, ClientListSerializer, ClientReadSerializer, ClientWriteSerializer, \
@@ -215,11 +216,11 @@ class ClientViewSet(ModelViewSet):
 
         months_dict = dict(subscriptions)
 
-        total_months = [(f"{month}/2025", months_dict.get(month, Decimal("0.00"))) for month in range(1, 13)]
+        total_months = [(f"{year}-{month}", months_dict.get(month, Decimal("0.00"))) for month in range(1, 13)]
 
         wb = openpyxl.Workbook()
         ws = wb.active
-        ws.title = f"سجل اشتراكات سنة {year} - {client.name}"
+        ws.title = clean_excel_name(f"سجل اشتراكات سنة {year} - {client.name}")
         ws.sheet_view.rightToLeft = True
 
         ws.cell(row=1, column=1, value="الشهر")
@@ -239,6 +240,52 @@ class ClientViewSet(ModelViewSet):
             as_attachment=True,
             filename=f"سجل اشتراكات سنة {year} - {client.name}.xlsx",
             content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
+
+    @action(detail=True, methods=["get"])
+    def export_installments(self, request, pk=None):
+        try:
+            client = Client.objects.get(pk=pk)
+        except Client.DoesNotExist:
+            return Response({"detail": "Client not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        # 🔹 Query all installments for the given client and year
+        installments = (
+            Installment.objects.filter(client=client)
+            .values_list("due_date", "amount", "status", "paid_at")
+            .order_by("due_date")
+        )
+
+        # 🔹 Create Excel workbook
+        wb = openpyxl.Workbook()
+        ws = wb.active
+        ws.title = clean_excel_name(f"سجل الأقساط - {client.name}")
+        ws.sheet_view.rightToLeft = True
+
+        # Headers
+        ws.cell(row=1, column=1, value="تاريخ الاستحقاق")
+        ws.cell(row=1, column=2, value="القيمة")
+        ws.cell(row=1, column=3, value="الحالة")
+        ws.cell(row=1, column=4, value="تاريخ الدفع")
+
+        # Data rows
+        for row_num, (due_date, amount, installment_status, paid_at) in enumerate(installments, start=2):
+            ws.cell(row=row_num, column=1, value=due_date.strftime("%Y-%m"))
+            ws.cell(row=row_num, column=2, value=amount if installment_status == Installment.Status.PAID else "-")
+            ws.cell(row=row_num, column=3, value=installment_status)
+            ws.cell(row=row_num, column=4, value=paid_at or "-")
+
+        # Save to in-memory buffer
+        output = BytesIO()
+        wb.save(output)
+        output.seek(0)
+
+        # Return as downloadable file
+        return FileResponse(
+            output,
+            as_attachment=True,
+            filename=f"سجل الأقساط - {client.name}.xlsx",
+            content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         )
 
 

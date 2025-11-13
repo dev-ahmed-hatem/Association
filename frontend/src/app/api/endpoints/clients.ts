@@ -99,11 +99,11 @@ export const clientsEndpoints = api.injectEndpoints({
         responseType: "blob",
       }),
     }),
-    exportClientYearSubsSheet: builder.query<
+    exportClientFinancialsSheet: builder.query<
       Blob,
       {
         client_id: string;
-        year: string;
+        year?: string;
         type: "subscriptions" | "installments";
       }
     >({
@@ -126,5 +126,5 @@ export const {
   useGetHomeStatsQuery,
   useGetHomeFinancialStatsQuery,
   useLazyExportClientsSheetQuery,
-  useLazyExportClientYearSubsSheetQuery,
+  useLazyExportClientFinancialsSheetQuery,
 } = clientsEndpoints;

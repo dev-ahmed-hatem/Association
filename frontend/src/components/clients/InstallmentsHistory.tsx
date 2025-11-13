@@ -20,16 +20,18 @@ import type { ColumnsType } from "antd/es/table";
 import { useEffect, useState } from "react";
 import Loading from "../Loading";
 import { useNotification } from "@/providers/NotificationProvider";
-import { Link } from "react-router";
 import { dayjs } from "@/utils/locale";
 import { Client } from "@/types/client";
 import { usePermission } from "@/providers/PermissionProvider";
+import ExportClientFinancialsButton from "./export/ExportClientFinancials";
 
 const InstallmentsHistory = ({
+  client_name,
   client_id,
   subscription_fee,
   prepaid,
 }: {
+  client_name: string;
   client_id: string;
   subscription_fee: number;
   prepaid: Client["prepaid"];
@@ -273,6 +275,16 @@ const InstallmentsHistory = ({
           <p className="text-gray-500 text-sm">يرجى إعادة المحاولة لاحقًا</p>
         </div>
       )}
+
+      <div className="flex justify-end mb-4 w-full">
+        {isSuccess && installments.length > 0 && (
+          <ExportClientFinancialsButton
+            client_name={client_name}
+            client_id={client_id}
+            type="installments"
+          />
+        )}
+      </div>
 
       {/* Installments Table */}
       {isSuccess && installments.length > 0 ? (

@@ -21,7 +21,7 @@ import { textify } from "@/utils";
 import Loading from "../Loading";
 import { useNotification } from "@/providers/NotificationProvider";
 import { usePermission } from "@/providers/PermissionProvider";
-import ExportSubscriptionsButton from "./export/ExportSubscriptions";
+import ExportClientFinancialsButton from "./export/ExportClientFinancials";
 
 const SubscriptionHistory = ({
   client_name,
@@ -274,6 +274,7 @@ const SubscriptionHistory = ({
           justifyContent: "space-between",
           marginBottom: 16,
         }}
+        className="flex flex-wrap"
       >
         <DatePicker
           picker="year"
@@ -291,10 +292,11 @@ const SubscriptionHistory = ({
         />
 
         {isSuccess && subscriptions && (
-          <ExportSubscriptionsButton
+          <ExportClientFinancialsButton
             client_name={client_name}
             client_id={client_id}
             year={selectedYear.year().toString()}
+            type="subscriptions"
           />
         )}
       </Space>
