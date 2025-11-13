@@ -516,26 +516,26 @@ export default function PrintClientProfileButton({
 
     fa.onload = () => {
       // Icons ready → print safely
-      // window.print();
+      window.print();
     };
 
-    // document.head.appendChild(fa);
+    document.head.appendChild(fa);
 
-    // window.onafterprint = () => {
-    //   setTimeout(() => window.close(), 500);
-    // };
+    window.onafterprint = () => {
+      setTimeout(() => window.close(), 500);
+    };
   </script>
 </html>
 
       `);
 
     printWindow.focus();
-    printWindow.onafterprint = () => {
-      setTimeout(() => printWindow.close(), 500);
-    };
-    printWindow.document.onload = () => {
-      printWindow.print();
-    };
+    // printWindow.onafterprint = () => {
+    //   setTimeout(() => printWindow.close(), 500);
+    // };
+    // printWindow.document.onload = () => {
+    //   printWindow.print();
+    // };
     // printWindow.print();
   };
 
