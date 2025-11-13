@@ -212,11 +212,28 @@ class ClientViewSet(ModelViewSet):
             return Response({"detail": "Client not found"}, status=status.HTTP_404_NOT_FOUND)
 
         subscriptions = Subscription.objects.filter(client=client, date__year=year).annotate(
-            month=ExtractMonth("date")).values_list("month", "amount")
+            month=ExtractMonth("date")).values_list("month", "amount", "paid_at", "notes")
 
-        months_dict = dict(subscriptions)
+        months_dict = {
+            month: {
+                "amount": amount or Decimal("0.00"),
+                "paid_at": paid_at,
+                "notes": notes or "",
+            }
+            for month, amount, paid_at, notes in subscriptions
+        }
 
-        total_months = [(f"{year}-{month}", months_dict.get(month, Decimal("0.00"))) for month in range(1, 13)]
+        total_months = []
+        for month in range(1, 13):
+            record = months_dict.get(month, {
+                "amount": Decimal("0.00"),
+                "paid_at": "-",
+                "notes": "-",
+            })
+            total_months.append({
+                "month": f"{year}-{month}",
+                **record,
+            })
 
         wb = openpyxl.Workbook()
         ws = wb.active
@@ -224,12 +241,16 @@ class ClientViewSet(ModelViewSet):
         ws.sheet_view.rightToLeft = True
 
         ws.cell(row=1, column=1, value="الشهر")
-        ws.cell(row=1, column=2, value="المدفوع")
+        ws.cell(row=1, column=2, value="المبلغ")
+        ws.cell(row=1, column=3, value="تاريخ الدفع")
+        ws.cell(row=1, column=4, value="ملاحظات")
 
         # Write rows
         for row_num, item in enumerate(total_months, start=2):
-            ws.cell(row=row_num, column=1, value=item[0])
-            ws.cell(row=row_num, column=2, value=str(float(item[1])))
+            ws.cell(row=row_num, column=1, value=item["month"])
+            ws.cell(row=row_num, column=2, value=str(float(item["amount"])))
+            ws.cell(row=row_num, column=3, value=item["paid_at"])
+            ws.cell(row=row_num, column=4, value=item["notes"])
 
         output = BytesIO()
         wb.save(output)
@@ -252,7 +273,7 @@ class ClientViewSet(ModelViewSet):
         # 🔹 Query all installments for the given client and year
         installments = (
             Installment.objects.filter(client=client)
-            .values_list("due_date", "amount", "status", "paid_at")
+            .values_list("due_date", "amount", "status", "paid_at", "notes")
             .order_by("due_date")
         )
 
@@ -267,13 +288,15 @@ class ClientViewSet(ModelViewSet):
         ws.cell(row=1, column=2, value="القيمة")
         ws.cell(row=1, column=3, value="الحالة")
         ws.cell(row=1, column=4, value="تاريخ الدفع")
+        ws.cell(row=1, column=5, value="ملاحظات")
 
         # Data rows
-        for row_num, (due_date, amount, installment_status, paid_at) in enumerate(installments, start=2):
+        for row_num, (due_date, amount, installment_status, paid_at, notes) in enumerate(installments, start=2):
             ws.cell(row=row_num, column=1, value=due_date.strftime("%Y-%m"))
             ws.cell(row=row_num, column=2, value=amount if installment_status == Installment.Status.PAID else "-")
             ws.cell(row=row_num, column=3, value=installment_status)
             ws.cell(row=row_num, column=4, value=paid_at or "-")
+            ws.cell(row=row_num, column=5, value=notes or "-")
 
         # Save to in-memory buffer
         output = BytesIO()
