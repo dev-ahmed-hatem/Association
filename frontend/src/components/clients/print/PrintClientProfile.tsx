@@ -506,32 +506,16 @@ export default function PrintClientProfileButton({
       </div>
     </footer>
   </div>
-  <script>
-    // Load Font Awesome properly before printing
-    const fa = document.createElement("link");
-    fa.rel = "stylesheet";
-    fa.href = "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css";
-
-    fa.onload = () => {
-      // Icons ready → print safely
-      window.print();
-    };
-
-    document.head.appendChild(fa);
-
-    window.onafterprint = () => {
-      setTimeout(() => window.close(), 500);
-    };
-  </script>
   </body>
 </html>
 
       `);
 
-    // printWindow.focus();
-    // printWindow.onafterprint = () => {
-    //   setTimeout(() => printWindow.close(), 500);
-    // };
+    printWindow.focus();
+    printWindow.onafterprint = () => {
+      setTimeout(() => printWindow.close(), 500);
+    };
+    printWindow.document.fonts.ready.then(() => window.print());
     // printWindow.print();
   };
 
