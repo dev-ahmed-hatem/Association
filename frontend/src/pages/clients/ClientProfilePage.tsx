@@ -24,6 +24,7 @@ import InstallmentsHistory from "@/components/clients/InstallmentsHistory";
 import LoansHistory from "@/components/clients/LoansHistory";
 import { usePermission } from "@/providers/PermissionProvider";
 import { TabsProps } from "antd/lib";
+import PrintClientProfileButton from "@/components/clients/print/PrintClientProfile";
 
 const ClientProfilePage: React.FC = () => {
   const { can } = usePermission();
@@ -280,6 +281,8 @@ const ClientProfilePage: React.FC = () => {
 
         {/* Action Button */}
         <div className="btn-wrapper flex md:justify-end mt-4 flex-wrap gap-4">
+          {can("clients.view") && <PrintClientProfileButton client={client!} />}
+
           {can("clients.edit") && (
             <Button
               type="primary"

@@ -13,7 +13,7 @@ import { useGetWorkEntitiesQuery } from "@/app/api/endpoints/workentities";
 import { SortOrder } from "antd/lib/table/interface";
 import { usePermission } from "@/providers/PermissionProvider";
 import ExportClients from "@/components/clients/export/ExportClients";
-import PrintClientsButton from "@/components/clients/PrintClients";
+import PrintClientsButton from "@/components/clients/print/PrintClients";
 
 export type ControlsType = {
   sort_by?: string;

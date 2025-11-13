@@ -26,13 +26,18 @@ export default function PrintClientsButton({
     printWindow.document.write(`<html dir="rtl" lang="ar">
         <head>
           <title>قائمة الأعضاء</title>
-          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/antd/5.11.0/reset.min.css" />
           <style>
+            * {
+              margin: 0;
+              padding: 0;
+              box-sizing: border-box;
+            }
             body {
               font-family: "Cairo", sans-serif;
               padding: 20px;
               direction: rtl;
             }
+
             header {
               display: flex;
               align-items: center;
@@ -50,9 +55,12 @@ export default function PrintClientsButton({
               border-radius: 50%;
               background-color: white;
             }
+            header p {
+              font-size: 20px;
+            }
             h1 {
               margin: 0;
-              font-size: 22px;
+              font-size: 24px;
             }
             table {
               width: 100%;
@@ -170,7 +178,7 @@ export default function PrintClientsButton({
       <header>
         <div style="display:flex;align-items:center;gap:10px">
           <img src="/logo.jpeg" class="logo" alt="Logo" />
-          <div style="display:flex;flex-direction:column;justify-content:center;gap:4px;padding-top:12px">
+          <div style="display:flex;flex-direction:column;justify-content:center;padding-top:10px">
             <h1>جمعية التكافل الاجتماعي</h1>
             <p style="text-align:center;">قائمة الأعضاء</p>
           </div>
