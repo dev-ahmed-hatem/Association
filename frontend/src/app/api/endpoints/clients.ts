@@ -119,6 +119,7 @@ export const clientsEndpoints = api.injectEndpoints({
 
 export const {
   useGetClientsQuery,
+  useLazyGetClientsQuery,
   useGetClientQuery,
   useClientMutation,
   useSwitchClientActiveMutation,

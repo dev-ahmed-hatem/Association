@@ -13,6 +13,7 @@ import { useGetWorkEntitiesQuery } from "@/app/api/endpoints/workentities";
 import { SortOrder } from "antd/lib/table/interface";
 import { usePermission } from "@/providers/PermissionProvider";
 import ExportClients from "@/components/clients/export/ExportClients";
+import PrintClientsButton from "@/components/clients/PrintClients";
 
 export type ControlsType = {
   sort_by?: string;
@@ -294,8 +295,17 @@ const ClientsList = () => {
       </div>
 
       {clients?.data && clients?.data.length > 0 && (
-        <div className="my-4 flex justify-end">
-          <ExportClients controls={controls}  search={search} searchType={searchType} />
+        <div className="my-4 flex justify-end gap-2 flex-wrap">
+          <ExportClients
+            controls={controls}
+            search={search}
+            searchType={searchType}
+          />
+          <PrintClientsButton
+            controls={controls}
+            search={search}
+            searchType={searchType}
+          />
         </div>
       )}
 
