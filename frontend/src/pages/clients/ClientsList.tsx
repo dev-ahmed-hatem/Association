@@ -12,7 +12,7 @@ import { PaginatedResponse } from "@/types/paginatedResponse";
 import { useGetWorkEntitiesQuery } from "@/app/api/endpoints/workentities";
 import { SortOrder } from "antd/lib/table/interface";
 import { usePermission } from "@/providers/PermissionProvider";
-import ExportClients from "@/components/clients/ExportClients";
+import ExportClients from "@/components/clients/export/ExportClients";
 
 export type ControlsType = {
   sort_by?: string;

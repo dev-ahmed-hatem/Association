@@ -108,6 +108,7 @@ const ClientProfilePage: React.FC = () => {
         key: "4",
         children: (
           <SubscriptionHistory
+            client_name={client!.name}
             client_id={client!.id}
             subscription_date={client!.subscription_date}
             is_active={client!.is_active}

@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 import openpyxl
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
@@ -188,6 +190,54 @@ class ClientViewSet(ModelViewSet):
             output,
             as_attachment=True,
             filename="الأعضاء.xlsx",
+            content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
+
+    @action(detail=True, methods=["get"])
+    def export_subscriptions(self, request, pk=None):
+        year = request.query_params.get("year", None)
+
+        if not year:
+            return Response({"detail": "Select Year"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            year = int(year)
+        except ValueError:
+            return Response({"detail": "Invalid year format"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            client = Client.objects.get(pk=pk)
+        except Client.DoesNotExist:
+            return Response({"detail": "Client not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        subscriptions = Subscription.objects.filter(client=client, date__year=year).annotate(
+            month=ExtractMonth("date")).values_list("month", "amount")
+
+        months_dict = dict(subscriptions)
+
+        total_months = [(f"{month}/2025", months_dict.get(month, Decimal("0.00"))) for month in range(1, 13)]
+
+        wb = openpyxl.Workbook()
+        ws = wb.active
+        ws.title = f"سجل اشتراكات سنة {year} - {client.name}"
+        ws.sheet_view.rightToLeft = True
+
+        ws.cell(row=1, column=1, value="الشهر")
+        ws.cell(row=1, column=2, value="المدفوع")
+
+        # Write rows
+        for row_num, item in enumerate(total_months, start=2):
+            ws.cell(row=row_num, column=1, value=item[0])
+            ws.cell(row=row_num, column=2, value=str(float(item[1])))
+
+        output = BytesIO()
+        wb.save(output)
+        output.seek(0)
+
+        return FileResponse(
+            output,
+            as_attachment=True,
+            filename=f"سجل اشتراكات سنة {year} - {client.name}.xlsx",
             content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
 

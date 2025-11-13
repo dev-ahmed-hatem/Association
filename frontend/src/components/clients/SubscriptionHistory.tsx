@@ -20,15 +20,17 @@ import {
 import { textify } from "@/utils";
 import Loading from "../Loading";
 import { useNotification } from "@/providers/NotificationProvider";
-import { Link } from "react-router";
 import { usePermission } from "@/providers/PermissionProvider";
+import ExportSubscriptionsButton from "./export/ExportSubscriptions";
 
 const SubscriptionHistory = ({
+  client_name,
   client_id,
   subscription_date,
   is_active,
   rank_fee,
 }: {
+  client_name: string;
   client_id: string;
   subscription_date: string;
   is_active: boolean;
@@ -287,6 +289,14 @@ const SubscriptionHistory = ({
           disabled={isFetching}
           allowClear={false}
         />
+
+        {isSuccess && subscriptions && (
+          <ExportSubscriptionsButton
+            client_name={client_name}
+            client_id={client_id}
+            year={selectedYear.year().toString()}
+          />
+        )}
       </Space>
 
       {isFetching && <Loading />}
